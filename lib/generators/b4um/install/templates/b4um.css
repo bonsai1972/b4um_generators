@@ -132,3 +132,96 @@ a img {
 .field_with_errors {
   display: contents;
 }
+
+.resource {
+  margin: 20px 0;
+}
+
+.resource-field {
+  margin: 10px 0;
+}
+
+.resource-label {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.resource-value {
+  overflow-wrap: anywhere;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 20px 0;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.resource-list {
+  margin: 20px 0;
+}
+
+.resource-list-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #dddddd;
+}
+
+.resource-list-item:last-child {
+  border-bottom: none;
+}
+
+.resource-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 10px;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary {
+  background-color: #2e47d2;
+  border-color: #2e47d2;
+  color: #ffffff;
+}
+
+.button--primary:visited {
+  color: #ffffff;
+}
+
+.button--secondary {
+  background-color: #ffffff;
+  border-color: #2e47d2;
+  color: #2e47d2;
+}
+
+.button--secondary:visited {
+  color: #2e47d2;
+}
+
+.button--danger {
+  background-color: #cc0000;
+  border-color: #cc0000;
+  color: #ffffff;
+}
+
+.button--danger:visited {
+  color: #ffffff;
+}
+
+.button--danger:hover {
+  background-color: #990000;
+  border-color: #990000;
+}

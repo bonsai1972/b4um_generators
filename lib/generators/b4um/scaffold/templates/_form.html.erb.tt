@@ -15,8 +15,16 @@
   <%% end %>
 
 <% attributes.each do |attribute| -%>
-<% next if attribute.name == "password_digest" -%>
-<% if attribute.name.match?(/(?:^|_)email(?:_|$)/) -%>
+<% if attribute.name == "password_digest" -%>
+  <div class="form-field">
+    <%%= form.label :password, class: "form-label" %>
+    <%%= form.password_field :password, class: "form-input" %>
+  </div>
+  <div class="form-field">
+    <%%= form.label :password_confirmation, class: "form-label" %>
+    <%%= form.password_field :password_confirmation, class: "form-input" %>
+  </div>
+<% elsif attribute.name.match?(/(?:^|_)email(?:_|$)/) -%>
   <div class="form-field">
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
     <%%= form.email_field :<%= attribute.name %>, class: "form-input" %>

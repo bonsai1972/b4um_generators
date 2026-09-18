@@ -14,21 +14,25 @@ module B4um
       end
 
       def update_application_layout
-        gsub_file "app/views/layouts/application.html.erb",
+        layout_path = "app/views/layouts/application.html.erb"
+
+        return if File.read(layout_path).include?('class="container"')
+
+        gsub_file layout_path,
                   "<body>",
                   <<~ERB.chomp
                     <body>
                       <main class="container">
                         <% flash.each do |type, message| %>
-                          <div class="flash flash--<%= type %>">
+                          <div class="flash <%= "flash--" + type.to_s %>">
                             <%= message %>
                           </div>
                         <% end %>
                   ERB
 
-        gsub_file "app/views/layouts/application.html.erb",
+        gsub_file layout_path,
                   "</body>",
-                  "    </main>\n  </body>"
+                  "</main>\n</body>"
       end
     end
   end

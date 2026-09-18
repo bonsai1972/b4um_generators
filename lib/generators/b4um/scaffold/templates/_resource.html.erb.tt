@@ -1,0 +1,12 @@
+<div id="<%%= dom_id <%= singular_table_name %> %>" class="resource">
+<% attributes.reject { |attribute| attribute.name == "password_digest" }.each do |attribute| -%>
+  <div class="resource-field">
+    <strong class="resource-label"><%= attribute.human_name %>:</strong>
+<% if attribute.type == :boolean -%>
+    <span class="resource-value"><%%= <%= singular_table_name %>.<%= attribute.name %> ? "Yes" : "No" %></span>
+<% else -%>
+    <span class="resource-value"><%%= <%= singular_table_name %>.<%= attribute.name %> %></span>
+<% end -%>
+  </div>
+<% end -%>
+</div>

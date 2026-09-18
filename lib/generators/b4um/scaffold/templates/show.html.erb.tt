@@ -1,0 +1,27 @@
+<%% content_for :title, "<%= singular_table_name.humanize %>" %>
+
+<div class="page-header">
+  <h1><%= singular_table_name.humanize %></h1>
+</div>
+
+<%%= render @<%= singular_table_name %> %>
+
+<div class="resource-actions">
+  <%%= link_to "Edit",
+              edit_<%= singular_route_name %>_path(@<%= singular_table_name %>),
+              class: "button button--secondary" %>
+
+  <%%= link_to "Back",
+              <%= plural_route_name %>_path,
+              class: "button button--secondary" %>
+
+  <%%= button_to "Destroy",
+                @<%= singular_table_name %>,
+                method: :delete,
+                class: "button button--danger",
+                form: {
+                  data: {
+                    turbo_confirm: "Are you sure?"
+                  }
+                } %>
+</div>
