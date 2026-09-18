@@ -1,0 +1,79 @@
+<%%= form_with(model: <%= singular_table_name %>, class: "form") do |form| %>
+  <%% if <%= singular_table_name %>.errors.any? %>
+    <div class="error-messages">
+      <h2>
+        <%%= pluralize(<%= singular_table_name %>.errors.count, "error") %>
+        prohibited this <%= singular_table_name %> from being saved:
+      </h2>
+
+      <ul>
+        <%% <%= singular_table_name %>.errors.each do |error| %>
+          <li><%%= error.full_message %></li>
+        <%% end %>
+      </ul>
+    </div>
+  <%% end %>
+
+<% attributes.each do |attribute| -%>
+<% next if attribute.name == "password_digest" -%>
+<% if attribute.name.match?(/(?:^|_)email(?:_|$)/) -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.email_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif attribute.name.match?(/(?:^|_)(?:password|password_confirmation)(?:_|$)/) -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.password_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif attribute.name.match?(/(?:^|_)(?:phone|telephone|mobile)(?:_|$)/) -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.telephone_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif attribute.name.match?(/(?:^|_)(?:url|website|homepage)(?:_|$)/) -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.url_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif attribute.type == :boolean -%>
+  <div class="form-field form-field--checkbox">
+    <%%= form.check_box :<%= attribute.name %>, class: "form-checkbox" %>
+    <%%= form.label :<%= attribute.name %>, class: "form-label form-label--checkbox" %>
+  </div>
+<% elsif attribute.type == :text -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.text_area :<%= attribute.name %>, class: "form-textarea" %>
+  </div>
+<% elsif [:integer, :float, :decimal].include?(attribute.type) -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.number_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif attribute.type == :date -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.date_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif [:datetime, :timestamp].include?(attribute.type) -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.datetime_local_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% elsif attribute.type == :time -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.time_field :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% else -%>
+  <div class="form-field">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.<%= attribute.field_type %> :<%= attribute.name %>, class: "form-input" %>
+  </div>
+<% end -%>
+<% end -%>
+  <div class="form-actions">
+    <%%= form.submit class: "form-submit" %>
+  </div>
+<%% end %>
