@@ -16,7 +16,7 @@ module B4um
       def update_application_layout
         layout_path = "app/views/layouts/application.html.erb"
 
-        return if File.read(layout_path).include?('class="container"')
+        return if File.read(File.join(destination_root, layout_path)).include?('class="container"')
 
         gsub_file layout_path,
                   "<body>",
