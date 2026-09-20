@@ -17,70 +17,201 @@
 <% attributes.each do |attribute| -%>
 <% if attribute.name == "password_digest" -%>
   <div class="form-field">
+    <%%= form.password_field :password,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :password, class: "form-label" %>
-    <%%= form.password_field :password, class: "form-input" %>
   </div>
+
   <div class="form-field">
+    <%%= form.password_field :password_confirmation,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :password_confirmation, class: "form-label" %>
-    <%%= form.password_field :password_confirmation, class: "form-input" %>
   </div>
+
 <% elsif attribute.name.match?(/(?:^|_)email(?:_|$)/) -%>
   <div class="form-field">
+    <%%= form.email_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.email_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif attribute.name.match?(/(?:^|_)(?:password|password_confirmation)(?:_|$)/) -%>
   <div class="form-field">
+    <%%= form.password_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.password_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif attribute.name.match?(/(?:^|_)(?:phone|telephone|mobile)(?:_|$)/) -%>
   <div class="form-field">
+    <%%= form.telephone_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.telephone_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif attribute.name.match?(/(?:^|_)(?:url|website|homepage)(?:_|$)/) -%>
   <div class="form-field">
+    <%%= form.url_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.url_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif attribute.type == :boolean -%>
   <div class="form-field form-field--checkbox">
     <%%= form.check_box :<%= attribute.name %>, class: "form-checkbox" %>
     <%%= form.label :<%= attribute.name %>, class: "form-label form-label--checkbox" %>
   </div>
+
 <% elsif attribute.type == :text -%>
-  <div class="form-field">
+  <div class="form-field form-field--textarea">
+    <%%= form.text_area :<%= attribute.name %>,
+          class: "form-textarea",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.text_area :<%= attribute.name %>, class: "form-textarea" %>
   </div>
+
 <% elsif [:integer, :float, :decimal].include?(attribute.type) -%>
   <div class="form-field">
+    <%%= form.number_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.number_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif attribute.type == :date -%>
   <div class="form-field">
+    <%%= form.date_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.date_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif [:datetime, :timestamp].include?(attribute.type) -%>
   <div class="form-field">
+    <%%= form.datetime_local_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.datetime_local_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
 <% elsif attribute.type == :time -%>
   <div class="form-field">
+    <%%= form.time_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.time_field :<%= attribute.name %>, class: "form-input" %>
   </div>
+
+<% elsif attribute.type == :attachment -%>
+  <div class="form-field form-field--file"
+       data-controller="image-preview">
+
+    <div class="form-file-control">
+      <%%= form.label :<%= attribute.name %>,
+            class: "form-file-label" %>
+
+      <%%= form.file_field :<%= attribute.name %>,
+            class: "form-file-input",
+            accept: "image/*",
+            data: {
+              image_preview_target: "input",
+              action: "change->image-preview#preview"
+            } %>
+    </div>
+
+    <div class="form-image-preview"
+         data-image-preview-target="container"
+         <%%= "hidden" unless <%= singular_table_name %>.<%= attribute.name %>.attached? %>>
+
+      <%% if <%= singular_table_name %>.<%= attribute.name %>.attached? %>
+        <%%= image_tag <%= singular_table_name %>.<%= attribute.name %>,
+                      class: "form-image-preview__image",
+                      alt: <%= singular_table_name %>.<%= attribute.name %>.filename.to_s,
+                      data: {
+                        image_preview_target: "image"
+                      } %>
+      <%% else %>
+        <img class="form-image-preview__image"
+             data-image-preview-target="image"
+             alt="Image preview">
+      <%% end %>
+    </div>
+  </div>
+
+<% elsif attribute.type == :attachments -%>
+  <div class="form-field form-field--file"
+       data-controller="image-preview">
+
+    <div class="form-file-control">
+      <%%= form.label :<%= attribute.name %>,
+            class: "form-file-label" %>
+
+      <%% <%= singular_table_name %>.<%= attribute.name %>.each do |image| %>
+        <%%= form.hidden_field :<%= attribute.name %>,
+                              multiple: true,
+                              value: image.signed_id %>
+      <%% end %>
+
+      <%%= form.file_field :<%= attribute.name %>,
+            class: "form-file-input",
+            accept: "image/*",
+            multiple: true,
+            data: {
+              image_preview_target: "input",
+              action: "change->image-preview#previewMultiple"
+            } %>
+    </div>
+
+    <div class="form-image-preview form-image-preview--multiple"
+         data-image-preview-target="container"
+         <%%= "hidden" unless <%= singular_table_name %>.<%= attribute.name %>.attached? %>>
+
+      <%% <%= singular_table_name %>.<%= attribute.name %>.each do |image| %>
+        <div class="form-image-preview__item"
+             role="button"
+             tabindex="0"
+             aria-pressed="false"
+             data-image-preview-target="existingItem"
+             data-action="click->image-preview#toggleRemoval keydown->image-preview#toggleRemovalWithKeyboard">
+
+          <%%= image_tag image,
+                        class: "form-image-preview__image",
+                        alt: image.filename.to_s %>
+
+          <%%= check_box_tag(
+                "<%= singular_table_name %>[remove_<%= attribute.name %>_ids][]",
+                image.id,
+                false,
+                class: "form-image-preview__remove-checkbox",
+                data: {
+                  image_preview_target: "removeCheckbox"
+                }
+              ) %>
+
+          <div class="form-image-preview__remove-status">
+            Will be removed
+          </div>
+        </div>
+      <%% end %>
+    </div>
+  </div>
+
 <% else -%>
   <div class="form-field">
+    <%%= form.<%= attribute.field_type %> :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " " %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
-    <%%= form.<%= attribute.field_type %> :<%= attribute.name %>, class: "form-input" %>
   </div>
 <% end -%>
 <% end -%>
+
   <div class="form-actions">
     <%%= form.submit class: "form-submit" %>
   </div>

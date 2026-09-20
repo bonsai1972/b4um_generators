@@ -1,0 +1,412 @@
+/* -------------------------------------------------------
+   Forms
+------------------------------------------------------- */
+
+.form {
+  width: 100%;
+}
+
+.form-field {
+  position: relative;
+
+  width: 100%;
+
+  margin: 18px 0;
+}
+
+.form-label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  z-index: 1;
+
+  padding: 0 5px;
+
+  background-color: var(--b4um-surface);
+  color: var(--b4um-text-muted);
+
+  line-height: 1;
+  pointer-events: none;
+
+  transform: translateY(-50%);
+  transform-origin: left center;
+
+  transition:
+    top 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  margin: 0;
+  padding: 1rem 1.15rem;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--b4um-border);
+  border-radius: 8px;
+
+  background-color: var(--b4um-surface);
+  color: var(--b4um-text);
+
+  font: inherit;
+
+  outline: none;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.form-input:hover,
+.form-textarea:hover {
+  border-color: var(--b4um-border-hover);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: var(--b4um-primary);
+  box-shadow: 0 0 0 3px var(--b4um-primary-soft);
+}
+
+.form-field:not(.form-field--checkbox):focus-within .form-label,
+.form-input:not(:placeholder-shown) + .form-label {
+  top: 0;
+
+  color: var(--b4um-primary);
+
+  transform: translateY(-50%) scale(0.82);
+}
+
+/* -------------------------------------------------------
+   Textareas
+------------------------------------------------------- */
+
+.form-textarea {
+  min-height: 10rem;
+  padding-top: 1.15rem;
+
+  resize: vertical;
+}
+
+.form-field--textarea .form-label {
+  top: 1.25rem;
+
+  transform: none;
+}
+
+.form-field--textarea:focus-within .form-label,
+.form-field--textarea .form-textarea:not(:placeholder-shown) + .form-label {
+  top: 0;
+
+  color: var(--b4um-primary);
+
+  transform: translateY(-50%) scale(0.82);
+}
+
+/* -------------------------------------------------------
+   File uploads
+------------------------------------------------------- */
+
+.form-field--file {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /*align-items: center;*/
+  gap: 1rem;
+
+  width: 100%;
+  padding: 12px 14px;
+  box-sizing: border-box;
+
+  border: 1px solid var(--b4um-border);
+  border-radius: 8px;
+
+  background-color: var(--b4um-surface);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.form-field--file:hover {
+  border-color: var(--b4um-border-hover);
+}
+
+.form-field--file:focus-within {
+  border-color: var(--b4um-primary);
+  box-shadow: 0 0 0 3px var(--b4um-primary-soft);
+}
+
+.form-file-label {
+  flex: 0 0 auto;
+
+  color: var(--b4um-text-secondary);
+  font-weight: 500;
+}
+
+.form-file-input {
+  min-width: 0;
+
+  color: var(--b4um-text-muted);
+  font: inherit;
+}
+
+.form-file-input::file-selector-button {
+  margin-right: 12px;
+  padding: 0.65rem 1rem;
+
+  border: 1px solid var(--b4um-primary);
+  border-radius: 7px;
+
+  background-color: var(--b4um-surface);
+  color: var(--b4um-primary);
+
+  font: inherit;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.form-file-input::file-selector-button:hover {
+  background-color: var(--b4um-surface-soft);
+  border-color: var(--b4um-primary-hover);
+  color: var(--b4um-primary-hover);
+
+  box-shadow: 0 3px 10px var(--b4um-primary-shadow-soft);
+}
+
+.form-file-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  width: 100%;
+}
+
+.form-image-preview {
+  margin-top: 12px;
+}
+
+.form-image-preview[hidden] {
+  display: none;
+}
+
+.form-image-preview--multiple {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.form-image-preview__image {
+  display: block;
+
+  width: 120px;
+  height: 90px;
+
+  border: 1px solid var(--b4um-border-light);
+  border-radius: 8px;
+
+  object-fit: contain;
+}
+
+.form-image-preview__item {
+  position: relative;
+
+  width: 120px;
+  height: 90px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.form-image-preview__item .form-image-preview__image {
+  width: 100%;
+  height: 100%;
+}
+
+.form-image-preview__remove-checkbox {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-image-preview__remove-status {
+  position: absolute;
+  inset: auto 5px 5px;
+
+  display: none;
+
+  padding: 4px 6px;
+
+  border-radius: 5px;
+
+  background-color: var(--b4um-danger);
+  color: var(--b4um-text-on-primary);
+
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-image-preview__item--removed .form-image-preview__image {
+  opacity: 0.28;
+}
+
+.form-image-preview__item--removed .form-image-preview__remove-status {
+  display: block;
+}
+
+/* -------------------------------------------------------
+   Checkboxes
+------------------------------------------------------- */
+
+.form-field--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  min-height: 32px;
+  margin: 18px 0;
+}
+
+.form-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 18px;
+  height: 18px;
+  margin: 0;
+
+  flex: 0 0 18px;
+
+  border: 1px solid var(--b4um-border-checkbox);
+  border-radius: 5px;
+
+  background-color: var(--b4um-surface);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
+}
+
+.form-checkbox:hover {
+  border-color: var(--b4um-primary);
+}
+
+.form-checkbox:checked {
+  border-color: var(--b4um-primary);
+  background-color: var(--b4um-primary);
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 8.5 6.5 12 13 4.5'/%3E%3C/svg%3E");
+
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+}
+
+.form-checkbox:focus-visible {
+  outline: none;
+
+  border-color: var(--b4um-primary);
+
+  box-shadow: 0 0 0 3px var(--b4um-primary-soft);
+}
+
+.form-checkbox:active {
+  transform: scale(0.94);
+}
+
+.form-label--checkbox {
+  position: static;
+
+  display: inline;
+  padding: 0;
+
+  background: none;
+  color: var(--b4um-text-checkbox);
+
+  line-height: 1.4;
+
+  transform: none;
+
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------
+   Form actions
+------------------------------------------------------- */
+
+.form-actions {
+  margin: 20px 0 10px;
+}
+
+/* -------------------------------------------------------
+   Validation errors
+------------------------------------------------------- */
+
+.error-messages {
+  width: 100%;
+  box-sizing: border-box;
+
+  margin-bottom: 20px;
+  padding: 0 0 12px;
+
+  border: 2px solid var(--b4um-danger-border);
+
+  background-color: var(--b4um-neutral-background);
+
+  font-size: 12px;
+}
+
+.error-messages h2 {
+  margin: 0;
+  padding: 5px 10px;
+
+  background-color: var(--b4um-danger);
+  color: var(--b4um-text-on-primary);
+
+  font-size: 12px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.error-messages p {
+  margin: 8px 10px;
+}
+
+.error-messages ul {
+  margin: 0;
+  padding-left: 30px;
+}
+
+.error-messages li {
+  margin: 5px 0;
+}
+
+.field_with_errors {
+  display: contents;
+}

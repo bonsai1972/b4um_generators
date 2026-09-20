@@ -1,0 +1,42 @@
+/* -------------------------------------------------------
+   Base
+------------------------------------------------------- */
+
+html {
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 100vh;
+  margin: 0;
+
+  background-color: var(--b4um-page-background);
+  color: var(--b4um-text);
+
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+.b4um-footer {
+  flex-shrink: 0;
+}
+
+a {
+  color: var(--b4um-link);
+}
+
+a:active,
+a:visited {
+  color: var(--b4um-link-visited);
+}
+
+a img {
+  border: none;
+}

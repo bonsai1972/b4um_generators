@@ -1,0 +1,31 @@
+<nav
+  class="navigation"
+  aria-label="Main navigation"
+  data-controller="navigation"
+>
+  <div class="navigation__inner">
+    <%= link_to "B4UM", "/", class: "navigation__brand" %>
+
+    <button
+      class="navigation__toggle"
+      type="button"
+      aria-label="Open navigation"
+      aria-expanded="false"
+      aria-controls="navigation-menu"
+      data-navigation-target="toggle"
+      data-action="click->navigation#toggle"
+    >
+      <span class="navigation__toggle-line"></span>
+      <span class="navigation__toggle-line"></span>
+      <span class="navigation__toggle-line"></span>
+    </button>
+
+    <div
+      class="navigation__menu"
+      id="navigation-menu"
+      data-navigation-target="menu"
+    >
+      <%# B4UM_NAVIGATION_LINKS %>
+    </div>
+  </div>
+</nav>

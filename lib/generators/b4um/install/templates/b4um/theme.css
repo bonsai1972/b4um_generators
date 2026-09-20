@@ -1,0 +1,54 @@
+/* -------------------------------------------------------
+   Theme
+------------------------------------------------------- */
+
+:root {
+  /* Backgrounds */
+  --b4um-page-background: #c2e7ff;
+  --b4um-surface: #ffffff;
+  --b4um-surface-soft: #f3f5ff;
+
+  /* Text */
+  --b4um-text: #222222;
+  --b4um-text-secondary: #555d6b;
+  --b4um-text-muted: #666666;
+  --b4um-text-checkbox: #333333;
+  --b4um-text-on-primary: #ffffff;
+
+  /* Primary color */
+  --b4um-primary: #2e47d2;
+  --b4um-primary-hover: #243bb8;
+  --b4um-primary-soft: rgba(46, 71, 210, 0.12);
+  --b4um-primary-focus: rgba(46, 71, 210, 0.22);
+
+  /* Links */
+  --b4um-link: #0000ff;
+  --b4um-link-visited: #2e47d2;
+
+  /* Borders */
+  --b4um-border: #b9bec8;
+  --b4um-border-hover: #8d95a3;
+  --b4um-border-checkbox: #aeb5c0;
+  --b4um-border-light: #e5e7eb;
+  --b4um-border-list: #dddddd;
+
+  /* Success */
+  --b4um-success-background: #ccffcc;
+  --b4um-success-border: #66cc66;
+
+  /* Danger */
+  --b4um-danger: #cc0000;
+  --b4um-danger-hover: #990000;
+  --b4um-danger-border: #cf0000;
+  --b4um-danger-soft-border: #cc6666;
+  --b4um-danger-background: #ffcccc;
+
+  /* Neutral */
+  --b4um-neutral-background: #f0f0f0;
+
+  /* Shadows */
+  --b4um-container-shadow: rgba(1, 1, 1, 0.7);
+  --b4um-primary-shadow: rgba(46, 71, 210, 0.22);
+  --b4um-primary-shadow-soft: rgba(46, 71, 210, 0.12);
+  --b4um-danger-shadow: rgba(204, 0, 0, 0.18);
+}

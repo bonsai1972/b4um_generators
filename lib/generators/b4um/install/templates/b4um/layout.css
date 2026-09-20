@@ -1,0 +1,166 @@
+/* -------------------------------------------------------
+   Layout
+------------------------------------------------------- */
+
+.container {
+  width: 75%;
+  margin: 40px auto 0;
+  padding: 0;
+
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------
+   Page layout
+------------------------------------------------------- */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  margin: 20px 0;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+/* -------------------------------------------------------
+   Buttons and actions
+------------------------------------------------------- */
+
+.resource-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  margin-top: 10px;
+}
+
+.form-submit,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 160px;
+  min-height: 40px;
+  padding: 0.7rem 1rem;
+
+  box-sizing: border-box;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  font: inherit;
+  font-weight: 500;
+  line-height: 1;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
+}
+
+.form-submit {
+  margin-top: 10px;
+
+  background-color: var(--b4um-primary);
+  border-color: var(--b4um-primary);
+  color: var(--b4um-text-on-primary);
+}
+
+.form-submit:hover {
+  background-color: var(--b4um-primary-hover);
+  border-color: var(--b4um-primary-hover);
+
+  box-shadow: 0 4px 12px var(--b4um-primary-shadow);
+}
+
+.form-submit:active {
+  transform: translateY(1px);
+}
+
+.button--primary {
+  background-color: var(--b4um-primary);
+  border-color: var(--b4um-primary);
+  color: var(--b4um-text-on-primary);
+}
+
+.button--primary:visited {
+  color: var(--b4um-text-on-primary);
+}
+
+.button--primary:hover {
+  background-color: var(--b4um-primary-hover);
+  border-color: var(--b4um-primary-hover);
+  color: var(--b4um-text-on-primary);
+
+  box-shadow: 0 4px 12px var(--b4um-primary-shadow);
+}
+
+.button--secondary {
+  background-color: var(--b4um-surface);
+  border-color: var(--b4um-primary);
+  color: var(--b4um-primary);
+}
+
+.button--secondary:visited {
+  color: var(--b4um-primary);
+}
+
+.button--secondary:hover {
+  background-color: var(--b4um-surface-soft);
+  border-color: var(--b4um-primary-hover);
+  color: var(--b4um-primary-hover);
+
+  box-shadow: 0 3px 10px var(--b4um-primary-shadow-soft);
+}
+
+.button--danger {
+  background-color: var(--b4um-danger);
+  border-color: var(--b4um-danger);
+  color: var(--b4um-text-on-primary);
+}
+
+.button--danger:visited {
+  color: var(--b4um-text-on-primary);
+}
+
+.button--danger:hover {
+  background-color: var(--b4um-danger-hover);
+  border-color: var(--b4um-danger-hover);
+  color: var(--b4um-text-on-primary);
+
+  box-shadow: 0 4px 12px var(--b4um-danger-shadow);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.form-submit:focus-visible,
+.button:focus-visible {
+  outline: 3px solid var(--b4um-primary-focus);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------
+   Responsive
+------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .container {
+    width: calc(100% - 32px);
+    margin: 24px 16px 0;
+    padding: 0;
+  }
+}

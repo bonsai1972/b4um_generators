@@ -4,6 +4,136 @@
     <strong class="resource-label"><%= attribute.human_name %>:</strong>
 <% if attribute.type == :boolean -%>
     <span class="resource-value"><%%= <%= singular_table_name %>.<%= attribute.name %> ? "Yes" : "No" %></span>
+<% elsif attribute.type == :attachment -%>
+    <div class="resource-image"
+         data-controller="image-lightbox"
+         data-action="keydown->image-lightbox#keydown">
+
+      <%% if <%= singular_table_name %>.<%= attribute.name %>.attached? %>
+        <button type="button"
+                class="resource-image__button"
+                data-image-lightbox-target="item"
+                data-image-lightbox-url="<%%= url_for(<%= singular_table_name %>.<%= attribute.name %>) %>"
+                data-image-lightbox-alt="<%%= <%= singular_table_name %>.<%= attribute.name %>.filename.to_s %>"
+                data-action="click->image-lightbox#open">
+
+          <%%= image_tag <%= singular_table_name %>.<%= attribute.name %>,
+                        class: "resource-image__image",
+                        alt: <%= singular_table_name %>.<%= attribute.name %>.filename.to_s %>
+        </button>
+
+        <div class="image-lightbox"
+             data-image-lightbox-target="overlay"
+             data-action="click->image-lightbox#closeOnBackground"
+             tabindex="-1"
+             role="dialog"
+             aria-modal="true"
+             aria-label="Image preview"
+             hidden>
+
+          <div class="image-lightbox__counter"
+               data-image-lightbox-target="counter"></div>
+
+          <button type="button"
+                  class="image-lightbox__close"
+                  aria-label="Close image"
+                  data-action="click->image-lightbox#close">
+            &times;
+          </button>
+
+          <div class="image-lightbox__stage"
+                data-image-lightbox-target="stage"
+                data-action="pointerdown->image-lightbox#pointerDown pointermove->image-lightbox#pointerMove pointerup->image-lightbox#pointerUp pointercancel->image-lightbox#pointerCancel">
+            <img class="image-lightbox__image"
+                 data-image-lightbox-target="image"
+                 alt="">
+          </div>
+
+          <div class="image-lightbox__caption"
+               data-image-lightbox-target="caption"></div>
+        </div>
+      <%% else %>
+        <span class="resource-value resource-value--empty">No image</span>
+      <%% end %>
+    </div>
+<% elsif attribute.type == :attachments -%>
+    <div class="resource-images"
+         data-controller="image-lightbox"
+         data-action="keydown->image-lightbox#keydown">
+
+      <%% if <%= singular_table_name %>.<%= attribute.name %>.attached? %>
+        <%% <%= singular_table_name %>.<%= attribute.name %>.each do |image| %>
+          <button type="button"
+                  class="resource-images__button"
+                  data-image-lightbox-target="item"
+                  data-image-lightbox-url="<%%= url_for(image) %>"
+                  data-image-lightbox-alt="<%%= image.filename.to_s %>"
+                  data-action="click->image-lightbox#open">
+
+            <%%= image_tag image,
+                          class: "resource-images__image",
+                          alt: image.filename.to_s %>
+          </button>
+        <%% end %>
+
+        <div class="image-lightbox"
+             data-image-lightbox-target="overlay"
+             data-action="click->image-lightbox#closeOnBackground"
+             tabindex="-1"
+             role="dialog"
+             aria-modal="true"
+             aria-label="Image gallery"
+             hidden>
+
+          <div class="image-lightbox__counter"
+               data-image-lightbox-target="counter"></div>
+
+          <button type="button"
+                  class="image-lightbox__close"
+                  aria-label="Close gallery"
+                  data-action="click->image-lightbox#close">
+            &times;
+          </button>
+
+          <button type="button"
+                  class="image-lightbox__navigation image-lightbox__navigation--previous"
+                  aria-label="Previous image"
+                  data-image-lightbox-target="previousButton"
+                  data-action="click->image-lightbox#previous">
+            &#8249;
+          </button>
+
+          <div class="image-lightbox__stage"
+                data-image-lightbox-target="stage"
+                data-action="pointerdown->image-lightbox#pointerDown pointermove->image-lightbox#pointerMove pointerup->image-lightbox#pointerUp pointercancel->image-lightbox#pointerCancel">
+            <img class="image-lightbox__image"
+                 data-image-lightbox-target="image"
+                 alt="">
+          </div>
+
+          <button type="button"
+                  class="image-lightbox__navigation image-lightbox__navigation--next"
+                  aria-label="Next image"
+                  data-image-lightbox-target="nextButton"
+                  data-action="click->image-lightbox#next">
+            &#8250;
+          </button>
+
+          <div class="image-lightbox__caption"
+               data-image-lightbox-target="caption"></div>
+        </div>
+      <%% else %>
+        <span class="resource-value resource-value--empty">No images</span>
+      <%% end %>
+    </div>
+<% elsif attribute.type == :text -%>
+    <span class="resource-value">
+      <%% if local_assigns[:compact] %>
+        <%%= truncate(<%= singular_table_name %>.<%= attribute.name %>, length: 160) %>
+      <%% else %>
+        <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+      <%% end %>
+    </span>
 <% else -%>
     <span class="resource-value"><%%= <%= singular_table_name %>.<%= attribute.name %> %></span>
 <% end -%>

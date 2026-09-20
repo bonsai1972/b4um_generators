@@ -1,0 +1,43 @@
+/* -------------------------------------------------------
+   Flash messages
+------------------------------------------------------- */
+
+.flash {
+  margin: 0 0 24px;
+  padding: 14px 18px;
+
+  box-sizing: border-box;
+
+  border: 1px solid transparent;
+  border-radius: 10px;
+
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Rails notice */
+
+.flash--notice {
+  color: #176b3a;
+
+  background-color: #eaf8ef;
+  border-color: #b9e4c8;
+}
+
+/* Rails alert */
+
+.flash--alert {
+  color: #9f2525;
+
+  background-color: #fdecec;
+  border-color: #f3bcbc;
+}
+
+/* Deleted / informational */
+
+.flash--deleted {
+  color: var(--b4um-primary);
+
+  background-color: var(--b4um-surface-soft);
+  border-color: var(--b4um-border);
+}

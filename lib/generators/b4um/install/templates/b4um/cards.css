@@ -1,0 +1,191 @@
+/* -------------------------------------------------------
+   Bento grid
+------------------------------------------------------- */
+
+.b4um-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 20px;
+
+  width: 100%;
+  margin: 32px 0;
+}
+
+/* -------------------------------------------------------
+   Cards
+------------------------------------------------------- */
+
+.b4um-card {
+  grid-column: span 4;
+
+  min-width: 0;
+  padding: 28px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--b4um-border-light);
+  border-radius: 20px;
+
+  background-color: var(--b4um-surface);
+  box-shadow: 0 6px 20px var(--b4um-primary-shadow-soft);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.b4um-card:hover {
+  border-color: var(--b4um-border);
+  box-shadow: 0 10px 30px var(--b4um-primary-shadow);
+
+  transform: translateY(-2px);
+}
+
+/* -------------------------------------------------------
+   Card sizes
+------------------------------------------------------- */
+
+.b4um-card--wide {
+  grid-column: span 8;
+}
+
+.b4um-card--large {
+  grid-column: span 8;
+  grid-row: span 2;
+}
+
+.b4um-card--full {
+  grid-column: 1 / -1;
+}
+
+/* -------------------------------------------------------
+   Card content
+------------------------------------------------------- */
+
+.b4um-card__eyebrow {
+  margin: 0 0 8px;
+
+  color: var(--b4um-primary);
+
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.b4um-card__title {
+  margin: 0;
+
+  color: var(--b4um-text);
+
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+.b4um-card__text {
+  margin: 12px 0 0;
+
+  color: var(--b4um-text-secondary);
+
+  line-height: 1.6;
+}
+
+.b4um-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+/* -------------------------------------------------------
+   Card media
+------------------------------------------------------- */
+
+.b4um-card__media {
+  margin: -28px -28px 24px;
+
+  overflow: hidden;
+
+  border-radius: 20px 20px 0 0;
+}
+
+.b4um-card__image {
+  display: block;
+
+  width: 100%;
+  height: 220px;
+
+  object-fit: cover;
+}
+
+.b4um-card--large .b4um-card__image {
+  height: 320px;
+}
+
+/* -------------------------------------------------------
+   Soft card
+------------------------------------------------------- */
+
+.b4um-card--soft {
+  border-color: transparent;
+
+  background-color: var(--b4um-surface-soft);
+
+  box-shadow: none;
+}
+
+.b4um-card--soft:hover {
+  border-color: transparent;
+
+  box-shadow: 0 8px 24px var(--b4um-primary-shadow-soft);
+}
+
+/* -------------------------------------------------------
+   Responsive
+------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .b4um-card,
+  .b4um-card--wide,
+  .b4um-card--large {
+    grid-column: span 6;
+  }
+
+  .b4um-card--full {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .b4um-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+
+    margin: 24px 0;
+  }
+
+  .b4um-card,
+  .b4um-card--wide,
+  .b4um-card--large,
+  .b4um-card--full {
+    grid-column: 1;
+    grid-row: auto;
+
+    padding: 22px;
+
+    border-radius: 16px;
+  }
+
+  .b4um-card__media {
+    margin: -22px -22px 20px;
+
+    border-radius: 16px 16px 0 0;
+  }
+
+  .b4um-card__image,
+  .b4um-card--large .b4um-card__image {
+    height: 220px;
+  }
+}

@@ -1,0 +1,149 @@
+/* -------------------------------------------------------
+   Hero
+------------------------------------------------------- */
+
+.b4um-hero {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  align-items: center;
+  gap: 3rem;
+
+  width: 100%;
+  margin: 0;
+  padding: 48px;
+
+  box-sizing: border-box;
+
+  border-radius: 24px;
+
+  background-color: var(--b4um-surface);
+  box-shadow: 0 8px 28px var(--b4um-primary-shadow-soft);
+
+  overflow: hidden;
+}
+
+.b4um-hero__content {
+  position: relative;
+  z-index: 1;
+
+  min-width: 0;
+}
+
+.b4um-hero__eyebrow {
+  margin: 0 0 10px;
+
+  color: var(--b4um-primary);
+
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.b4um-hero__title {
+  margin: 0;
+
+  color: var(--b4um-text);
+
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.b4um-hero__text {
+  max-width: 60ch;
+  margin: 20px 0 0;
+
+  color: var(--b4um-text-secondary);
+
+  font-size: 1.1rem;
+  line-height: 1.65;
+}
+
+.b4um-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  margin-top: 28px;
+}
+
+.b4um-hero__media {
+  min-width: 0;
+}
+
+.b4um-hero__image {
+  display: block;
+
+  width: 100%;
+  max-height: 420px;
+
+  border-radius: 18px;
+
+  object-fit: cover;
+}
+
+/* Hero without image */
+
+.b4um-hero--text-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.b4um-hero--text-only .b4um-hero__content {
+  max-width: 850px;
+}
+
+/* -------------------------------------------------------
+   Responsive
+------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .b4um-hero {
+    grid-template-columns: minmax(0, 1fr);
+
+    gap: 28px;
+
+    padding: 36px;
+  }
+
+  .b4um-hero__media {
+    order: -1;
+  }
+
+  .b4um-hero__image {
+    max-height: 340px;
+  }
+}
+
+@media (max-width: 600px) {
+  .b4um-hero {
+    padding: 28px 22px;
+
+    border-radius: 18px;
+  }
+
+  .b4um-hero__title {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .b4um-hero__text {
+    font-size: 1rem;
+  }
+
+  .b4um-hero__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .b4um-hero__actions .button {
+    width: 100%;
+  }
+
+  .b4um-hero__image {
+    max-height: 280px;
+
+    border-radius: 14px;
+  }
+}
