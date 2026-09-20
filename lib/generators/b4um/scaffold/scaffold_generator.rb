@@ -18,6 +18,12 @@ module B4um
                    type: :string,
                    desc: "Attribute used for a readable URL parameter"
 
+      class_option :layout,
+                   type: :string,
+                   default: "bento",
+                   enum: %w[bento table],
+                   desc: "Index layout: bento or table"
+
       def create_b4um_form
         form_path = File.join(
           "app/views",
@@ -57,8 +63,15 @@ module B4um
 
         remove_file index_path
 
+        template_name =
+          if options[:layout] == "table"
+            "index_table.html.erb.tt"
+          else
+            "index.html.erb.tt"
+          end
+
         template(
-          "index.html.erb.tt",
+          template_name,
           index_path
         )
       end

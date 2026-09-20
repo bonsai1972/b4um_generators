@@ -145,12 +145,32 @@ module B4um
 
             - B4UM forms
             - B4UM index, show, new and edit views
+            - Bento index layout by default
+            - Optional table index layout
             - Automatic navigation entry
             - Active navigation state
             - Form validation errors
             - Flash messages
             - Password field support
             - Optional readable URL parameters
+
+          The default index uses the B4UM Bento card layout.
+
+          To generate a table index instead, use:
+
+            --layout=table
+
+          Example:
+
+            bin/rails generate b4um:scaffold Product name:string description:text price:decimal status:string --layout=table
+
+          Table layouts automatically:
+
+            - Use the responsive B4UM table component
+            - Shorten text fields to 100 characters
+            - Display a status field as a B4UM badge
+            - Include an actions column
+            - Include the B4UM empty state
 
 
           READABLE URL PARAMETERS
@@ -245,6 +265,41 @@ module B4um
             - Previous / next navigation
             - Mouse and touch swipe
             - Keyboard navigation
+
+
+          TABLE
+
+            bin/rails generate b4um:table MODEL FIELDS
+
+          Generates a reusable B4UM table partial for an existing model.
+
+          Example:
+
+            bin/rails generate b4um:table Product name:string description:text price:decimal status:string
+
+          The model must already exist.
+
+          The generated partial is created at:
+
+            app/views/products/_table.html.erb
+
+          Table features:
+
+            - Responsive B4UM table component
+            - Typed field definitions
+            - Text fields shortened to 100 characters
+            - Status field displayed as a B4UM badge
+            - Actions column with a Show button
+            - No migrations, routes or controllers are generated
+
+          Render the partial from an index view with:
+
+            <%= render "table", products: @products %>
+
+          The partial uses a local collection, so it can also be
+          reused with another collection:
+
+            <%= render "products/table", products: @featured_products %>
 
 
           CONTROLLER

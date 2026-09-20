@@ -356,6 +356,72 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
   end
 
+  it "generates a table index layout" do
+    generator = described_class.new(
+      [
+        "Product",
+        ["name:string", "description:text", "price:decimal", "status:string"]
+      ],
+      {
+        layout: "table"
+      },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    index = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/index.html.erb"
+      )
+    )
+
+    expect(index).to include(
+      'class="b4um-table-wrapper"'
+    )
+
+    expect(index).to include(
+      'class="b4um-table"'
+    )
+
+    expect(index).to include("<th>Name</th>")
+    expect(index).to include("<th>Description</th>")
+    expect(index).to include("<th>Price</th>")
+    expect(index).to include("<th>Status</th>")
+    expect(index).to include("<th>Actions</th>")
+
+    expect(index).to include("product.name")
+
+    expect(index).to include(
+      "truncate(product.description, length: 100)"
+    )
+
+    expect(index).to include("product.price")
+
+    expect(index).to include(
+      'class="b4um-badge"'
+    )
+
+    expect(index).to include("product.status")
+
+    expect(index).to include(
+      'class="b4um-table__actions"'
+    )
+
+    expect(index).to include(
+      'class: "button button--secondary"'
+    )
+
+    expect(index).to include(
+      'class="b4um-empty-state"'
+    )
+
+    expect(index).not_to include(
+      'class="b4um-grid"'
+    )
+  end
+
   it "generates a badge for a status attribute" do
     generator = described_class.new(
       [
@@ -576,6 +642,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       _form.html.erb.tt
       _resource.html.erb.tt
       index.html.erb.tt
+      index_table.html.erb.tt
       show.html.erb.tt
       new.html.erb.tt
       edit.html.erb.tt
