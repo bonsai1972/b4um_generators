@@ -249,6 +249,12 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
         "app/views/articles/index.html.erb"
       )
     )
+    bento = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_bento.html.erb"
+      )
+    )
 
     show = File.read(
       File.join(
@@ -271,7 +277,17 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
-    expect(index).to include('class="b4um-grid"')
+    expect(index).to include(
+      'render "bento",'
+    )
+
+    expect(index).to include(
+      "articles: @articles"
+    )
+
+    expect(bento).to include(
+      'class="b4um-grid"'
+    )
 
     expect(index).to include(
       "@articles.any?"
@@ -297,30 +313,32 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       "Create your first article to get started."
     )
 
-    expect(index).to include("each_with_index")
+    expect(bento).to include(
+      "articles.each_with_index"
+    )
 
-    expect(index).to include(
+    expect(bento).to include(
       '"b4um-card b4um-card--wide"'
     )
 
-    expect(index).to include(
+    expect(bento).to include(
       '"b4um-card b4um-card--soft"'
     )
 
-    expect(index).to include(
+    expect(bento).to include(
       '"b4um-card b4um-card--large"'
     )
 
-    expect(index).to include(
+    expect(bento).to include(
       "render article, compact: true"
+    )
+
+    expect(bento).to include(
+      'class: "button button--secondary"'
     )
 
     expect(index).to include(
       'class: "button button--primary"'
-    )
-
-    expect(index).to include(
-      'class: "button button--secondary"'
     )
 
     expect(show).to include(
@@ -377,47 +395,70 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
-    expect(index).to include(
-      'class="b4um-table-wrapper"'
+    table = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_table.html.erb"
+      )
     )
 
     expect(index).to include(
-      'class="b4um-table"'
-    )
-
-    expect(index).to include("<th>Name</th>")
-    expect(index).to include("<th>Description</th>")
-    expect(index).to include("<th>Price</th>")
-    expect(index).to include("<th>Status</th>")
-    expect(index).to include("<th>Actions</th>")
-
-    expect(index).to include("product.name")
-
-    expect(index).to include(
-      "truncate(product.description, length: 100)"
-    )
-
-    expect(index).to include("product.price")
-
-    expect(index).to include(
-      'class="b4um-badge"'
-    )
-
-    expect(index).to include("product.status")
-
-    expect(index).to include(
-      'class="b4um-table__actions"'
+      'render "table",'
     )
 
     expect(index).to include(
-      'class: "button button--secondary"'
+      "products: @products"
     )
 
     expect(index).to include(
       'class="b4um-empty-state"'
     )
 
+    expect(table).to include(
+      'class="b4um-table-wrapper"'
+    )
+
+    expect(table).to include(
+      'class="b4um-table"'
+    )
+
+    expect(table).to include("<th>Name</th>")
+    expect(table).to include("<th>Description</th>")
+    expect(table).to include("<th>Price</th>")
+    expect(table).to include("<th>Status</th>")
+    expect(table).to include("<th>Actions</th>")
+
+    expect(table).to include(
+      "products.each do |product|"
+    )
+
+    expect(table).to include("product.name")
+
+    expect(table).to include(
+      "truncate(product.description, length: 100)"
+    )
+
+    expect(table).to include("product.price")
+
+    expect(table).to include(
+      'class="b4um-badge"'
+    )
+
+    expect(table).to include("product.status")
+
+    expect(table).to include(
+      'class="b4um-table__actions"'
+    )
+
+    expect(table).to include(
+      'class: "button button--secondary"'
+    )
+
     expect(index).not_to include(
+      'class="b4um-table"'
+    )
+
+    expect(table).not_to include(
       'class="b4um-grid"'
     )
   end
@@ -641,8 +682,9 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     expected_templates = %w[
       _form.html.erb.tt
       _resource.html.erb.tt
+      _bento.html.erb.tt
+      _table.html.erb.tt
       index.html.erb.tt
-      index_table.html.erb.tt
       show.html.erb.tt
       new.html.erb.tt
       edit.html.erb.tt

@@ -1,0 +1,40 @@
+<div class="b4um-table-wrapper">
+  <table class="b4um-table">
+    <thead>
+      <tr>
+<% attributes.each do |attribute| -%>
+        <th><%= attribute.name.humanize %></th>
+<% end -%>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <%% <%= plural_table_name %>.each do |<%= singular_table_name %>| %>
+        <tr>
+<% attributes.each do |attribute| -%>
+          <td>
+<% if attribute.name == "status" -%>
+            <span class="b4um-badge">
+              <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+            </span>
+<% elsif attribute.type == :text -%>
+            <%%= truncate(<%= singular_table_name %>.<%= attribute.name %>, length: 100) %>
+<% else -%>
+            <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+<% end -%>
+          </td>
+<% end -%>
+
+          <td>
+            <div class="b4um-table__actions">
+              <%%= link_to "Show",
+                          <%= singular_table_name %>,
+                          class: "button button--secondary" %>
+            </div>
+          </td>
+        </tr>
+      <%% end %>
+    </tbody>
+  </table>
+</div>

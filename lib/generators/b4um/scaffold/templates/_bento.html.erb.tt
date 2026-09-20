@@ -1,0 +1,26 @@
+<div id="<%= plural_table_name %>" class="b4um-grid">
+  <%% <%= plural_table_name %>.each_with_index do |<%= singular_table_name %>, index| %>
+    <%% card_class =
+      case index % 5
+      when 0
+        "b4um-card b4um-card--wide"
+      when 1
+        "b4um-card b4um-card--soft"
+      when 3
+        "b4um-card b4um-card--large"
+      else
+        "b4um-card"
+      end
+    %>
+
+    <article class="<%%= card_class %>">
+      <%%= render <%= singular_table_name %>, compact: true %>
+
+      <div class="b4um-card__actions">
+        <%%= link_to "Show",
+                    <%= singular_table_name %>,
+                    class: "button button--secondary" %>
+      </div>
+    </article>
+  <%% end %>
+</div>

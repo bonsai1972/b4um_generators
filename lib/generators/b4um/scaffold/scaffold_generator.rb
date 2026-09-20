@@ -61,18 +61,22 @@ module B4um
           "index.html.erb"
         )
 
+        partial_path = File.join(
+          "app/views",
+          plural_table_name,
+          "_#{options[:layout]}.html.erb"
+        )
+
         remove_file index_path
 
-        template_name =
-          if options[:layout] == "table"
-            "index_table.html.erb.tt"
-          else
-            "index.html.erb.tt"
-          end
+        template(
+          "index.html.erb.tt",
+          index_path
+        )
 
         template(
-          template_name,
-          index_path
+          "_#{options[:layout]}.html.erb.tt",
+          partial_path
         )
       end
 
