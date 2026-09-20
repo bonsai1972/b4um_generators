@@ -1,0 +1,43 @@
+.b4um-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.3rem 0.65rem;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+
+  color: var(--b4um-text);
+  background-color: var(--b4um-surface-soft);
+
+  border: 1px solid var(--b4um-border-light);
+  border-radius: 999px;
+
+  white-space: nowrap;
+}
+
+.b4um-badge--success {
+  color: var(--b4um-text);
+  background-color: var(--b4um-success-background);
+  border-color: var(--b4um-success-border);
+}
+
+.b4um-badge--warning {
+  color: var(--b4um-warning);
+  background-color: var(--b4um-warning-background);
+  border-color: var(--b4um-warning-border);
+}
+
+.b4um-badge--danger {
+  color: var(--b4um-danger);
+  background-color: var(--b4um-danger-background);
+  border-color: var(--b4um-danger-soft-border);
+}
+
+.b4um-badge--muted {
+  color: var(--b4um-text-muted);
+  background-color: var(--b4um-neutral-background);
+  border-color: var(--b4um-border-light);
+}

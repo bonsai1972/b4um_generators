@@ -92,6 +92,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       lightbox.css
       hero.css
       cards.css
+      badges.css
       empty-state.css
       flash.css
       comments.css
@@ -119,6 +120,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       lightbox.css
       hero.css
       cards.css
+      badges.css
       empty-state.css
       flash.css
       comments.css
@@ -139,12 +141,44 @@ RSpec.describe B4um::Generators::InstallGenerator do
       File.join(component_directory, "cards.css")
     )
 
+    badges = File.read(
+      File.join(component_directory, "badges.css")
+    )
+
     empty_state = File.read(
       File.join(component_directory, "empty-state.css")
     )
 
     expect(theme).to include(
       "--b4um-radius: 20px;"
+    )
+
+    expect(theme).to include(
+      "--b4um-warning: #854d0e;"
+    )
+
+    expect(theme).to include(
+      "--b4um-warning-background: #fef9c3;"
+    )
+
+    expect(theme).to include(
+      "--b4um-warning-border: #fde68a;"
+    )
+
+    expect(badges).to include(
+      "background-color: var(--b4um-success-background);"
+    )
+
+    expect(badges).to include(
+      "background-color: var(--b4um-warning-background);"
+    )
+
+    expect(badges).to include(
+      "background-color: var(--b4um-danger-background);"
+    )
+
+    expect(badges).to include(
+      "background-color: var(--b4um-neutral-background);"
     )
 
     expect(cards).to include(

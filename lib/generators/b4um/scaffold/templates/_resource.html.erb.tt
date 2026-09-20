@@ -126,6 +126,8 @@
         <span class="resource-value resource-value--empty">No images</span>
       <%% end %>
     </div>
+<% elsif attribute.name == "status" -%>
+    <span class="b4um-badge"><%%= <%= singular_table_name %>.<%= attribute.name %> %></span>
 <% elsif attribute.type == :text -%>
     <span class="resource-value">
       <%% if local_assigns[:compact] %>

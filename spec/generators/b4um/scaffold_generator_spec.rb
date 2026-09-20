@@ -356,6 +356,34 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
   end
 
+  it "generates a badge for a status attribute" do
+    generator = described_class.new(
+      [
+        "Article",
+        ["title:string", "status:string"]
+      ],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    resource = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_article.html.erb"
+      )
+    )
+
+    expect(resource).to include(
+      'class="b4um-badge"'
+    )
+
+    expect(resource).to include(
+      "article.status"
+    )
+  end
+
   it "uses a separate flash type after destroying a resource" do
     generator = described_class.new(
       [

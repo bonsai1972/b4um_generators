@@ -37,6 +37,11 @@
   --b4um-success-background: #ccffcc;
   --b4um-success-border: #66cc66;
 
+  /* Warning */
+  --b4um-warning: #854d0e;
+  --b4um-warning-background: #fef9c3;
+  --b4um-warning-border: #fde68a;
+
   /* Danger */
   --b4um-danger: #cc0000;
   --b4um-danger-hover: #990000;
