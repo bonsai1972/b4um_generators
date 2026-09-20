@@ -272,6 +272,31 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(index).to include('class="b4um-grid"')
+
+    expect(index).to include(
+      "@articles.any?"
+    )
+
+    expect(index).to include(
+      'class="b4um-empty-state"'
+    )
+
+    expect(index).to include(
+      'class="b4um-empty-state__title"'
+    )
+
+    expect(index).to include(
+      'class="b4um-empty-state__text"'
+    )
+
+    expect(index).to include(
+      "No articles yet."
+    )
+
+    expect(index).to include(
+      "Create your first article to get started."
+    )
+
     expect(index).to include("each_with_index")
 
     expect(index).to include(

@@ -1,0 +1,26 @@
+.b4um-empty-state {
+  grid-column: 1 / -1;
+
+  padding: 3rem 2rem;
+
+  text-align: center;
+
+  background: var(--b4um-surface);
+  border: 1px dashed var(--b4um-border);
+  border-radius: var(--b4um-radius);
+}
+
+.b4um-empty-state__title {
+  margin: 0;
+
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.b4um-empty-state__text {
+  max-width: 34rem;
+
+  margin: 0.75rem auto 0;
+
+  color: var(--b4um-text-muted);
+}

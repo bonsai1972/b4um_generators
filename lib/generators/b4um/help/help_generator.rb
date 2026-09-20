@@ -261,6 +261,7 @@ module B4um
             - Creates the requested actions and views
             - Adds action links to the B4UM navigation automatically
 
+
           COMMENTS
 
             bin/rails generate b4um:comments MODEL

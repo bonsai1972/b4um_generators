@@ -92,6 +92,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       lightbox.css
       hero.css
       cards.css
+      empty-state.css
       flash.css
       comments.css
       footer.css
@@ -118,6 +119,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       lightbox.css
       hero.css
       cards.css
+      empty-state.css
       flash.css
       comments.css
       footer.css
@@ -128,6 +130,34 @@ RSpec.describe B4um::Generators::InstallGenerator do
         File.join(component_directory, stylesheet_name)
       )
     end
+
+    theme = File.read(
+      File.join(component_directory, "theme.css")
+    )
+
+    cards = File.read(
+      File.join(component_directory, "cards.css")
+    )
+
+    empty_state = File.read(
+      File.join(component_directory, "empty-state.css")
+    )
+
+    expect(theme).to include(
+      "--b4um-radius: 20px;"
+    )
+
+    expect(cards).to include(
+      "border-radius: var(--b4um-radius);"
+    )
+
+    expect(cards).to include(
+      "border-radius: var(--b4um-radius) var(--b4um-radius) 0 0;"
+    )
+
+    expect(empty_state).to include(
+      "border-radius: var(--b4um-radius);"
+    )
 
     base = File.read(
       File.join(component_directory, "base.css")

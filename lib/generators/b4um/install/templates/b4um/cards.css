@@ -24,7 +24,7 @@
   box-sizing: border-box;
 
   border: 1px solid var(--b4um-border-light);
-  border-radius: 20px;
+  border-radius: var(--b4um-radius);
 
   background-color: var(--b4um-surface);
   box-shadow: 0 6px 20px var(--b4um-primary-shadow-soft);
@@ -108,7 +108,7 @@
 
   overflow: hidden;
 
-  border-radius: 20px 20px 0 0;
+  border-radius: var(--b4um-radius) var(--b4um-radius) 0 0;
 }
 
 .b4um-card__image {
@@ -175,13 +175,13 @@
 
     padding: 22px;
 
-    border-radius: 16px;
+    border-radius: var(--b4um-radius);
   }
 
   .b4um-card__media {
     margin: -22px -22px 20px;
 
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--b4um-radius) var(--b4um-radius) 0 0;
   }
 
   .b4um-card__image,
