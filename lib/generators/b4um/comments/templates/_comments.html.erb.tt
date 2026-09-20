@@ -1,0 +1,63 @@
+<section class="b4um-comments">
+  <div class="page-header">
+    <h2>Comments</h2>
+  </div>
+
+  <div class="b4um-grid">
+    <div class="b4um-card b4um-card--full">
+      <%% if commentable.comments.any? %>
+        <div class="b4um-comments__list">
+          <%% commentable.comments.order(created_at: :desc).each do |comment| %>
+            <article class="b4um-comments__item">
+              <div class="b4um-comments__body">
+                <%%= simple_format(comment.body) %>
+              </div>
+
+              <div class="b4um-comments__meta">
+                <%%= l(comment.created_at, format: :short) %>
+              </div>
+
+              <div class="b4um-comments__actions">
+                <%%= button_to "Delete",
+                              [commentable, comment],
+                              method: :delete,
+                              class: "button button--danger",
+                              form: {
+                                data: {
+                                  turbo_confirm: "Are you sure?"
+                                }
+                              } %>
+              </div>
+            </article>
+          <%% end %>
+        </div>
+      <%% else %>
+        <p class="b4um-comments__empty">
+          No comments yet.
+        </p>
+      <%% end %>
+
+      <div class="b4um-comments__form">
+        <h3>Add comment</h3>
+
+        <%%= form_with model: [commentable, Comment.new],
+                      class: "form" do |form| %>
+          <div class="form-field form-field--textarea">
+            <%%= form.text_area :body,
+                               class: "form-textarea",
+                               placeholder: " ",
+                               required: true %>
+            <%%= form.label :body,
+                           "Comment",
+                           class: "form-label" %>
+          </div>
+
+          <div class="form-actions">
+            <%%= form.submit "Add comment",
+                            class: "form-submit" %>
+          </div>
+        <%% end %>
+      </div>
+    </div>
+  </div>
+</section>

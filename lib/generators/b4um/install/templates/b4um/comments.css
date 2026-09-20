@@ -1,0 +1,52 @@
+.b4um-comments {
+  margin-top: 2rem;
+}
+
+.b4um-comments__list {
+  display: grid;
+  gap: 0;
+}
+
+.b4um-comments__item {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--b4um-border);
+}
+
+.b4um-comments__item:first-child {
+  padding-top: 0;
+}
+
+.b4um-comments__body {
+  margin: 0;
+}
+
+.b4um-comments__body > :first-child {
+  margin-top: 0;
+}
+
+.b4um-comments__body > :last-child {
+  margin-bottom: 0;
+}
+
+.b4um-comments__meta {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--b4um-text-muted);
+}
+
+.b4um-comments__actions {
+  margin-top: 0.75rem;
+}
+
+.b4um-comments__empty {
+  margin: 0;
+  color: var(--b4um-text-muted);
+}
+
+.b4um-comments__form {
+  margin-top: 2rem;
+}
+
+.b4um-comments__form h3 {
+  margin-top: 0;
+}

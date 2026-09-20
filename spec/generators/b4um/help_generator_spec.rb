@@ -179,4 +179,39 @@ RSpec.describe B4um::Generators::HelpGenerator do
 
     generator.show_help
   end
+  it "documents the B4UM comments generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "COMMENTS"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:comments MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:comments Article"
+      )
+
+      expect(text).to include(
+        "Polymorphic Comment model"
+      )
+
+      expect(text).to include(
+        "Support for multiple commentable models"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:comments Product"
+      )
+
+      expect(text).to include(
+        "Unknown custom comments controllers are left unchanged"
+      )
+    end
+
+    generator.show_help
+  end
 end

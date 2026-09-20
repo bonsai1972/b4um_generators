@@ -261,6 +261,36 @@ module B4um
             - Creates the requested actions and views
             - Adds action links to the B4UM navigation automatically
 
+          COMMENTS
+
+            bin/rails generate b4um:comments MODEL
+
+          Example:
+
+            bin/rails generate b4um:comments Article
+
+          Adds polymorphic comments to an existing model.
+
+          B4UM comments features:
+
+            - Polymorphic Comment model
+            - Comment association on the selected model
+            - Nested create and destroy routes
+            - Comments controller
+            - Comment list and form
+            - Delete confirmation
+            - B4UM form and card styling
+            - Support for multiple commentable models
+            - Safe repeated generator runs
+
+          Additional models can use the same comments system:
+
+            bin/rails generate b4um:comments Product
+
+          Existing B4UM comments controllers are extended automatically.
+          Unknown custom comments controllers are left unchanged and cause
+          the generator to stop with an error.
+
 
           HELP
 

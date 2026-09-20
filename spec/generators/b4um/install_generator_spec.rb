@@ -93,6 +93,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       flash.css
+      comments.css
       footer.css
     ]
 
@@ -118,6 +119,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       flash.css
+      comments.css
       footer.css
     ]
 

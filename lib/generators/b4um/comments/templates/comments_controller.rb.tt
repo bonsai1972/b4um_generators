@@ -1,0 +1,45 @@
+class CommentsController < ApplicationController
+  COMMENTABLES = {
+    "<%= commentable.to_s.underscore %>_id" => <%= commentable.to_s.classify %>
+  }.freeze
+
+  before_action :set_commentable
+
+  def create
+    @comment = @commentable.comments.build(comment_params)
+
+    if @comment.save
+      redirect_to @commentable,
+                  notice: "Comment was successfully created.",
+                  status: :see_other
+    else
+      redirect_to @commentable,
+                  alert: @comment.errors.full_messages.to_sentence,
+                  status: :see_other
+    end
+  end
+
+  def destroy
+    comment = @commentable.comments.find(params[:id])
+    comment.destroy!
+
+    flash[:deleted] = "Comment was successfully destroyed."
+    redirect_to @commentable, status: :see_other
+  end
+
+  private
+
+  def set_commentable
+    param_name, commentable_class = COMMENTABLES.find do |key, _klass|
+      params[key].present?
+    end
+
+    raise ActiveRecord::RecordNotFound unless param_name
+
+    @commentable = commentable_class.find(params[param_name])
+  end
+
+  def comment_params
+    params.expect(comment: [:body])
+  end
+end
