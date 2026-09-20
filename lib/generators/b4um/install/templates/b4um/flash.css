@@ -13,24 +13,28 @@
 
   font-weight: 500;
   line-height: 1.5;
+
+  position: relative;
+
+  padding-right: 3.25rem;
 }
 
 /* Rails notice */
 
 .flash--notice {
-  color: #176b3a;
+  color: var(--b4um-text);
 
-  background-color: #eaf8ef;
-  border-color: #b9e4c8;
+  background-color: var(--b4um-success-background);
+  border-color: var(--b4um-success-border);
 }
 
 /* Rails alert */
 
 .flash--alert {
-  color: #9f2525;
+  color: var(--b4um-danger);
 
-  background-color: #fdecec;
-  border-color: #f3bcbc;
+  background-color: var(--b4um-danger-background);
+  border-color: var(--b4um-danger-soft-border);
 }
 
 /* Deleted / informational */
@@ -40,4 +44,43 @@
 
   background-color: var(--b4um-surface-soft);
   border-color: var(--b4um-border);
+}
+
+.flash__close {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: currentColor;
+  background: transparent;
+
+  border: 0;
+  border-radius: 50%;
+
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+
+  cursor: pointer;
+
+  opacity: 0.65;
+
+  transform: translateY(-50%);
+}
+
+.flash__close:hover {
+  opacity: 1;
+}
+
+.flash__close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }

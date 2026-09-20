@@ -115,6 +115,11 @@ module B4um
                   "app/javascript/controllers/image_lightbox_controller.js"
       end
 
+      def copy_dismissible_controller
+        copy_file "dismissible_controller.js",
+                  "app/javascript/controllers/dismissible_controller.js"
+      end
+
       def copy_navigation_helper
         copy_file "navigation_helper.rb",
                   "app/helpers/navigation_helper.rb"
@@ -148,8 +153,16 @@ module B4um
 
               <main class="container">
                 <% flash.each do |type, message| %>
-                  <div class="flash <%= "flash--" + type.to_s %>">
+                  <div class="flash <%= "flash--" + type.to_s %>"
+                      data-controller="dismissible">
                     <%= message %>
+
+                    <button type="button"
+                            class="flash__close"
+                            data-action="dismissible#dismiss"
+                            aria-label="Close">
+                      &times;
+                    </button>
                   </div>
                 <% end %>
             ERB

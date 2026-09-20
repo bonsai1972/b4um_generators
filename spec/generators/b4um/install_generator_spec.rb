@@ -93,6 +93,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       badges.css
+      callouts.css
       empty-state.css
       flash.css
       comments.css
@@ -121,6 +122,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       badges.css
+      callouts.css
       empty-state.css
       flash.css
       comments.css
@@ -149,6 +151,34 @@ RSpec.describe B4um::Generators::InstallGenerator do
       File.join(component_directory, "empty-state.css")
     )
 
+    flash = File.read(
+      File.join(component_directory, "flash.css")
+    )
+
+    callouts = File.read(
+      File.join(component_directory, "callouts.css")
+    )
+
+    expect(callouts).to include(
+      ".b4um-callout--info"
+    )
+
+    expect(callouts).to include(
+      ".b4um-callout--success"
+    )
+
+    expect(callouts).to include(
+      ".b4um-callout--warning"
+    )
+
+    expect(callouts).to include(
+      ".b4um-callout--danger"
+    )
+
+    expect(callouts).to include(
+      "border-radius: var(--b4um-radius);"
+    )
+
     expect(theme).to include(
       "--b4um-radius: 20px;"
     )
@@ -163,6 +193,22 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(theme).to include(
       "--b4um-warning-border: #fde68a;"
+    )
+
+    expect(flash).to include(
+      "background-color: var(--b4um-success-background);"
+    )
+
+    expect(flash).to include(
+      "border-color: var(--b4um-success-border);"
+    )
+
+    expect(flash).to include(
+      "background-color: var(--b4um-danger-background);"
+    )
+
+    expect(flash).to include(
+      "border-color: var(--b4um-danger-soft-border);"
     )
 
     expect(badges).to include(
@@ -311,6 +357,15 @@ RSpec.describe B4um::Generators::InstallGenerator do
       )
     )
 
+    expect(
+      File
+    ).to exist(
+      File.join(
+        @destination_root,
+        "app/javascript/controllers/dismissible_controller.js"
+      )
+    )
+
     navigation_helper_path = File.join(
       @destination_root,
       "app/helpers/navigation_helper.rb"
@@ -398,7 +453,15 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(layout).to include(
-      '<div class="flash <%= "flash--" + type.to_s %>">'
+      'data-controller="dismissible"'
+    )
+
+    expect(layout).to include(
+      'class="flash__close"'
+    )
+
+    expect(layout).to include(
+      'data-action="dismissible#dismiss"'
     )
 
     expect(layout).to include(

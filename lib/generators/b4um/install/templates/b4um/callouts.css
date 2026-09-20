@@ -1,0 +1,58 @@
+/* -------------------------------------------------------
+   Callouts
+------------------------------------------------------- */
+
+.b4um-callout {
+  padding: 1rem 1.25rem;
+
+  color: var(--b4um-text);
+  background-color: var(--b4um-surface-soft);
+
+  border: 1px solid var(--b4um-border);
+  border-left: 4px solid var(--b4um-primary);
+  border-radius: var(--b4um-radius);
+}
+
+.b4um-callout__title {
+  margin: 0;
+
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.b4um-callout__text {
+  margin: 0.4rem 0 0;
+
+  color: var(--b4um-text-secondary);
+  line-height: 1.5;
+}
+
+/* Info */
+
+.b4um-callout--info {
+  border-left-color: var(--b4um-primary);
+}
+
+/* Success */
+
+.b4um-callout--success {
+  background-color: var(--b4um-success-background);
+  border-color: var(--b4um-success-border);
+  border-left-color: var(--b4um-success-border);
+}
+
+/* Warning */
+
+.b4um-callout--warning {
+  background-color: var(--b4um-warning-background);
+  border-color: var(--b4um-warning-border);
+  border-left-color: var(--b4um-warning);
+}
+
+/* Danger */
+
+.b4um-callout--danger {
+  background-color: var(--b4um-danger-background);
+  border-color: var(--b4um-danger-soft-border);
+  border-left-color: var(--b4um-danger);
+}
