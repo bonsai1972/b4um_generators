@@ -1,0 +1,67 @@
+/* -------------------------------------------------------
+   Tables
+------------------------------------------------------- */
+
+.b4um-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+
+  background-color: var(--b4um-surface);
+  border: 1px solid var(--b4um-border-light);
+  border-radius: var(--b4um-radius);
+}
+
+.b4um-table {
+  width: 100%;
+  min-width: 640px;
+
+  border-collapse: collapse;
+
+  color: var(--b4um-text);
+}
+
+.b4um-table th,
+.b4um-table td {
+  padding: 0.9rem 1rem;
+
+  text-align: left;
+  vertical-align: middle;
+
+  border-bottom: 1px solid var(--b4um-border-light);
+}
+
+.b4um-table th {
+  color: var(--b4um-text-secondary);
+  background-color: var(--b4um-surface-soft);
+
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.b4um-table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.b4um-table tbody tr:hover {
+  background-color: var(--b4um-surface-soft);
+}
+
+.b4um-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.b4um-table__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+
+  white-space: nowrap;
+}
+
+.b4um-table th:last-child,
+.b4um-table td:last-child {
+  padding-right: 1.25rem;
+}

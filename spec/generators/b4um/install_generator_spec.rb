@@ -92,6 +92,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       lightbox.css
       hero.css
       cards.css
+      tables.css
       badges.css
       callouts.css
       empty-state.css
@@ -121,6 +122,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       lightbox.css
       hero.css
       cards.css
+      tables.css
       badges.css
       callouts.css
       empty-state.css
@@ -141,6 +143,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     cards = File.read(
       File.join(component_directory, "cards.css")
+    )
+
+    tables = File.read(
+      File.join(component_directory, "tables.css")
     )
 
     badges = File.read(
@@ -233,6 +239,30 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(cards).to include(
       "border-radius: var(--b4um-radius) var(--b4um-radius) 0 0;"
+    )
+
+    expect(tables).to include(
+      ".b4um-table-wrapper"
+    )
+
+    expect(tables).to include(
+      "overflow-x: auto;"
+    )
+
+    expect(tables).to include(
+      ".b4um-table"
+    )
+
+    expect(tables).to include(
+      "min-width: 640px;"
+    )
+
+    expect(tables).to include(
+      ".b4um-table__actions"
+    )
+
+    expect(tables).to include(
+      "border-radius: var(--b4um-radius);"
     )
 
     expect(empty_state).to include(
