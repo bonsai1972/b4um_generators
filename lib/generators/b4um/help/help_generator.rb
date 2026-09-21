@@ -267,6 +267,47 @@ module B4um
             - Keyboard navigation
 
 
+          BENTO
+
+            bin/rails generate b4um:bento MODEL
+
+          Generates a reusable B4UM Bento partial for an existing model.
+
+          Example:
+
+            bin/rails generate b4um:bento Product
+
+          The model and its resource partial must already exist.
+
+          Example resource partial:
+
+            app/views/products/_product.html.erb
+
+          B4UM scaffold resource partials support compact mode.
+          In Bento cards, text fields are shortened to 160 characters.
+
+          The generated partial is created at:
+
+            app/views/products/_bento.html.erb
+
+          Bento features:
+
+            - Responsive B4UM Bento grid
+            - Repeating card layout with different card sizes
+            - Uses the existing resource partial for card content
+            - Actions area with a Show button
+            - No migrations, routes or controllers are generated
+
+          Render the partial from an index view with:
+
+            <%= render "bento", products: @products %>
+
+          The partial uses a local collection, so it can also be
+          reused with another collection:
+
+            <%= render "products/bento", products: @featured_products %>
+
+
           TABLE
 
             bin/rails generate b4um:table MODEL FIELDS

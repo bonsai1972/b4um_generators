@@ -160,6 +160,54 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the B4UM Bento generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "BENTO"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:bento MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:bento Product"
+      )
+
+      expect(text).to include(
+        "app/views/products/_bento.html.erb"
+      )
+
+      expect(text).to include(
+        "The model and its resource partial must already exist."
+      )
+
+      expect(text).to include(
+        "app/views/products/_product.html.erb"
+      )
+
+      expect(text).to include(
+        "text fields are shortened to 160 characters"
+      )
+
+      expect(text).to include(
+        '<%= render "bento", products: @products %>'
+      )
+
+      expect(text).to include(
+        '<%= render "products/bento", products: @featured_products %>'
+      )
+
+      expect(text).to include(
+        "No migrations, routes or controllers are generated"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the B4UM controller generator" do
     generator = described_class.new
 
