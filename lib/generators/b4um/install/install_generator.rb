@@ -184,7 +184,7 @@ module B4um
               '<main class="container">',
               <<~ERB.chomp
                 <main class="container">
-                      <%= render "shared/hero" %>
+                      <%= render "shared/hero" if request.path == root_path %>
               ERB
             )
           end
