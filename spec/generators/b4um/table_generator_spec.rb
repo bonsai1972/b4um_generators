@@ -65,6 +65,10 @@ RSpec.describe B4um::Generators::TableGenerator do
       'class="b4um-table"'
     )
 
+    expect(table).to include(
+      '<tbody id="products">'
+    )
+
     expect(table).to include("<th>Name</th>")
     expect(table).to include("<th>Description</th>")
     expect(table).to include("<th>Price</th>")

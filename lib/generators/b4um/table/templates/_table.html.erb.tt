@@ -9,7 +9,7 @@
       </tr>
     </thead>
 
-    <tbody>
+    <tbody id="<%= plural_table_name %>">
       <%% <%= plural_table_name %>.each do |<%= file_name %>| %>
         <tr>
 <% table_attributes.each do |attribute| -%>
