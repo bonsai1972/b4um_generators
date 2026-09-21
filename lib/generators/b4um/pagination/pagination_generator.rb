@@ -70,7 +70,14 @@ module B4um
             "#{class_name.pluralize}Controller",
             "  include B4umPagination\n\n"
           )
+
+          controller_content = File.read(controller_path)
         end
+
+        paginated_collection =
+          "@#{plural_table_name}, @pagination = b4um_paginate("
+
+        return if controller_content.include?(paginated_collection)
 
         old_index = "@#{plural_table_name} = #{class_name}.all"
 

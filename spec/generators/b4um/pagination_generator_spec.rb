@@ -283,4 +283,50 @@ RSpec.describe B4um::Generators::PaginationGenerator do
       "--per-page must be greater than 0"
     )
   end
+
+  it "can be run more than once without duplicating pagination" do
+    first_generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    first_generator.invoke_all
+
+    second_generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    expect do
+      second_generator.invoke_all
+    end.not_to raise_error
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    index = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/index.html.erb"
+      )
+    )
+
+    expect(
+      controller.scan("include B4umPagination").size
+    ).to eq(1)
+
+    expect(
+      controller.scan("@products, @pagination = b4um_paginate(").size
+    ).to eq(1)
+
+    expect(
+      index.scan('render "shared/pagination"').size
+    ).to eq(1)
+  end
 end
