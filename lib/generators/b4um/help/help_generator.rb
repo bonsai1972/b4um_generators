@@ -418,6 +418,31 @@ module B4um
             - Safe repeated generator runs
 
 
+          SEARCH
+
+            bin/rails generate b4um:search MODEL
+
+          Adds database-backed search to an existing resource.
+
+          Example:
+
+            bin/rails generate b4um:search Product
+
+          The model, controller and index view must already exist.
+
+          Search features:
+
+            - Searches all string and text columns
+            - Case-insensitive partial matching
+            - Safely escapes search terms
+            - Blank searches return the complete collection
+            - Works with B4UM Bento and Table layouts
+            - Works with B4UM Pagination and Infinite Scroll
+            - Preserves the search query while navigating pages
+            - No additional search gem required
+            - Safe repeated generator runs
+
+
           COMMENTS
 
             bin/rails generate b4um:comments MODEL

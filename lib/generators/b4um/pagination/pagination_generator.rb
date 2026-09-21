@@ -74,11 +74,63 @@ module B4um
           controller_content = File.read(controller_path)
         end
 
-        paginated_collection =
-          "@#{plural_table_name}, @pagination = b4um_paginate("
-
         return if controller_content.include?(paginated_collection)
 
+        if controller_content.match?(search_pattern)
+          paginate_existing_search
+          return
+        end
+
+        paginate_plain_collection(controller_content)
+      end
+
+      def update_index_view
+        index_content = File.read(index_view_path)
+
+        return if index_content.include?('render "shared/pagination"')
+
+        append_to_file(
+          index_view_path,
+          <<~ERB
+
+            <%= render "shared/pagination", pagination: @pagination %>
+          ERB
+        )
+      end
+
+      private
+
+      def paginated_collection
+        "@#{plural_table_name}, @pagination = b4um_paginate("
+      end
+
+      def search_pattern
+        /
+          @#{Regexp.escape(plural_table_name)}\s*=\s*
+          b4um_search\(\s*
+          #{Regexp.escape(class_name)}\.all,\s*
+          params\[:q\]\s*
+          \)
+        /x
+      end
+
+      def paginate_existing_search
+        gsub_file(
+          controller_path,
+          search_pattern,
+          [
+            "@#{plural_table_name}, @pagination = b4um_paginate(",
+            "      b4um_search(",
+            "        #{class_name}.all,",
+            "        params[:q]",
+            "      ),",
+            "      per_page: #{options[:per_page]}",
+            "    )"
+          ].join("\n")
+        )
+      end
+
+      def paginate_plain_collection(controller_content)
         old_index = "@#{plural_table_name} = #{class_name}.all"
 
         unless controller_content.include?(old_index)
@@ -97,22 +149,6 @@ module B4um
           ].join("\n")
         )
       end
-
-      def update_index_view
-        index_content = File.read(index_view_path)
-
-        return if index_content.include?('render "shared/pagination"')
-
-        append_to_file(
-          index_view_path,
-          <<~ERB
-
-            <%= render "shared/pagination", pagination: @pagination %>
-          ERB
-        )
-      end
-
-      private
 
       def model_path
         File.join(

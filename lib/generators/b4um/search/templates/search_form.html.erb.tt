@@ -1,0 +1,15 @@
+<div class="b4um-search">
+  <%%= form_with url: request.path,
+                method: :get,
+                class: "b4um-search__form" do |form| %>
+    <div class="form-field">
+      <%%= form.search_field :q,
+            value: params[:q],
+            class: "form-input",
+            placeholder: " " %>
+      <%%= form.label :q, "Search", class: "form-label" %>
+    </div>
+
+    <%%= form.submit "Search", class: "button button--primary" %>
+  <%% end %>
+</div>

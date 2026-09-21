@@ -88,6 +88,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       layout.css
       navigation.css
       forms.css
+      search.css
       resources.css
       lightbox.css
       hero.css
@@ -119,6 +120,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       layout.css
       navigation.css
       forms.css
+      search.css
       resources.css
       lightbox.css
       hero.css

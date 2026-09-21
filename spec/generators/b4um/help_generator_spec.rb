@@ -308,6 +308,46 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the B4UM search generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "SEARCH"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:search MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:search Product"
+      )
+
+      expect(text).to include(
+        "Searches all string and text columns"
+      )
+
+      expect(text).to include(
+        "Case-insensitive partial matching"
+      )
+
+      expect(text).to include(
+        "Works with B4UM Bento and Table layouts"
+      )
+
+      expect(text).to include(
+        "Works with B4UM Pagination and Infinite Scroll"
+      )
+
+      expect(text).to include(
+        "No additional search gem required"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the B4UM comments generator" do
     generator = described_class.new
 

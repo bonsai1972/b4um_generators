@@ -329,4 +329,50 @@ RSpec.describe B4um::Generators::PaginationGenerator do
       index.scan('render "shared/pagination"').size
     ).to eq(1)
   end
+
+  it "adds pagination to an existing B4UM search" do
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      ),
+      <<~RUBY
+        class ProductsController < ApplicationController
+          include B4umSearch
+
+          def index
+            @products = b4um_search(
+              Product.all,
+              params[:q]
+            )
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    expect(controller).to match(
+      /@products,\s*@pagination\s*=\s*b4um_paginate\(\s*
+        b4um_search\(\s*
+          Product\.all,\s*
+          params\[:q\]\s*
+        \),\s*
+        per_page:\s*20\s*
+      \)/x
+    )
+  end
 end
