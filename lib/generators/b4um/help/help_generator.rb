@@ -388,6 +388,36 @@ module B4um
             - Shared pagination core can be reused by other B4UM features
 
 
+          INFINITE SCROLL
+
+            bin/rails generate b4um:infinite_scroll MODEL
+
+          Adds automatic infinite scrolling to an existing resource.
+
+          Example:
+
+            bin/rails generate b4um:infinite_scroll Product
+
+          By default, 20 records are loaded per page.
+
+          Use a custom page size with:
+
+            bin/rails generate b4um:infinite_scroll Product --per-page=50
+
+          The model, controller and index view must already exist.
+
+          Infinite Scroll features:
+
+            - Loads additional records automatically while scrolling
+            - Server-side pagination using Active Record limit and offset
+            - No additional pagination gem required
+            - Works with B4UM Bento and Table layouts
+            - Preserves existing query parameters
+            - Stops automatically after the final page
+            - Replaces existing B4UM pagination navigation
+            - Safe repeated generator runs
+
+
           COMMENTS
 
             bin/rails generate b4um:comments MODEL
