@@ -1,0 +1,48 @@
+<%% if pagination.total_pages > 1 %>
+  <nav class="b4um-pagination" aria-label="Pagination">
+    <div class="b4um-pagination__previous">
+      <%% if pagination.previous_page %>
+        <%%= link_to "Previous",
+                    url_for(request.query_parameters.merge(page: pagination.previous_page)),
+                    class: "button button--secondary" %>
+      <%% end %>
+    </div>
+
+    <div class="b4um-pagination__pages">
+      <%% pages = (1..pagination.total_pages).select do |page| %>
+        <%% page == 1 ||
+           page == pagination.total_pages ||
+           (page - pagination.current_page).abs <= 2 %>
+      <%% end %>
+
+      <%% previous_page = nil %>
+
+      <%% pages.each do |page| %>
+        <%% if previous_page && page > previous_page + 1 %>
+          <span class="b4um-pagination__ellipsis" aria-hidden="true">…</span>
+        <%% end %>
+
+        <%% if page == pagination.current_page %>
+          <span class="b4um-pagination__current"
+                aria-current="page">
+            <%%= page %>
+          </span>
+        <%% else %>
+          <%%= link_to page,
+                      url_for(request.query_parameters.merge(page: page)),
+                      class: "b4um-pagination__page" %>
+        <%% end %>
+
+        <%% previous_page = page %>
+      <%% end %>
+    </div>
+
+    <div class="b4um-pagination__next">
+      <%% if pagination.next_page %>
+        <%%= link_to "Next",
+                    url_for(request.query_parameters.merge(page: pagination.next_page)),
+                    class: "button button--secondary" %>
+      <%% end %>
+    </div>
+  </nav>
+<%% end %>

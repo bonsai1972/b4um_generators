@@ -227,6 +227,47 @@ RSpec.describe B4um::Generators::HelpGenerator do
 
     generator.show_help
   end
+
+  it "documents the B4UM pagination generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "PAGINATION"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:pagination MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:pagination Product"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:pagination Product --per-page=50"
+      )
+
+      expect(text).to include(
+        "20 records are displayed per page"
+      )
+
+      expect(text).to include(
+        "No additional pagination gem required"
+      )
+
+      expect(text).to include(
+        "Works with B4UM Bento and Table layouts"
+      )
+
+      expect(text).to include(
+        "Invalid or excessive page numbers are handled safely"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the B4UM comments generator" do
     generator = described_class.new
 

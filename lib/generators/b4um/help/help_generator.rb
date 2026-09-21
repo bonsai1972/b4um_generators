@@ -358,6 +358,36 @@ module B4um
             - Adds action links to the B4UM navigation automatically
 
 
+          PAGINATION
+
+            bin/rails generate b4um:pagination MODEL
+
+          Adds server-side B4UM pagination to an existing resource.
+
+          Example:
+
+            bin/rails generate b4um:pagination Product
+
+          By default, 20 records are displayed per page.
+
+          Use a custom page size with:
+
+            bin/rails generate b4um:pagination Product --per-page=50
+
+          The model, controller and index view must already exist.
+
+          Pagination features:
+
+            - Server-side pagination using Active Record limit and offset
+            - No additional pagination gem required
+            - Previous and Next navigation
+            - Numbered page navigation
+            - Preserves existing query parameters
+            - Works with B4UM Bento and Table layouts
+            - Invalid or excessive page numbers are handled safely
+            - Shared pagination core can be reused by other B4UM features
+
+
           COMMENTS
 
             bin/rails generate b4um:comments MODEL

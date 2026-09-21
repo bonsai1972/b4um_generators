@@ -93,6 +93,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       tables.css
+      pagination.css
       badges.css
       callouts.css
       empty-state.css
@@ -123,6 +124,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       tables.css
+      pagination.css
       badges.css
       callouts.css
       empty-state.css
