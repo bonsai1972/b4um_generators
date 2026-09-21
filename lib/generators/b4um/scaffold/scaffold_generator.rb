@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators"
+require "action_dispatch"
 require "rails/generators/rails/scaffold/scaffold_generator"
 
 module B4um
