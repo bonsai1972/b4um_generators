@@ -358,7 +358,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(new_view).to include(
-      'class="b4um-card b4um-card--wide"'
+      'class="b4um-card b4um-card--full"'
     )
 
     expect(new_view).to include(
@@ -366,7 +366,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(edit).to include(
-      'class="b4um-card b4um-card--wide"'
+      'class="b4um-card b4um-card--full"'
     )
 
     expect(edit).to include(

@@ -38,8 +38,6 @@
 .b4um-card:hover {
   border-color: var(--b4um-border);
   box-shadow: 0 10px 30px var(--b4um-primary-shadow);
-
-  transform: translateY(-2px);
 }
 
 /* -------------------------------------------------------

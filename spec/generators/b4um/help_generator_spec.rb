@@ -383,4 +383,44 @@ RSpec.describe B4um::Generators::HelpGenerator do
 
     generator.show_help
   end
+
+  it "documents the B4UM Trix generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "TRIX / RICH TEXT"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:trix MODEL ATTRIBUTE"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:trix Article content"
+      )
+
+      expect(text).to include(
+        "Action Text"
+      )
+
+      expect(text).to include(
+        "has_rich_text :content"
+      )
+
+      expect(text).to include(
+        "rich_text_area"
+      )
+
+      expect(text).to include(
+        "Image lightbox"
+      )
+
+      expect(text).to include(
+        "The model and form must already exist."
+      )
+    end
+
+    generator.show_help
+  end
 end

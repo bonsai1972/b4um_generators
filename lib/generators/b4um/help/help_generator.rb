@@ -474,6 +474,41 @@ module B4um
           the generator to stop with an error.
 
 
+          TRIX / RICH TEXT
+
+            bin/rails generate b4um:trix MODEL ATTRIBUTE
+
+          Adds Action Text with Trix to an existing B4UM resource.
+
+          Example:
+
+            bin/rails generate b4um:trix Article content
+
+          The model and form must already exist.
+
+          The generator adds:
+
+            has_rich_text :content
+
+          and replaces the selected form field with a rich text editor:
+
+            form.rich_text_area :content
+
+          Trix / Rich Text features:
+
+            - Installs Action Text automatically when necessary
+            - Adds the rich text association to the model
+            - Replaces only the selected form field
+            - Preserves compact Bento text using plain text
+            - Image lightbox for images inside rich text
+            - Previous / next image navigation
+            - Mouse and touch swipe
+            - Keyboard navigation
+            - Responsive image galleries
+            - Sticky Trix toolbar
+            - Safe repeated generator runs
+
+
           HELP
 
             bin/rails generate b4um:help

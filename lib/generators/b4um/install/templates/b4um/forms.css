@@ -410,3 +410,93 @@
 .field_with_errors {
   display: contents;
 }
+
+/* -------------------------------------------------------
+   Rich Text
+------------------------------------------------------- */
+
+.form-field--rich-text {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.form-field--rich-text trix-toolbar {
+  grid-row: 1;
+
+  position: sticky;
+  top: 61px;
+  z-index: 10;
+
+  padding: 12px 0 4px;
+  margin: -4px 0 12px;
+
+  background-color: var(--b4um-surface);
+  box-shadow: 0 2px 6px var(--b4um-primary-shadow-soft);
+}
+
+.form-field--rich-text .form-textarea {
+  grid-row: 2;
+}
+
+.form-field--rich-text .form-label {
+  grid-row: 2;
+
+  top: 0;
+
+  align-self: start;
+
+  color: var(--b4um-primary);
+
+  transform: translateY(-50%) scale(0.82);
+}
+/* -------------------------------------------------------
+   Rich Text Attachments
+------------------------------------------------------- */
+
+.form-field--rich-text trix-editor .attachment-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1em;
+}
+
+.form-field--rich-text trix-editor .attachment-gallery--2,
+.form-field--rich-text trix-editor .attachment-gallery--4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-field--rich-text trix-editor .attachment-gallery > .attachment {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.form-field--rich-text trix-editor .attachment-gallery > [data-trix-cursor-target] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-field--rich-text trix-editor .attachment img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* -------------------------------------------------------
+   Rich Text Content
+------------------------------------------------------- */
+
+.trix-content .attachment-gallery {
+  margin-left: -0.25em;
+  margin-right: -0.25em;
+}
+
+.trix-content .attachment-gallery > action-text-attachment,
+.trix-content .attachment-gallery > .attachment {
+  padding-left: 0.25em;
+  padding-right: 0.25em;
+}

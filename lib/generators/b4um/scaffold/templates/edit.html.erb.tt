@@ -5,7 +5,7 @@
 </div>
 
 <div class="b4um-grid">
-  <section class="b4um-card b4um-card--wide">
+  <section class="b4um-card b4um-card--full">
     <%%= render "form", <%= singular_table_name %>: @<%= singular_table_name %> %>
 
     <div class="b4um-card__actions">
