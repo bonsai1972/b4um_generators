@@ -222,6 +222,8 @@ module B4um
                 align-left
                 align-center
                 align-right
+                section
+                article
               ]
 
             ActionText::ContentHelper.allowed_attributes =
@@ -229,6 +231,7 @@ module B4um
               ActionText::Attachment::ATTRIBUTES +
               %w[
                 style
+                id
                 data-image-lightbox-target
                 data-image-lightbox-url
                 data-image-lightbox-alt

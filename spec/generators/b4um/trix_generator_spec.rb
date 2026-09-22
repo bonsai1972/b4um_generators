@@ -897,6 +897,67 @@ RSpec.describe B4um::Generators::TrixGenerator do
     ).to eq(1)
   end
 
+  it "installs B4UM Trix container tools" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    trix_javascript = File.read(
+      File.join(
+        @destination_root,
+        "app/javascript/b4um/trix.js"
+      )
+    )
+
+    expect(trix_javascript).to include(
+      "Trix.config.blockAttributes.b4umDiv"
+    )
+
+    expect(trix_javascript).to include(
+      "Trix.config.blockAttributes.section"
+    )
+
+    expect(trix_javascript).to include(
+      "Trix.config.blockAttributes.article"
+    )
+
+    expect(trix_javascript).to include(
+      'data-trix-attribute="b4umDiv"'
+    )
+
+    expect(trix_javascript).to include(
+      'data-trix-attribute="section"'
+    )
+
+    expect(trix_javascript).to include(
+      'data-trix-attribute="article"'
+    )
+  end
+
   it "allows style attributes for B4UM Trix colors" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/models")
@@ -934,5 +995,84 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(initializer).to include("style")
+  end
+
+  it "allows id attributes for B4UM Trix containers" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    initializer = File.read(
+      File.join(
+        @destination_root,
+        "config/initializers/action_text.rb"
+      )
+    )
+
+    expect(initializer).to include("id")
+  end
+
+  it "allows section and article tags for B4UM Trix containers" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    initializer = File.read(
+      File.join(
+        @destination_root,
+        "config/initializers/action_text.rb"
+      )
+    )
+
+    expect(initializer).to include("section")
+    expect(initializer).to include("article")
   end
 end
