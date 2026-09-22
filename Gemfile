@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 # Specify your gem's dependencies in b4um_generators.gemspec
 gemspec
+gem "json", "~> 2.21.2"
 
 gem "irb"
 gem "rake", "~> 13.0"
