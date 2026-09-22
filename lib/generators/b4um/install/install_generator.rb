@@ -15,8 +15,24 @@ module B4um
           return
         end
 
-        if File.read(File.join(destination_root, "Gemfile")).match?(/gem ["']bcrypt["']/)
+        gemfile_path = File.join(destination_root, "Gemfile")
+        gemfile = File.read(gemfile_path)
+
+        if gemfile.match?(/^\s*gem ["']bcrypt["']/)
           say "  bcrypt is already present in the Gemfile."
+          return
+        end
+
+        if gemfile.match?(/^\s*#\s*gem ["']bcrypt["']/)
+          gsub_file(
+            "Gemfile",
+            /^(\s*)#\s*(gem ["']bcrypt["'].*)$/,
+            '\1\2'
+          )
+
+          @gems_added = true
+
+          say "  bcrypt activated in the Gemfile."
           return
         end
 
@@ -44,7 +60,7 @@ module B4um
           return
         end
 
-        generate "active_storage:install"
+        rails_command "active_storage:install"
 
         say "  Active Storage installed."
         say "  Running database migrations..."

@@ -60,6 +60,41 @@ RSpec.describe B4um::Generators::InstallGenerator do
     expect(described_class).to be < Rails::Generators::Base
   end
 
+  it "activates bcrypt when Rails provides it as a commented Gemfile entry" do
+    create_application_layout
+
+    File.write(
+      File.join(@destination_root, "Gemfile"),
+      <<~RUBY
+        source "https://rubygems.org"
+
+        # Use Active Model has_secure_password
+        # gem "bcrypt", "~> 3.1.7"
+      RUBY
+    )
+
+    generator = build_generator(
+      true,
+      false,
+      false,
+      false
+    )
+
+    generator.invoke_all
+
+    gemfile = File.read(
+      File.join(@destination_root, "Gemfile")
+    )
+
+    expect(gemfile).to include(
+      'gem "bcrypt", "~> 3.1.7"'
+    )
+
+    expect(gemfile).not_to include(
+      '# gem "bcrypt", "~> 3.1.7"'
+    )
+  end
+
   it "installs the B4UM base setup with hero and footer" do
     create_application_layout
     create_gemfile
