@@ -491,12 +491,182 @@
 ------------------------------------------------------- */
 
 .trix-content .attachment-gallery {
-  margin-left: -0.25em;
-  margin-right: -0.25em;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1em;
+
+  margin: 1em 0;
+}
+
+.trix-content .attachment-gallery--2,
+.trix-content .attachment-gallery--4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .trix-content .attachment-gallery > action-text-attachment,
-.trix-content .attachment-gallery > .attachment {
-  padding-left: 0.25em;
-  padding-right: 0.25em;
+.trix-content .attachment-gallery > .attachment,
+.trix-content .attachment-gallery.attachment-gallery--2 > action-text-attachment,
+.trix-content .attachment-gallery.attachment-gallery--2 > .attachment,
+.trix-content .attachment-gallery.attachment-gallery--4 > action-text-attachment,
+.trix-content .attachment-gallery.attachment-gallery--4 > .attachment {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.trix-content .attachment-gallery img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.trix-content action-text-attachment[content-type='vnd.rubyonrails.horizontal-rule.html'] {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
+.trix-content action-text-attachment[content-type='vnd.rubyonrails.horizontal-rule.html'] > figure {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
+.trix-content .attachment--content.attachment--horizontal-rule,
+.trix-content .attachment--content[data-trix-content-type~='vnd.rubyonrails.horizontal-rule.html'] {
+  width: 100%;
+  max-width: none;
+  padding: 1.5em 0 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.trix-content .attachment--content.attachment--horizontal-rule hr,
+.trix-content .attachment--content[data-trix-content-type~='vnd.rubyonrails.horizontal-rule.html'] hr {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid currentColor;
+}
+
+.form-field--rich-text .trix-button--icon-align-left::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.form-field--rich-text .trix-button--icon-align-center::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.form-field--rich-text .trix-button--icon-align-right::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-4-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm4-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-4-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>');
+}
+
+.form-field--rich-text .trix-button--icon-horizontal-rule::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="currentColor"><path d="M0 13h24v-2H0z"/><path d="M5 8.5h14v-3H5z"/><path d="M5 18.5h14v-3H5z"/></g></svg>');
+}
+
+.form-field--rich-text .trix-button--icon-color::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a9 9 0 1 0 0 18h1.5a2.5 2.5 0 0 0 0-5H12a1.5 1.5 0 0 1 0-3h3a6 6 0 0 0 0-12h-3Zm-5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm2-5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm6 1a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z"/></svg>');
+}
+
+.form-field--rich-text .trix-dialog--color {
+  max-width: 300px;
+}
+
+.form-field--rich-text .trix-dialog--color .trix-dialog__link-fields {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.form-field--rich-text .trix-dialog--color .trix-button-group {
+  margin: 2px 0;
+}
+
+.form-field--rich-text .trix-dialog--color .trix-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute^='fgColor']::after {
+  content: 'Ab';
+}
+
+.form-field--rich-text .trix-dialog--color .trix-active::after {
+  content: '✓';
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor1'] {
+  color: rgb(136, 118, 38);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor2'] {
+  color: rgb(185, 94, 6);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor3'] {
+  color: rgb(207, 0, 0);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor4'] {
+  color: rgb(216, 28, 170);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor5'] {
+  color: rgb(144, 19, 254);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor6'] {
+  color: rgb(5, 98, 185);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor7'] {
+  color: rgb(17, 138, 15);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor8'] {
+  color: rgb(148, 82, 22);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='fgColor9'] {
+  color: rgb(102, 102, 102);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor1'] {
+  background-color: rgb(250, 247, 133);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor2'] {
+  background-color: rgb(255, 240, 219);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor3'] {
+  background-color: rgb(255, 229, 229);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor4'] {
+  background-color: rgb(255, 228, 247);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor5'] {
+  background-color: rgb(242, 237, 255);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor6'] {
+  background-color: rgb(225, 239, 252);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor7'] {
+  background-color: rgb(228, 248, 226);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor8'] {
+  background-color: rgb(238, 226, 215);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor9'] {
+  background-color: rgb(242, 242, 242);
 }

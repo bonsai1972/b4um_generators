@@ -810,4 +810,129 @@ RSpec.describe B4um::Generators::TrixGenerator do
       initializer.scan("data-action").length
     ).to eq(1)
   end
+
+  it "installs and imports the B4UM Trix JavaScript only once" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/javascript")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "config")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(@destination_root, "app/javascript/application.js"),
+      <<~JAVASCRIPT
+        import 'trix'
+        import '@rails/actiontext'
+      JAVASCRIPT
+    )
+
+    File.write(
+      File.join(@destination_root, "config/importmap.rb"),
+      <<~RUBY
+        pin "application"
+        pin "trix"
+        pin "@rails/actiontext", to: "actiontext.esm.js"
+      RUBY
+    )
+
+    2.times do
+      generator = build_generator
+      generator.invoke_all
+    end
+
+    trix_javascript_path = File.join(
+      @destination_root,
+      "app/javascript/b4um/trix.js"
+    )
+
+    expect(File).to exist(trix_javascript_path)
+
+    application_javascript = File.read(
+      File.join(
+        @destination_root,
+        "app/javascript/application.js"
+      )
+    )
+
+    expect(
+      application_javascript.scan("import 'b4um/trix'").length
+    ).to eq(1)
+
+    importmap = File.read(
+      File.join(
+        @destination_root,
+        "config/importmap.rb"
+      )
+    )
+
+    expect(
+      importmap.scan('pin "b4um/trix", to: "b4um/trix.js"').length
+    ).to eq(1)
+  end
+
+  it "allows style attributes for B4UM Trix colors" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    initializer = File.read(
+      File.join(
+        @destination_root,
+        "config/initializers/action_text.rb"
+      )
+    )
+
+    expect(initializer).to include("style")
+  end
 end

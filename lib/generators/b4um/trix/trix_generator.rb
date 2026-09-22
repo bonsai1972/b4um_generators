@@ -5,6 +5,8 @@ require "rails/generators"
 module B4um
   module Generators
     class TrixGenerator < Rails::Generators::Base
+      source_root File.expand_path("templates", __dir__)
+
       argument :name,
                type: :string,
                required: true,
@@ -33,6 +35,49 @@ module B4um
         return if action_text_installed?
 
         rails_command "action_text:install"
+      end
+
+      def install_b4um_trix_javascript
+        copy_file(
+          "b4um_trix.js",
+          "app/javascript/b4um/trix.js"
+        )
+      end
+
+      def import_b4um_trix_javascript
+        application_javascript_path = File.join(
+          destination_root,
+          "app/javascript/application.js"
+        )
+
+        return unless File.exist?(application_javascript_path)
+
+        application_javascript = File.read(application_javascript_path)
+
+        return if application_javascript.include?("import 'b4um/trix'")
+
+        append_to_file(
+          "app/javascript/application.js",
+          "\nimport 'b4um/trix'\n"
+        )
+      end
+
+      def pin_b4um_trix_javascript
+        importmap_path = File.join(
+          destination_root,
+          "config/importmap.rb"
+        )
+
+        return unless File.exist?(importmap_path)
+
+        importmap = File.read(importmap_path)
+
+        return if importmap.include?('pin "b4um/trix"')
+
+        append_to_file(
+          "config/importmap.rb",
+          "\npin \"b4um/trix\", to: \"b4um/trix.js\"\n"
+        )
       end
 
       def add_rich_text_association
@@ -166,10 +211,24 @@ module B4um
 
         configuration = <<~RUBY
           Rails.application.config.after_initialize do
+            ActionText::ContentHelper.allowed_tags =
+              ActionText::ContentHelper.sanitizer.class.allowed_tags +
+              [
+                ActionText::Attachment.tag_name,
+                "figure",
+                "figcaption"
+              ] +
+              %w[
+                align-left
+                align-center
+                align-right
+              ]
+
             ActionText::ContentHelper.allowed_attributes =
               ActionText::ContentHelper.sanitizer.class.allowed_attributes +
               ActionText::Attachment::ATTRIBUTES +
               %w[
+                style
                 data-image-lightbox-target
                 data-image-lightbox-url
                 data-image-lightbox-alt
