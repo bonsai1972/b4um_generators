@@ -192,6 +192,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
       File.join(component_directory, "resources.css")
     )
 
+    footer = File.read(
+      File.join(component_directory, "footer.css")
+    )
+
     tables = File.read(
       File.join(component_directory, "tables.css")
     )
@@ -270,6 +274,14 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(resources).to include(
       ".b4um-rich-text-preview__text"
+    )
+
+    expect(footer).to include(
+      ".b4um-footer__link.is-active"
+    )
+
+    expect(footer).to include(
+      "font-weight: 700;"
     )
 
     expect(forms).to include(

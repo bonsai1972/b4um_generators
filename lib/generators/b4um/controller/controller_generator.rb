@@ -114,12 +114,25 @@ module B4um
 
           path_name = "#{file_name}_#{action}_path"
 
-          next if footer.include?(path_name)
+          if footer.include?(path_name)
+            upgrade_footer_link(
+              footer_path,
+              footer,
+              path_name
+            )
+
+            footer = File.read(full_footer_path)
+            next
+          end
 
           footer_link = <<~ERB
             <%= link_to "#{navigation_label(action)}",
                         #{path_name},
-                        class: "b4um-footer__link" %>
+                        class: [
+                          "b4um-footer__link",
+                          ("is-active" if current_page?(#{path_name}))
+                        ].compact.join(" "),
+                        aria: (current_page?(#{path_name}) ? { current: "page" } : {}) %>
 
               #{marker}
           ERB
@@ -134,7 +147,65 @@ module B4um
         end
       end
 
+      def install_footer_active_styles
+        stylesheet_path = "app/assets/stylesheets/b4um/footer.css"
+        full_stylesheet_path = File.join(
+          destination_root,
+          stylesheet_path
+        )
+
+        return unless File.exist?(full_stylesheet_path)
+
+        stylesheet = File.read(full_stylesheet_path)
+
+        return if stylesheet.include?(
+          ".b4um-footer__link.is-active"
+        )
+
+        append_to_file(
+          stylesheet_path,
+          <<~CSS
+
+            .b4um-footer__link.is-active {
+              color: var(--b4um-primary);
+
+              font-weight: 700;
+            }
+          CSS
+        )
+      end
+
       private
+
+      def upgrade_footer_link(footer_path, footer, path_name)
+        return if footer.include?(
+          "current_page?(#{path_name})"
+        )
+
+        old_link_pattern = /
+          <%=\s*link_to\s+"([^"]+)",
+          \s*#{Regexp.escape(path_name)},
+          \s*class:\s*"b4um-footer__link"\s*%>
+        /x
+
+        return unless footer.match?(old_link_pattern)
+
+        upgraded_link = <<~ERB.chomp
+          <%= link_to "\\1",
+                      #{path_name},
+                      class: [
+                        "b4um-footer__link",
+                        ("is-active" if current_page?(#{path_name}))
+                      ].compact.join(" "),
+                      aria: (current_page?(#{path_name}) ? { current: "page" } : {}) %>
+        ERB
+
+        gsub_file(
+          footer_path,
+          old_link_pattern,
+          upgraded_link
+        )
+      end
 
       def footer_action?(action)
         footer_actions = %w[

@@ -410,6 +410,14 @@ RSpec.describe B4um::Generators::ControllerGenerator do
       "<%# B4UM_FOOTER_LINKS %>"
     )
 
+    expect(footer).to include(
+      '"is-active" if current_page?(pages_impressum_path)'
+    )
+
+    expect(footer).to include(
+      'aria: (current_page?(pages_impressum_path) ? { current: "page" } : {})'
+    )
+
     %w[
       impressum
       datenschutz
@@ -421,9 +429,125 @@ RSpec.describe B4um::Generators::ControllerGenerator do
       terms_and_conditions
     ].each do |action|
       expect(
-        footer.scan("pages_#{action}_path").count
-      ).to eq(1)
+        footer.scan("current_page?(pages_#{action}_path)").count
+      ).to eq(2)
     end
+  end
+
+  it "upgrades existing B4UM footer links with an active state" do
+    shared_directory = File.join(
+      @destination_root,
+      "app/views/shared"
+    )
+
+    FileUtils.mkdir_p(shared_directory)
+
+    footer_path = File.join(
+      shared_directory,
+      "_footer.html.erb"
+    )
+
+    File.write(
+      footer_path,
+      <<~ERB
+        <footer class="b4um-footer">
+          <nav class="b4um-footer__links" aria-label="Footer">
+            <%= link_to "Impressum",
+                        pages_impressum_path,
+                        class: "b4um-footer__link" %>
+
+            <%# B4UM_FOOTER_LINKS %>
+          </nav>
+        </footer>
+      ERB
+    )
+
+    routes_directory = File.join(
+      @destination_root,
+      "config"
+    )
+
+    FileUtils.mkdir_p(routes_directory)
+
+    File.write(
+      File.join(routes_directory, "routes.rb"),
+      <<~RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Pages impressum],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    footer = File.read(footer_path)
+
+    expect(footer).to include(
+      '"is-active" if current_page?(pages_impressum_path)'
+    )
+
+    expect(footer).to include(
+      'aria: (current_page?(pages_impressum_path) ? { current: "page" } : {})'
+    )
+
+    expect(
+      footer.scan('link_to "Impressum"').count
+    ).to eq(1)
+  end
+
+  it "adds active footer styles to existing B4UM applications" do
+    stylesheet_directory = File.join(
+      @destination_root,
+      "app/assets/stylesheets/b4um"
+    )
+
+    FileUtils.mkdir_p(stylesheet_directory)
+
+    stylesheet_path = File.join(
+      stylesheet_directory,
+      "footer.css"
+    )
+
+    File.write(
+      stylesheet_path,
+      <<~CSS
+        .b4um-footer__link {
+          text-decoration: none;
+        }
+      CSS
+    )
+
+    generator = described_class.new(
+      %w[Pages impressum],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.install_footer_active_styles
+    generator.install_footer_active_styles
+
+    stylesheet = File.read(stylesheet_path)
+
+    expect(stylesheet).to include(
+      ".b4um-footer__link.is-active"
+    )
+
+    expect(stylesheet).to include(
+      "color: var(--b4um-primary);"
+    )
+
+    expect(stylesheet).to include(
+      "font-weight: 700;"
+    )
+
+    expect(
+      stylesheet.scan(".b4um-footer__link.is-active").count
+    ).to eq(1)
   end
 
   it "removes existing legal page links from the B4UM navigation" do

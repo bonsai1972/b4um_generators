@@ -58,6 +58,12 @@
   color: var(--b4um-primary);
 }
 
+.b4um-footer__link.is-active {
+  color: var(--b4um-primary);
+
+  font-weight: 700;
+}
+
 .b4um-footer__link:focus-visible {
   outline: 3px solid var(--b4um-primary-focus);
   outline-offset: 3px;
