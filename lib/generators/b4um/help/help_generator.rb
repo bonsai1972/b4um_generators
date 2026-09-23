@@ -395,6 +395,60 @@ module B4um
             - Footer links require the B4UM footer to be installed
 
 
+          SITEMAP
+
+          The B4UM footer can contain configurable sitemap columns.
+
+          The sitemap configuration is stored in:
+
+            config/b4um.yml
+
+          Example:
+
+            sitemap:
+              - key: column_1
+                title: Kontakt
+
+              - key: column_2
+                title: Inhalte
+
+              - key: column_3
+                title: Service
+
+              - key: column_4
+                title: Mehr
+
+          Additional columns can be added by defining another unique key.
+
+          Controller actions can be added directly to a sitemap column
+          with --sitemap:
+
+            bin/rails generate b4um:controller Pages faq support --sitemap=column_3
+
+          When --sitemap is used, the generated actions are added to the
+          selected sitemap column instead of the main navigation.
+
+          Legal pages can remain in the separate legal footer area:
+
+            legal_links:
+              placement: footer
+
+          This is the default configuration.
+
+          Legal pages can alternatively be placed in any existing
+          sitemap column:
+
+            legal_links:
+              placement: column_4
+
+          When legal pages are assigned to a sitemap column, B4UM adds
+          them to that column automatically and does not duplicate them
+          in the separate legal footer area.
+
+          The placement uses the sitemap column key, not its visible
+          title. This allows sitemap column titles to be changed freely.
+
+
           PAGINATION
 
             bin/rails generate b4um:pagination MODEL

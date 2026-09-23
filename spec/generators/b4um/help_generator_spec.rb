@@ -256,6 +256,42 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the B4UM sitemap configuration" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "SITEMAP"
+      )
+
+      expect(text).to include(
+        "config/b4um.yml"
+      )
+
+      expect(text).to include(
+        "--sitemap=column_3"
+      )
+
+      expect(text).to include(
+        "placement: footer"
+      )
+
+      expect(text).to include(
+        "placement: column_4"
+      )
+
+      expect(text).to include(
+        "does not duplicate them"
+      )
+
+      expect(text).to include(
+        "sitemap column key"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the B4UM pagination generator" do
     generator = described_class.new
 
