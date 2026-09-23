@@ -12,6 +12,34 @@
 }
 
 /* -------------------------------------------------------
+   Card grid
+------------------------------------------------------- */
+
+.b4um-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+
+  width: 100%;
+  margin: 32px 0;
+}
+
+.b4um-card-grid > .b4um-card {
+  display: flex;
+  flex-direction: column;
+
+  grid-column: auto;
+  grid-row: auto;
+
+  min-width: 0;
+}
+
+.b4um-card-grid > .b4um-card .b4um-card__actions {
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+/* -------------------------------------------------------
    Cards
 ------------------------------------------------------- */
 
@@ -141,10 +169,137 @@
 }
 
 /* -------------------------------------------------------
+   List
+------------------------------------------------------- */
+
+.b4um-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  width: 100%;
+  margin: 32px 0;
+}
+
+.b4um-list__item {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+
+  width: 100%;
+  min-width: 0;
+  padding: 20px 24px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--b4um-border-light);
+  border-radius: var(--b4um-radius);
+
+  background-color: var(--b4um-surface);
+  box-shadow: 0 4px 14px var(--b4um-primary-shadow-soft);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.b4um-list__item:hover {
+  border-color: var(--b4um-border);
+  box-shadow: 0 8px 22px var(--b4um-primary-shadow);
+}
+
+.b4um-list__content {
+  flex: 1 1 auto;
+
+  min-width: 0;
+}
+
+.b4um-list__actions {
+  flex: 0 0 auto;
+}
+
+/* -------------------------------------------------------
+   Alternating
+------------------------------------------------------- */
+
+.b4um-alternating {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  width: 100%;
+  margin: 32px 0;
+}
+
+.b4um-alternating__item {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(180px, 1fr);
+  align-items: stretch;
+  gap: 0;
+
+  min-width: 0;
+  overflow: hidden;
+
+  border: 1px solid var(--b4um-border-light);
+  border-radius: var(--b4um-radius);
+
+  background-color: var(--b4um-surface);
+  box-shadow: 0 6px 20px var(--b4um-primary-shadow-soft);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.b4um-alternating__item:hover {
+  border-color: var(--b4um-border);
+  box-shadow: 0 10px 30px var(--b4um-primary-shadow);
+}
+
+.b4um-alternating__content {
+  min-width: 0;
+  padding: 28px;
+}
+
+.b4um-alternating__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 28px;
+
+  border-left: 1px solid var(--b4um-border-light);
+  background-color: var(--b4um-surface-soft);
+}
+
+.b4um-alternating__actions .button {
+  width: 100%;
+}
+
+.b4um-alternating__item--reverse {
+  grid-template-columns: minmax(180px, 1fr) minmax(0, 3fr);
+}
+
+.b4um-alternating__item--reverse .b4um-alternating__content {
+  order: 2;
+}
+
+.b4um-alternating__item--reverse .b4um-alternating__actions {
+  order: 1;
+
+  border-right: 1px solid var(--b4um-border-light);
+  border-left: 0;
+}
+
+/* -------------------------------------------------------
    Responsive
 ------------------------------------------------------- */
 
 @media (max-width: 900px) {
+  .b4um-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .b4um-card,
   .b4um-card--wide,
   .b4um-card--large {
@@ -157,6 +312,63 @@
 }
 
 @media (max-width: 600px) {
+  .b4um-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+
+    margin: 24px 0;
+  }
+
+  .b4um-list {
+    gap: 10px;
+
+    margin: 24px 0;
+  }
+
+  .b4um-list__item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+
+    padding: 20px;
+  }
+
+  .b4um-list__actions {
+    display: flex;
+  }
+
+  .b4um-list__actions .button {
+    width: 100%;
+  }
+
+  .b4um-alternating {
+    gap: 16px;
+
+    margin: 24px 0;
+  }
+
+  .b4um-alternating__item,
+  .b4um-alternating__item--reverse {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .b4um-alternating__content,
+  .b4um-alternating__item--reverse .b4um-alternating__content {
+    order: 1;
+
+    padding: 22px;
+  }
+
+  .b4um-alternating__actions,
+  .b4um-alternating__item--reverse .b4um-alternating__actions {
+    order: 2;
+
+    padding: 0 22px 22px;
+
+    border: 0;
+    background-color: transparent;
+  }
+
   .b4um-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;

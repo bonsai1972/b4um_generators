@@ -1,0 +1,15 @@
+<div id="<%= plural_table_name %>" class="b4um-alternating">
+  <%% <%= plural_table_name %>.each_with_index do |<%= file_name %>, index| %>
+    <article class="b4um-alternating__item <%%= "b4um-alternating__item--reverse" if index.odd? %>">
+      <div class="b4um-alternating__content">
+        <%%= render <%= file_name %>, compact: true %>
+      </div>
+
+      <div class="b4um-alternating__actions">
+        <%%= link_to "Show",
+                    <%= file_name %>,
+                    class: "button button--secondary" %>
+      </div>
+    </article>
+  <%% end %>
+</div>

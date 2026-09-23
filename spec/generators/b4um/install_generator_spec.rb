@@ -184,6 +184,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
       File.join(component_directory, "cards.css")
     )
 
+    forms = File.read(
+      File.join(component_directory, "forms.css")
+    )
+
     tables = File.read(
       File.join(component_directory, "tables.css")
     )
@@ -240,6 +244,38 @@ RSpec.describe B4um::Generators::InstallGenerator do
       "--b4um-warning-border: #fde68a;"
     )
 
+    expect(theme).to include(
+      "--b4um-code-background: #1e293b;"
+    )
+
+    expect(theme).to include(
+      "--b4um-code-text: #f8fafc;"
+    )
+
+    expect(theme).to include(
+      "--b4um-code-border: #334155;"
+    )
+
+    expect(forms).to include(
+      ".form-field--rich-text trix-editor pre"
+    )
+
+    expect(forms).to include(
+      ".trix-content pre"
+    )
+
+    expect(forms).to include(
+      "white-space: pre-wrap;"
+    )
+
+    expect(forms).to include(
+      "overflow-wrap: anywhere;"
+    )
+
+    expect(forms).to include(
+      "background-color: var(--b4um-code-background);"
+    )
+
     expect(flash).to include(
       "background-color: var(--b4um-success-background);"
     )
@@ -278,6 +314,30 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(cards).to include(
       "border-radius: var(--b4um-radius) var(--b4um-radius) 0 0;"
+    )
+
+    expect(cards).to include(
+      ".b4um-card-grid"
+    )
+
+    expect(cards).to include(
+      "grid-template-columns: repeat(3, minmax(0, 1fr));"
+    )
+
+    expect(cards).to include(
+      ".b4um-list"
+    )
+
+    expect(cards).to include(
+      ".b4um-list__item"
+    )
+
+    expect(cards).to include(
+      ".b4um-alternating"
+    )
+
+    expect(cards).to include(
+      ".b4um-alternating__item--reverse"
     )
 
     expect(tables).to include(

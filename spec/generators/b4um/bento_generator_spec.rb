@@ -39,10 +39,104 @@ RSpec.describe B4um::Generators::BentoGenerator do
     expect(described_class).to be < Rails::Generators::NamedBase
   end
 
-  it "generates a B4UM Bento partial for an existing model" do
+  it "generates the grid layout by default" do
     generator = described_class.new(
       ["Product"],
       {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    partial_path = File.join(
+      @destination_root,
+      "app/views/products/_bento.html.erb"
+    )
+
+    expect(File).to exist(partial_path)
+
+    grid = File.read(partial_path)
+
+    expect(grid).to include(
+      'id="products" class="b4um-card-grid"'
+    )
+
+    expect(grid).to include(
+      "products.each do |product|"
+    )
+
+    expect(grid).to include(
+      '<article class="b4um-card">'
+    )
+
+    expect(grid).to include(
+      "render product, compact: true"
+    )
+
+    expect(grid).to include(
+      'class: "button button--secondary"'
+    )
+
+    expect(grid).not_to include(
+      "b4um-card--wide"
+    )
+
+    expect(grid).not_to include(
+      "b4um-card--large"
+    )
+  end
+
+  it "generates a three-column card grid layout" do
+    generator = described_class.new(
+      ["Product"],
+      { layout: "grid" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    partial_path = File.join(
+      @destination_root,
+      "app/views/products/_bento.html.erb"
+    )
+
+    expect(File).to exist(partial_path)
+
+    grid = File.read(partial_path)
+
+    expect(grid).to include(
+      'id="products" class="b4um-card-grid"'
+    )
+
+    expect(grid).to include(
+      "products.each do |product|"
+    )
+
+    expect(grid).to include(
+      '<article class="b4um-card">'
+    )
+
+    expect(grid).to include(
+      "render product, compact: true"
+    )
+
+    expect(grid).to include(
+      'class: "button button--secondary"'
+    )
+
+    expect(grid).not_to include(
+      "b4um-card--wide"
+    )
+
+    expect(grid).not_to include(
+      "b4um-card--large"
+    )
+  end
+
+  it "generates the classic Bento layout explicitly" do
+    generator = described_class.new(
+      ["Product"],
+      { layout: "bento" },
       destination_root: @destination_root
     )
 
@@ -82,6 +176,99 @@ RSpec.describe B4um::Generators::BentoGenerator do
     )
 
     expect(bento).to include(
+      'class: "button button--secondary"'
+    )
+  end
+  it "generates a compact list layout" do
+    generator = described_class.new(
+      ["Product"],
+      { layout: "list" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    partial_path = File.join(
+      @destination_root,
+      "app/views/products/_bento.html.erb"
+    )
+
+    expect(File).to exist(partial_path)
+
+    list = File.read(partial_path)
+
+    expect(list).to include(
+      'id="products" class="b4um-list"'
+    )
+
+    expect(list).to include(
+      "products.each do |product|"
+    )
+
+    expect(list).to include(
+      '<article class="b4um-list__item">'
+    )
+
+    expect(list).to include(
+      '<div class="b4um-list__content">'
+    )
+
+    expect(list).to include(
+      '<div class="b4um-list__actions">'
+    )
+
+    expect(list).to include(
+      "render product, compact: true"
+    )
+
+    expect(list).to include(
+      'class: "button button--secondary"'
+    )
+  end
+
+  it "generates an alternating layout" do
+    generator = described_class.new(
+      ["Product"],
+      { layout: "alternating" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    partial_path = File.join(
+      @destination_root,
+      "app/views/products/_bento.html.erb"
+    )
+
+    expect(File).to exist(partial_path)
+
+    alternating = File.read(partial_path)
+
+    expect(alternating).to include(
+      'id="products" class="b4um-alternating"'
+    )
+
+    expect(alternating).to include(
+      "products.each_with_index do |product, index|"
+    )
+
+    expect(alternating).to include(
+      "b4um-alternating__item--reverse"
+    )
+
+    expect(alternating).to include(
+      '<div class="b4um-alternating__content">'
+    )
+
+    expect(alternating).to include(
+      '<div class="b4um-alternating__actions">'
+    )
+
+    expect(alternating).to include(
+      "render product, compact: true"
+    )
+
+    expect(alternating).to include(
       'class: "button button--secondary"'
     )
   end

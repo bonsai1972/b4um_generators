@@ -8,6 +8,12 @@ module B4um
     class BentoGenerator < Rails::Generators::NamedBase
       source_root File.expand_path("templates", __dir__)
 
+      class_option :layout,
+                   type: :string,
+                   default: "grid",
+                   enum: %w[bento grid list alternating],
+                   desc: "Layout: bento, grid, list, or alternating"
+
       class << self
         def desc(_description = nil)
           "Generates a B4UM Bento partial for an existing model."
@@ -30,7 +36,7 @@ module B4um
 
       def create_bento_partial
         template(
-          "_bento.html.erb.tt",
+          template_name,
           File.join(
             "app/views",
             plural_table_name,
@@ -56,6 +62,19 @@ module B4um
           plural_table_name,
           "_#{file_name}.html.erb"
         )
+      end
+
+      def template_name
+        case options[:layout]
+        when "grid"
+          "_grid.html.erb.tt"
+        when "list"
+          "_list.html.erb.tt"
+        when "alternating"
+          "_alternating.html.erb.tt"
+        else
+          "_bento.html.erb.tt"
+        end
       end
     end
   end

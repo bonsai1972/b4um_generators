@@ -52,6 +52,11 @@
   /* Neutral */
   --b4um-neutral-background: #f0f0f0;
 
+  /* Code */
+  --b4um-code-background: #1e293b;
+  --b4um-code-text: #f8fafc;
+  --b4um-code-border: #334155;
+
   /* Shadows */
   --b4um-container-shadow: rgba(1, 1, 1, 0.7);
   --b4um-primary-shadow: rgba(46, 71, 210, 0.22);

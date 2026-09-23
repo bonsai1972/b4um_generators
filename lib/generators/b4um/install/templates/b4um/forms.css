@@ -490,6 +490,33 @@
    Rich Text Content
 ------------------------------------------------------- */
 
+/* Code blocks */
+
+.form-field--rich-text trix-editor pre,
+.trix-content pre {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  margin: 1.25em 0;
+  padding: 1em 1.15em;
+
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: normal;
+
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.6;
+
+  color: var(--b4um-code-text);
+  background-color: var(--b4um-code-background);
+  border: 1px solid var(--b4um-code-border);
+  border-radius: var(--b4um-radius);
+}
+
 .trix-content .attachment-gallery {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

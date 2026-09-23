@@ -1,0 +1,15 @@
+<div id="<%= plural_table_name %>" class="b4um-list">
+  <%% <%= plural_table_name %>.each do |<%= file_name %>| %>
+    <article class="b4um-list__item">
+      <div class="b4um-list__content">
+        <%%= render <%= file_name %>, compact: true %>
+      </div>
+
+      <div class="b4um-list__actions">
+        <%%= link_to "Show",
+                    <%= file_name %>,
+                    class: "button button--secondary" %>
+      </div>
+    </article>
+  <%% end %>
+</div>

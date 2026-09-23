@@ -277,6 +277,37 @@ module B4um
 
             bin/rails generate b4um:bento Product
 
+          The default layout is Grid.
+
+          Available layouts:
+
+            bin/rails generate b4um:bento Product
+            bin/rails generate b4um:bento Product --layout=grid
+            bin/rails generate b4um:bento Product --layout=list
+            bin/rails generate b4um:bento Product --layout=alternating
+            bin/rails generate b4um:bento Product --layout=bento
+
+          Layouts:
+
+            grid
+              The default three-column card grid.
+              Adapts to two columns on tablets and one column on mobile.
+
+            list
+              A compact horizontal list layout.
+              Actions move below the content on mobile.
+
+            alternating
+              A spacious alternating layout with the action area
+              switching between the left and right side.
+              Uses a single-column layout on mobile.
+
+            bento
+              The classic Bento layout with mixed card sizes.
+
+          Use --layout=bento to explicitly generate the classic
+          Bento design.
+
           The model and its resource partial must already exist.
 
           Example resource partial:
@@ -506,6 +537,13 @@ module B4um
             - Keyboard navigation
             - Responsive image galleries
             - Sticky Trix toolbar
+            - Headings H1 through H6
+            - Left, center, and right text alignment
+            - Text and background colors
+            - Horizontal rules
+            - Editable DIV, SECTION, and ARTICLE containers with IDs
+            - Container formatting remains fully editable
+            - Active container buttons can remove the wrapper again
             - Safe repeated generator runs
 
 
