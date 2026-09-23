@@ -235,27 +235,19 @@ RSpec.describe B4um::Generators::ControllerGenerator do
       "action: :about"
     )
 
-    expect(navigation).to include(
-      'navigation_link_to "Impressum"'
-    )
-
-    expect(navigation).to include(
+    expect(navigation).not_to include(
       "pages_impressum_path"
     )
 
-    expect(navigation).to include(
+    expect(navigation).not_to include(
       "action: :impressum"
     )
 
-    expect(navigation).to include(
-      'navigation_link_to "AGB"'
-    )
-
-    expect(navigation).to include(
+    expect(navigation).not_to include(
       "pages_agb_path"
     )
 
-    expect(navigation).to include(
+    expect(navigation).not_to include(
       "action: :agb"
     )
 
@@ -284,15 +276,257 @@ RSpec.describe B4um::Generators::ControllerGenerator do
     ).to eq(1)
 
     expect(
-      navigation.scan("action: :impressum").count
-    ).to eq(1)
-
-    expect(
-      navigation.scan("action: :agb").count
-    ).to eq(1)
-
-    expect(
       navigation.scan("action: :faq").count
     ).to eq(1)
+  end
+
+  it "adds German and English legal pages to the B4UM footer" do
+    shared_directory = File.join(
+      @destination_root,
+      "app/views/shared"
+    )
+
+    FileUtils.mkdir_p(shared_directory)
+
+    footer_path = File.join(
+      shared_directory,
+      "_footer.html.erb"
+    )
+
+    File.write(
+      footer_path,
+      <<~ERB
+        <footer class="b4um-footer">
+          <nav class="b4um-footer__links" aria-label="Footer">
+            <%# B4UM_FOOTER_LINKS %>
+          </nav>
+        </footer>
+      ERB
+    )
+
+    routes_directory = File.join(
+      @destination_root,
+      "config"
+    )
+
+    FileUtils.mkdir_p(routes_directory)
+
+    File.write(
+      File.join(routes_directory, "routes.rb"),
+      <<~RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[
+        Pages
+        impressum
+        datenschutz
+        agb
+        imprint
+        privacy
+        privacy_policy
+        terms
+        terms_and_conditions
+      ],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    # Ein zweiter Aufruf darf die Links nicht duplizieren.
+    generator.add_footer_links
+
+    footer = File.read(footer_path)
+
+    expect(footer).to include(
+      'link_to "Impressum"'
+    )
+
+    expect(footer).to include(
+      "pages_impressum_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Datenschutz"'
+    )
+
+    expect(footer).to include(
+      "pages_datenschutz_path"
+    )
+
+    expect(footer).to include(
+      'link_to "AGB"'
+    )
+
+    expect(footer).to include(
+      "pages_agb_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Imprint"'
+    )
+
+    expect(footer).to include(
+      "pages_imprint_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Privacy"'
+    )
+
+    expect(footer).to include(
+      "pages_privacy_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Privacy policy"'
+    )
+
+    expect(footer).to include(
+      "pages_privacy_policy_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Terms"'
+    )
+
+    expect(footer).to include(
+      "pages_terms_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Terms and conditions"'
+    )
+
+    expect(footer).to include(
+      "pages_terms_and_conditions_path"
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_FOOTER_LINKS %>"
+    )
+
+    %w[
+      impressum
+      datenschutz
+      agb
+      imprint
+      privacy
+      privacy_policy
+      terms
+      terms_and_conditions
+    ].each do |action|
+      expect(
+        footer.scan("pages_#{action}_path").count
+      ).to eq(1)
+    end
+  end
+
+  it "removes existing legal page links from the B4UM navigation" do
+    shared_directory = File.join(
+      @destination_root,
+      "app/views/shared"
+    )
+
+    FileUtils.mkdir_p(shared_directory)
+
+    navigation_path = File.join(
+      shared_directory,
+      "_navigation.html.erb"
+    )
+
+    File.write(
+      navigation_path,
+      <<~ERB
+        <div class="navigation__menu">
+          <%= navigation_link_to "Home",
+                                 pages_home_path,
+                                 controller: :pages,
+                                 action: :home %>
+
+          <%= navigation_link_to "Impressum",
+                                 pages_impressum_path,
+                                 controller: :pages,
+                                 action: :impressum %>
+
+          <%= navigation_link_to "Datenschutz",
+                                 pages_datenschutz_path,
+                                 controller: :pages,
+                                 action: :datenschutz %>
+
+          <%= navigation_link_to "AGB",
+                                 pages_agb_path,
+                                 controller: :pages,
+                                 action: :agb %>
+
+          <%# B4UM_NAVIGATION_LINKS %>
+        </div>
+      ERB
+    )
+
+    routes_directory = File.join(
+      @destination_root,
+      "config"
+    )
+
+    FileUtils.mkdir_p(routes_directory)
+
+    File.write(
+      File.join(routes_directory, "routes.rb"),
+      <<~RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Pages impressum datenschutz agb],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    navigation = File.read(navigation_path)
+
+    expect(navigation).to include(
+      "pages_home_path"
+    )
+
+    expect(navigation).to include(
+      "action: :home"
+    )
+
+    expect(navigation).not_to include(
+      "pages_impressum_path"
+    )
+
+    expect(navigation).not_to include(
+      "action: :impressum"
+    )
+
+    expect(navigation).not_to include(
+      "pages_datenschutz_path"
+    )
+
+    expect(navigation).not_to include(
+      "action: :datenschutz"
+    )
+
+    expect(navigation).not_to include(
+      "pages_agb_path"
+    )
+
+    expect(navigation).not_to include(
+      "action: :agb"
+    )
+
+    expect(navigation).to include(
+      "<%# B4UM_NAVIGATION_LINKS %>"
+    )
   end
 end

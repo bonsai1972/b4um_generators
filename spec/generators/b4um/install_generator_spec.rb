@@ -558,6 +558,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
       "Time.current.year"
     )
 
+    expect(footer).to include(
+      "<%# B4UM_FOOTER_LINKS %>"
+    )
+
     layout = File.read(
       File.join(
         @destination_root,

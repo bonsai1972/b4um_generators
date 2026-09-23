@@ -10,7 +10,7 @@ module B4um
 
       class << self
         def desc(_description = nil)
-          "Generates a B4UM controller with views and navigation links."
+          "Generates a B4UM controller with views, navigation links, and legal footer links."
         end
       end
 
@@ -42,6 +42,8 @@ module B4um
         return unless navigation.include?(marker)
 
         actions.each do |action|
+          next if footer_action?(action)
+
           next if navigation.include?(
             "action: :#{action}"
           )
@@ -63,7 +65,91 @@ module B4um
         end
       end
 
+      def remove_legal_navigation_links
+        navigation_path = "app/views/shared/_navigation.html.erb"
+        full_navigation_path = File.join(destination_root, navigation_path)
+
+        return unless File.exist?(full_navigation_path)
+
+        actions.each do |action|
+          next unless footer_action?(action)
+
+          navigation = File.read(full_navigation_path)
+          path_name = "#{file_name}_#{action}_path"
+
+          next unless navigation.include?(path_name)
+
+          navigation_link_pattern = /
+            \n*
+            \s*<%=\s*navigation_link_to
+            \s+"[^"]*",
+            \s*#{Regexp.escape(path_name)},
+            \s*controller:\s*:#{Regexp.escape(file_name)},
+            \s*action:\s*:#{Regexp.escape(action.to_s)}
+            \s*%>
+            \n*
+          /x
+
+          gsub_file(
+            navigation_path,
+            navigation_link_pattern,
+            "\n"
+          )
+        end
+      end
+
+      def add_footer_links
+        footer_path = "app/views/shared/_footer.html.erb"
+        full_footer_path = File.join(destination_root, footer_path)
+
+        return unless File.exist?(full_footer_path)
+
+        footer = File.read(full_footer_path)
+        marker = "<%# B4UM_FOOTER_LINKS %>"
+
+        return unless footer.include?(marker)
+
+        actions.each do |action|
+          next unless footer_action?(action)
+
+          path_name = "#{file_name}_#{action}_path"
+
+          next if footer.include?(path_name)
+
+          footer_link = <<~ERB
+            <%= link_to "#{navigation_label(action)}",
+                        #{path_name},
+                        class: "b4um-footer__link" %>
+
+              #{marker}
+          ERB
+
+          gsub_file(
+            footer_path,
+            marker,
+            footer_link.chomp
+          )
+
+          footer = File.read(full_footer_path)
+        end
+      end
+
       private
+
+      def footer_action?(action)
+        footer_actions = %w[
+          impressum
+          datenschutz
+          agb
+          imprint
+          privacy
+          privacy_policy
+          terms
+          terms_and_conditions
+        ]
+
+        footer_actions.include?(action.to_s)
+      end
 
       def b4um_view_content(action)
         title = navigation_label(action)
