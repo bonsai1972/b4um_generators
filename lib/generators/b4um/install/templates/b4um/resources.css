@@ -36,6 +36,22 @@
   overflow-wrap: anywhere;
 }
 
+.b4um-rich-text-preview {
+  display: block;
+}
+
+.b4um-rich-text-preview__heading {
+  display: block;
+  margin-bottom: 0.25rem;
+
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.b4um-rich-text-preview__text {
+  display: block;
+}
+
 /* -------------------------------------------------------
    Resource images
 ------------------------------------------------------- */

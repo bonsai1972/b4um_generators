@@ -1,0 +1,42 @@
+# frozen_string_literal: true
+
+module B4umRichTextHelper
+  def b4um_rich_text_preview(rich_text, length: 160)
+    return if rich_text.blank?
+
+    document = rich_text.body.fragment.source
+    first_element = document.element_children.first
+    heading = first_element if first_element&.name&.match?(/\Ah[1-6]\z/)
+
+    plain_text = rich_text.to_plain_text.strip
+
+    if heading
+      heading_text = heading.text.strip
+      body_text = plain_text.delete_prefix(heading_text).strip
+
+      preview_parts = [
+        content_tag(
+          :strong,
+          heading_text,
+          class: "b4um-rich-text-preview__heading"
+        )
+      ]
+
+      if body_text.present?
+        preview_parts << content_tag(
+          :span,
+          truncate(body_text, length: length),
+          class: "b4um-rich-text-preview__text"
+        )
+      end
+
+      content_tag(
+        :span,
+        safe_join(preview_parts),
+        class: "b4um-rich-text-preview"
+      )
+    else
+      truncate(plain_text, length: length)
+    end
+  end
+end

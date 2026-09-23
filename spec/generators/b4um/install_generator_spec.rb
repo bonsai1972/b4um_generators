@@ -188,6 +188,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
       File.join(component_directory, "forms.css")
     )
 
+    resources = File.read(
+      File.join(component_directory, "resources.css")
+    )
+
     tables = File.read(
       File.join(component_directory, "tables.css")
     )
@@ -254,6 +258,18 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(theme).to include(
       "--b4um-code-border: #334155;"
+    )
+
+    expect(resources).to include(
+      ".b4um-rich-text-preview"
+    )
+
+    expect(resources).to include(
+      ".b4um-rich-text-preview__heading"
+    )
+
+    expect(resources).to include(
+      ".b4um-rich-text-preview__text"
     )
 
     expect(forms).to include(

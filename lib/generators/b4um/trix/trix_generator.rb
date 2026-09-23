@@ -44,6 +44,50 @@ module B4um
         )
       end
 
+      def install_b4um_rich_text_helper
+        copy_file(
+          "b4um_rich_text_helper.rb",
+          "app/helpers/b4um_rich_text_helper.rb"
+        )
+      end
+
+      def install_b4um_rich_text_preview_styles
+        resources_stylesheet_path = File.join(
+          destination_root,
+          "app/assets/stylesheets/b4um/resources.css"
+        )
+
+        return unless File.exist?(resources_stylesheet_path)
+
+        stylesheet = File.read(resources_stylesheet_path)
+
+        return if stylesheet.include?(".b4um-rich-text-preview__heading")
+
+        styles = <<~CSS
+
+          .b4um-rich-text-preview {
+            display: block;
+          }
+
+          .b4um-rich-text-preview__heading {
+            display: block;
+            margin-bottom: 0.25rem;
+
+            font-weight: 700;
+            line-height: 1.25;
+          }
+
+          .b4um-rich-text-preview__text {
+            display: block;
+          }
+        CSS
+
+        append_to_file(
+          "app/assets/stylesheets/b4um/resources.css",
+          styles
+        )
+      end
+
       def import_b4um_trix_javascript
         application_javascript_path = File.join(
           destination_root,
@@ -110,7 +154,13 @@ module B4um
         gsub_file(
           resource_partial_path,
           "truncate(#{resource_name}.#{attribute}, length: 160)",
-          "truncate(#{resource_name}.#{attribute}.to_plain_text, length: 160)"
+          "b4um_rich_text_preview(#{resource_name}.#{attribute}, length: 160)"
+        )
+
+        gsub_file(
+          resource_partial_path,
+          "truncate(#{resource_name}.#{attribute}.to_plain_text, length: 160)",
+          "b4um_rich_text_preview(#{resource_name}.#{attribute}, length: 160)"
         )
 
         partial = File.read(resource_partial_path)

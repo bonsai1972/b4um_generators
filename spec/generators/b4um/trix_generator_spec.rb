@@ -353,7 +353,7 @@ RSpec.describe B4um::Generators::TrixGenerator do
     generator.invoke_all
   end
 
-  it "converts rich text to plain text before truncating it" do
+  it "uses the B4UM rich text preview for compact resources" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/models")
     )
@@ -404,11 +404,71 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(partial).to include(
-      "truncate(article.content.to_plain_text, length: 160)"
+      "b4um_rich_text_preview(article.content, length: 160)"
     )
 
     expect(partial).not_to include(
       "truncate(article.content, length: 160)"
+    )
+  end
+
+  it "upgrades an existing plain text rich text preview" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+          has_rich_text :content
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.rich_text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_article.html.erb"),
+      <<~ERB
+        <span class="resource-value">
+          <% if local_assigns[:compact] %>
+            <%= truncate(article.content.to_plain_text, length: 160) %>
+          <% else %>
+            <%= article.content %>
+          <% end %>
+        </span>
+      ERB
+    )
+
+    generator = build_generator
+
+    generator.invoke_all
+
+    partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_article.html.erb"
+      )
+    )
+
+    expect(partial).to include(
+      "b4um_rich_text_preview(article.content, length: 160)"
+    )
+
+    expect(partial).not_to include(
+      "truncate(article.content.to_plain_text, length: 160)"
     )
   end
 
@@ -894,6 +954,137 @@ RSpec.describe B4um::Generators::TrixGenerator do
 
     expect(
       importmap.scan('pin "b4um/trix", to: "b4um/trix.js"').length
+    ).to eq(1)
+  end
+
+  it "installs the B4UM rich text preview helper" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    helper_path = File.join(
+      @destination_root,
+      "app/helpers/b4um_rich_text_helper.rb"
+    )
+
+    expect(File).to exist(helper_path)
+
+    helper = File.read(helper_path)
+
+    expect(helper).to include(
+      "def b4um_rich_text_preview(rich_text, length: 160)"
+    )
+
+    expect(helper).to include(
+      "rich_text.body.fragment.source"
+    )
+
+    expect(helper).to include(
+      "first_element = document.element_children.first"
+    )
+
+    expect(helper).to include(
+      'heading = first_element if first_element&.name&.match?(/\Ah[1-6]\z/)'
+    )
+
+    expect(helper).to include(
+      'class: "b4um-rich-text-preview__heading"'
+    )
+
+    expect(helper).to include(
+      'class: "b4um-rich-text-preview"'
+    )
+
+    expect(helper).to include(
+      'class: "b4um-rich-text-preview__text"'
+    )
+  end
+
+  it "adds B4UM rich text preview styles without duplicating them" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/assets/stylesheets/b4um")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    resources_stylesheet_path = File.join(
+      @destination_root,
+      "app/assets/stylesheets/b4um/resources.css"
+    )
+
+    File.write(
+      resources_stylesheet_path,
+      <<~CSS
+        .resource-value {
+          min-width: 0;
+        }
+      CSS
+    )
+
+    2.times do
+      generator = build_generator
+      generator.invoke_all
+    end
+
+    stylesheet = File.read(resources_stylesheet_path)
+
+    expect(
+      stylesheet.scan(".b4um-rich-text-preview {").length
+    ).to eq(1)
+
+    expect(
+      stylesheet.scan(".b4um-rich-text-preview__heading {").length
+    ).to eq(1)
+
+    expect(
+      stylesheet.scan(".b4um-rich-text-preview__text {").length
     ).to eq(1)
   end
 
