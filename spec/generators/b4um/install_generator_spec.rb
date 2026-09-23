@@ -523,6 +523,64 @@ RSpec.describe B4um::Generators::InstallGenerator do
       "if (window.matchMedia('(min-width: 78rem)').matches) return"
     )
 
+    b4um_config_path = File.join(
+      @destination_root,
+      "config/b4um.yml"
+    )
+
+    expect(File).to exist(b4um_config_path)
+
+    b4um_config = File.read(
+      b4um_config_path
+    )
+
+    expect(b4um_config).to include(
+      "key: column_1"
+    )
+    expect(b4um_config).to include(
+      "title: Kontakt"
+    )
+    expect(b4um_config).to include(
+      "key: column_2"
+    )
+    expect(b4um_config).to include(
+      "key: column_3"
+    )
+    expect(b4um_config).to include(
+      "key: column_4"
+    )
+
+    b4um_helper_path = File.join(
+      @destination_root,
+      "app/helpers/b4um_helper.rb"
+    )
+
+    expect(File).to exist(b4um_helper_path)
+
+    b4um_helper = File.read(
+      b4um_helper_path
+    )
+
+    expect(b4um_helper).to include(
+      'require "yaml"'
+    )
+
+    expect(b4um_helper).to include(
+      "def b4um_sitemap_columns"
+    )
+
+    expect(b4um_helper).to include(
+      'Array(config["sitemap"])'
+    )
+
+    expect(b4um_helper).to include(
+      "def b4um_sitemap_path(route)"
+    )
+
+    expect(b4um_helper).to include(
+      "Rails.application.routes.url_helpers"
+    )
+
     expect(
       File
     ).to exist(
@@ -622,19 +680,11 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(footer).to include(
-      "<%# B4UM_SITEMAP_CONTACT_LINKS %>"
+      "b4um_sitemap_columns"
     )
 
     expect(footer).to include(
-      "<%# B4UM_SITEMAP_CONTENT_LINKS %>"
-    )
-
-    expect(footer).to include(
-      "<%# B4UM_SITEMAP_SERVICE_LINKS %>"
-    )
-
-    expect(footer).to include(
-      "<%# B4UM_SITEMAP_MORE_LINKS %>"
+      'column["title"]'
     )
 
     expect(footer).not_to include(

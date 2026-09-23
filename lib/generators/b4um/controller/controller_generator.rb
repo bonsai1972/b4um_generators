@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "yaml"
 require "rails/generators"
 require "rails/generators/rails/controller/controller_generator"
 
@@ -11,7 +12,7 @@ module B4um
       class_option :sitemap,
                    type: :string,
                    aliases: "-s",
-                   desc: "Add generated actions to a B4UM sitemap section: contact, content, service, or more"
+                   desc: "Add generated actions to a B4UM sitemap column configured in config/b4um.yml"
 
       class << self
         def desc(_description = nil)
@@ -36,6 +37,8 @@ module B4um
       end
 
       def add_navigation_links
+        return if options[:sitemap].present?
+
         navigation_path = "app/views/shared/_navigation.html.erb"
         full_navigation_path = File.join(destination_root, navigation_path)
 
@@ -75,47 +78,34 @@ module B4um
 
         return unless section
 
-        footer_path = "app/views/shared/_footer.html.erb"
-        full_footer_path = File.join(destination_root, footer_path)
+        config_path = File.join(
+          destination_root,
+          "config/b4um.yml"
+        )
 
-        return unless File.exist?(full_footer_path)
+        config = YAML.safe_load_file(config_path) || {}
 
-        footer = File.read(full_footer_path)
-        marker = "<%# B4UM_SITEMAP_#{section.upcase}_LINKS %>"
+        column = sitemap_column(config, section)
 
-        return unless footer.include?(marker)
+        return unless column
+
+        column["links"] ||= []
 
         actions.each do |action|
-          path_name = "#{file_name}_#{action}_path"
+          route = "#{file_name}_#{action}_path"
 
-          next if footer.include?(path_name)
+          next if sitemap_link_exists?(column, route)
 
-          sitemap_link = <<~ERB.chomp
-            <li>
-              <%= link_to "#{navigation_label(action)}",
-                          #{path_name},
-                          class: "b4um-sitemap__link" %>
-            </li>
-
-            #{marker}
-          ERB
-
-          indented_marker = /^([ \t]*)#{Regexp.escape(marker)}$/
-
-          gsub_file(
-            footer_path,
-            indented_marker
-          ) do |match|
-            indentation = match[/^[ \t]*/]
-
-            indent_sitemap_link(
-              sitemap_link,
-              indentation
-            )
-          end
-
-          footer = File.read(full_footer_path)
+          column["links"] << {
+            "title" => navigation_label(action),
+            "route" => route
+          }
         end
+
+        File.write(
+          config_path,
+          config.to_yaml
+        )
       end
 
       def remove_legal_navigation_links
@@ -230,14 +220,16 @@ module B4um
 
       private
 
-      def indent_sitemap_link(sitemap_link, indentation)
-        sitemap_link
-          .lines
-          .map do |line|
-            line.strip.empty? ? line : "#{indentation}#{line}"
-          end
-          .join
-          .chomp
+      def sitemap_column(config, section)
+        Array(config["sitemap"]).find do |item|
+          item["key"].to_s.downcase == section
+        end
+      end
+
+      def sitemap_link_exists?(column, route)
+        Array(column["links"]).any? do |link|
+          link["route"].to_s == route
+        end
       end
 
       def sitemap_section
@@ -245,18 +237,31 @@ module B4um
 
         return if section.empty?
 
-        valid_sections = %w[
-          contact
-          content
-          service
-          more
-        ]
+        config_path = File.join(
+          destination_root,
+          "config/b4um.yml"
+        )
+
+        unless File.exist?(config_path)
+          say(
+            "  B4UM sitemap configuration not found.",
+            :yellow
+          )
+
+          return
+        end
+
+        config = YAML.safe_load_file(config_path) || {}
+
+        valid_sections = Array(config["sitemap"]).filter_map do |column|
+          column["key"].to_s.downcase.presence
+        end
 
         return section if valid_sections.include?(section)
 
         say(
           "  Unknown sitemap section '#{section}'. " \
-          "Use contact, content, service, or more.",
+          "Available sections: #{valid_sections.join(", ")}.",
           :yellow
         )
 
@@ -335,7 +340,8 @@ module B4um
       def navigation_label(action)
         abbreviations = {
           "agb" => "AGB",
-          "faq" => "FAQ"
+          "faq" => "FAQ",
+          "ueber_uns" => "Über uns"
         }
 
         abbreviations.fetch(action.to_s, action.to_s.humanize)

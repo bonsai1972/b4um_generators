@@ -136,6 +136,11 @@ module B4um
                   "app/javascript/controllers/sitemap_controller.js"
       end
 
+      def copy_b4um_config
+        copy_file "b4um.yml",
+                  "config/b4um.yml"
+      end
+
       def copy_image_preview_controller
         copy_file "image_preview_controller.js",
                   "app/javascript/controllers/image_preview_controller.js"
@@ -154,6 +159,11 @@ module B4um
       def copy_navigation_helper
         copy_file "navigation_helper.rb",
                   "app/helpers/navigation_helper.rb"
+      end
+
+      def copy_b4um_helper
+        copy_file "b4um_helper.rb",
+                  "app/helpers/b4um_helper.rb"
       end
 
       def update_application_layout

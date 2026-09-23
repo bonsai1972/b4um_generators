@@ -115,7 +115,7 @@ RSpec.describe B4um::Generators::ControllerGenerator do
     )
 
     generator = described_class.new(
-      %w[Pages agb faq],
+      %w[Pages agb faq ueber_uns],
       {},
       destination_root: @destination_root
     )
@@ -134,6 +134,21 @@ RSpec.describe B4um::Generators::ControllerGenerator do
         @destination_root,
         "app/views/pages/faq.html.erb"
       )
+    )
+
+    ueber_uns = File.read(
+      File.join(
+        @destination_root,
+        "app/views/pages/ueber_uns.html.erb"
+      )
+    )
+
+    expect(ueber_uns).to include(
+      '<% content_for :title, "Über uns" %>'
+    )
+
+    expect(ueber_uns).to include(
+      "<h1>Über uns</h1>"
     )
 
     expect(agb).to include(
@@ -444,6 +459,20 @@ RSpec.describe B4um::Generators::ControllerGenerator do
 
     FileUtils.mkdir_p(shared_directory)
 
+    navigation_path = File.join(
+      shared_directory,
+      "_navigation.html.erb"
+    )
+
+    File.write(
+      navigation_path,
+      <<~ERB
+        <nav>
+          <%# B4UM_NAVIGATION_LINKS %>
+        </nav>
+      ERB
+    )
+
     footer_path = File.join(
       shared_directory,
       "_footer.html.erb"
@@ -474,6 +503,24 @@ RSpec.describe B4um::Generators::ControllerGenerator do
     FileUtils.mkdir_p(routes_directory)
 
     File.write(
+      File.join(routes_directory, "b4um.yml"),
+      <<~YAML
+        sitemap:
+          - key: column_1
+            title: Kontakt
+
+          - key: column_2
+            title: Inhalte
+
+          - key: column_3
+            title: Service
+
+          - key: column_4
+            title: Mehr
+      YAML
+    )
+
+    File.write(
       File.join(routes_directory, "routes.rb"),
       <<~RUBY
         Rails.application.routes.draw do
@@ -483,7 +530,7 @@ RSpec.describe B4um::Generators::ControllerGenerator do
 
     generator = described_class.new(
       %w[Help faq support],
-      { sitemap: "service" },
+      { sitemap: "column_3" },
       destination_root: @destination_root
     )
 
@@ -492,39 +539,55 @@ RSpec.describe B4um::Generators::ControllerGenerator do
     # Ein zweiter Aufruf darf die Links nicht duplizieren.
     generator.add_sitemap_links
 
-    footer = File.read(footer_path)
-
-    expect(footer).to include(
-      'link_to "FAQ"'
+    config = YAML.safe_load_file(
+      File.join(routes_directory, "b4um.yml")
     )
 
-    expect(footer).to include(
+    column = config.fetch("sitemap").find do |item|
+      item["key"] == "column_3"
+    end
+
+    expect(column).not_to be_nil
+
+    expect(column["links"]).to include(
+      {
+        "title" => "FAQ",
+        "route" => "help_faq_path"
+      }
+    )
+
+    expect(column["links"]).to include(
+      {
+        "title" => "Support",
+        "route" => "help_support_path"
+      }
+    )
+
+    expect(
+      column["links"].count do |link|
+        link["route"] == "help_faq_path"
+      end
+    ).to eq(1)
+
+    expect(
+      column["links"].count do |link|
+        link["route"] == "help_support_path"
+      end
+    ).to eq(1)
+
+    navigation = File.read(navigation_path)
+
+    expect(navigation).not_to include(
       "help_faq_path"
     )
 
-    expect(footer).to include(
-      'link_to "Support"'
-    )
-
-    expect(footer).to include(
+    expect(navigation).not_to include(
       "help_support_path"
     )
 
-    expect(footer).to include(
-      'class: "b4um-sitemap__link"'
+    expect(navigation).to include(
+      "<%# B4UM_NAVIGATION_LINKS %>"
     )
-
-    expect(footer).to include(
-      "<%# B4UM_SITEMAP_SERVICE_LINKS %>"
-    )
-
-    expect(
-      footer.scan("help_faq_path").count
-    ).to eq(1)
-
-    expect(
-      footer.scan("help_support_path").count
-    ).to eq(1)
   end
 
   it "upgrades existing B4UM footer links with an active state" do

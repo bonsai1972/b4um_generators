@@ -1,0 +1,9 @@
+sitemap:
+  - key: column_1
+    title: Kontakt
+  - key: column_2
+    title: Inhalte
+  - key: column_3
+    title: Service
+  - key: column_4
+    title: Mehr

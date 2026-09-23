@@ -5,93 +5,39 @@
     data-action="resize@window->sitemap#reset"
   >
     <nav class="b4um-sitemap" aria-label="Sitemap">
-      <div class="b4um-sitemap__item">
-        <button
-          type="button"
-          class="b4um-sitemap__title"
-          aria-expanded="false"
-          aria-controls="b4um-sitemap-contact"
-          data-sitemap-target="title"
-          data-action="sitemap#toggle"
-        >
-          Kontakt
-        </button>
+      <% b4um_sitemap_columns.each do |column| %>
+        <% column_key = column["key"].to_s %>
 
-        <ul
-          id="b4um-sitemap-contact"
-          class="b4um-sitemap__list"
-          data-sitemap-target="list"
-          hidden
-        >
-          <%# B4UM_SITEMAP_CONTACT_LINKS %>
-        </ul>
-      </div>
+        <div class="b4um-sitemap__item">
+          <button
+            type="button"
+            class="b4um-sitemap__title"
+            aria-expanded="false"
+            aria-controls="b4um-sitemap-<%= column_key.tr("_", "-") %>"
+            data-sitemap-target="title"
+            data-action="sitemap#toggle"
+          >
+            <%= column["title"] %>
+          </button>
 
-      <div class="b4um-sitemap__item">
-        <button
-          type="button"
-          class="b4um-sitemap__title"
-          aria-expanded="false"
-          aria-controls="b4um-sitemap-content"
-          data-sitemap-target="title"
-          data-action="sitemap#toggle"
-        >
-          Inhalte
-        </button>
+          <ul
+            id="b4um-sitemap-<%= column_key.tr("_", "-") %>"
+            class="b4um-sitemap__list"
+            data-sitemap-target="list"
+            hidden
+          >
+            <% Array(column["links"]).each do |link| %>
+              <% path = b4um_sitemap_path(link["route"]) %>
 
-        <ul
-          id="b4um-sitemap-content"
-          class="b4um-sitemap__list"
-          data-sitemap-target="list"
-          hidden
-        >
-          <%# B4UM_SITEMAP_CONTENT_LINKS %>
-        </ul>
-      </div>
-
-      <div class="b4um-sitemap__item">
-        <button
-          type="button"
-          class="b4um-sitemap__title"
-          aria-expanded="false"
-          aria-controls="b4um-sitemap-service"
-          data-sitemap-target="title"
-          data-action="sitemap#toggle"
-        >
-          Service
-        </button>
-
-        <ul
-          id="b4um-sitemap-service"
-          class="b4um-sitemap__list"
-          data-sitemap-target="list"
-          hidden
-        >
-          <%# B4UM_SITEMAP_SERVICE_LINKS %>
-        </ul>
-      </div>
-
-      <div class="b4um-sitemap__item">
-        <button
-          type="button"
-          class="b4um-sitemap__title"
-          aria-expanded="false"
-          aria-controls="b4um-sitemap-more"
-          data-sitemap-target="title"
-          data-action="sitemap#toggle"
-        >
-          Mehr
-        </button>
-
-        <ul
-          id="b4um-sitemap-more"
-          class="b4um-sitemap__list"
-          data-sitemap-target="list"
-          hidden
-        >
-          <%# B4UM_SITEMAP_MORE_LINKS %>
-        </ul>
-      </div>
+              <% if path %>
+                <li>
+                  <%= link_to link["title"], path, class: "b4um-sitemap__link" %>
+                </li>
+              <% end %>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
     </nav>
   </div>
 
