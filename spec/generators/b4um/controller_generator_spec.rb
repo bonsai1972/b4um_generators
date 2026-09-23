@@ -451,6 +451,134 @@ RSpec.describe B4um::Generators::ControllerGenerator do
     end
   end
 
+  it "adds legal pages to the configured B4UM sitemap section" do
+    routes_directory = File.join(
+      @destination_root,
+      "config"
+    )
+
+    FileUtils.mkdir_p(routes_directory)
+
+    shared_directory = File.join(
+      @destination_root,
+      "app/views/shared"
+    )
+
+    FileUtils.mkdir_p(shared_directory)
+
+    footer_path = File.join(
+      shared_directory,
+      "_footer.html.erb"
+    )
+
+    File.write(
+      footer_path,
+      <<~ERB
+        <footer class="b4um-footer">
+          <nav class="b4um-footer__links" aria-label="Footer">
+            <%# B4UM_FOOTER_LINKS %>
+          </nav>
+        </footer>
+      ERB
+    )
+
+    File.write(
+      File.join(routes_directory, "b4um.yml"),
+      <<~YAML
+        sitemap:
+          - key: column_1
+            title: Kontakt
+
+          - key: column_4
+            title: Mehr
+
+        legal_links:
+          placement: column_4
+      YAML
+    )
+
+    File.write(
+      File.join(routes_directory, "routes.rb"),
+      <<~RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Pages impressum datenschutz agb about],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    # Ein zweiter Aufruf darf die Links nicht duplizieren.
+    generator.add_sitemap_links
+
+    config = YAML.safe_load_file(
+      File.join(routes_directory, "b4um.yml")
+    )
+
+    column = config.fetch("sitemap").find do |item|
+      item["key"] == "column_4"
+    end
+
+    expect(column).not_to be_nil
+
+    expect(column["links"]).to include(
+      {
+        "title" => "Impressum",
+        "route" => "pages_impressum_path"
+      },
+      {
+        "title" => "Datenschutz",
+        "route" => "pages_datenschutz_path"
+      },
+      {
+        "title" => "AGB",
+        "route" => "pages_agb_path"
+      }
+    )
+
+    expect(column["links"]).not_to include(
+      {
+        "title" => "About",
+        "route" => "pages_about_path"
+      }
+    )
+
+    %w[
+      pages_impressum_path
+      pages_datenschutz_path
+      pages_agb_path
+    ].each do |route|
+      expect(
+        column["links"].count do |link|
+          link["route"] == route
+        end
+      ).to eq(1)
+    end
+
+    footer = File.read(footer_path)
+
+    expect(footer).not_to include(
+      "pages_impressum_path"
+    )
+
+    expect(footer).not_to include(
+      "pages_datenschutz_path"
+    )
+
+    expect(footer).not_to include(
+      "pages_agb_path"
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_FOOTER_LINKS %>"
+    )
+  end
+
   it "adds controller actions to the selected B4UM sitemap section" do
     shared_directory = File.join(
       @destination_root,

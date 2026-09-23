@@ -550,6 +550,14 @@ RSpec.describe B4um::Generators::InstallGenerator do
       "key: column_4"
     )
 
+    expect(b4um_config).to include(
+      "legal_links:"
+    )
+
+    expect(b4um_config).to include(
+      "placement: footer"
+    )
+
     b4um_helper_path = File.join(
       @destination_root,
       "app/helpers/b4um_helper.rb"

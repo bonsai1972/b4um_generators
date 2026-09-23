@@ -7,3 +7,6 @@ sitemap:
     title: Service
   - key: column_4
     title: Mehr
+
+legal_links:
+  placement: footer

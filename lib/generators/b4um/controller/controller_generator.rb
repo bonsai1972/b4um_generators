@@ -74,33 +74,26 @@ module B4um
       end
 
       def add_sitemap_links
-        section = sitemap_section
-
-        return unless section
-
         config_path = File.join(
           destination_root,
           "config/b4um.yml"
         )
 
+        return unless File.exist?(config_path)
+
         config = YAML.safe_load_file(config_path) || {}
+        section = sitemap_section || legal_sitemap_section(config)
+
+        return unless section
 
         column = sitemap_column(config, section)
 
         return unless column
 
-        column["links"] ||= []
-
-        actions.each do |action|
-          route = "#{file_name}_#{action}_path"
-
-          next if sitemap_link_exists?(column, route)
-
-          column["links"] << {
-            "title" => navigation_label(action),
-            "route" => route
-          }
-        end
+        add_links_to_sitemap_column(
+          column,
+          sitemap_actions(config)
+        )
 
         File.write(
           config_path,
@@ -142,6 +135,8 @@ module B4um
       end
 
       def add_footer_links
+        return if legal_links_in_sitemap?
+
         footer_path = "app/views/shared/_footer.html.erb"
         full_footer_path = File.join(destination_root, footer_path)
 
@@ -219,6 +214,57 @@ module B4um
       end
 
       private
+
+      def legal_sitemap_section(config)
+        placement = config.dig(
+          "legal_links",
+          "placement"
+        ).to_s.downcase
+
+        return if placement.empty? || placement == "footer"
+
+        return unless sitemap_column(config, placement)
+
+        placement
+      end
+
+      def legal_links_in_sitemap?
+        config_path = File.join(
+          destination_root,
+          "config/b4um.yml"
+        )
+
+        return false unless File.exist?(config_path)
+
+        config = YAML.safe_load_file(config_path) || {}
+
+        legal_sitemap_section(config).present?
+      end
+
+      def sitemap_actions(config)
+        return actions if options[:sitemap].present?
+
+        return actions unless legal_sitemap_section(config)
+
+        actions.select do |action|
+          footer_action?(action)
+        end
+      end
+
+      def add_links_to_sitemap_column(column, selected_actions)
+        column["links"] ||= []
+
+        selected_actions.each do |action|
+          route = "#{file_name}_#{action}_path"
+
+          next if sitemap_link_exists?(column, route)
+
+          column["links"] << {
+            "title" => navigation_label(action),
+            "route" => route
+          }
+        end
+      end
 
       def sitemap_column(config, section)
         Array(config["sitemap"]).find do |item|
