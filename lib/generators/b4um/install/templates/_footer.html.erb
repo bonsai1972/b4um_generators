@@ -1,4 +1,100 @@
 <footer class="b4um-footer">
+  <div
+    class="b4um-footer__sitemap"
+    data-controller="sitemap"
+    data-action="resize@window->sitemap#reset"
+  >
+    <nav class="b4um-sitemap" aria-label="Sitemap">
+      <div class="b4um-sitemap__item">
+        <button
+          type="button"
+          class="b4um-sitemap__title"
+          aria-expanded="false"
+          aria-controls="b4um-sitemap-contact"
+          data-sitemap-target="title"
+          data-action="sitemap#toggle"
+        >
+          Kontakt
+        </button>
+
+        <ul
+          id="b4um-sitemap-contact"
+          class="b4um-sitemap__list"
+          data-sitemap-target="list"
+          hidden
+        >
+          <%# B4UM_SITEMAP_CONTACT_LINKS %>
+        </ul>
+      </div>
+
+      <div class="b4um-sitemap__item">
+        <button
+          type="button"
+          class="b4um-sitemap__title"
+          aria-expanded="false"
+          aria-controls="b4um-sitemap-content"
+          data-sitemap-target="title"
+          data-action="sitemap#toggle"
+        >
+          Inhalte
+        </button>
+
+        <ul
+          id="b4um-sitemap-content"
+          class="b4um-sitemap__list"
+          data-sitemap-target="list"
+          hidden
+        >
+          <%# B4UM_SITEMAP_CONTENT_LINKS %>
+        </ul>
+      </div>
+
+      <div class="b4um-sitemap__item">
+        <button
+          type="button"
+          class="b4um-sitemap__title"
+          aria-expanded="false"
+          aria-controls="b4um-sitemap-service"
+          data-sitemap-target="title"
+          data-action="sitemap#toggle"
+        >
+          Service
+        </button>
+
+        <ul
+          id="b4um-sitemap-service"
+          class="b4um-sitemap__list"
+          data-sitemap-target="list"
+          hidden
+        >
+          <%# B4UM_SITEMAP_SERVICE_LINKS %>
+        </ul>
+      </div>
+
+      <div class="b4um-sitemap__item">
+        <button
+          type="button"
+          class="b4um-sitemap__title"
+          aria-expanded="false"
+          aria-controls="b4um-sitemap-more"
+          data-sitemap-target="title"
+          data-action="sitemap#toggle"
+        >
+          Mehr
+        </button>
+
+        <ul
+          id="b4um-sitemap-more"
+          class="b4um-sitemap__list"
+          data-sitemap-target="list"
+          hidden
+        >
+          <%# B4UM_SITEMAP_MORE_LINKS %>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
   <div class="b4um-footer__inner">
     <p class="b4um-footer__copyright">
       &copy;
@@ -6,7 +102,7 @@
       Deine Anwendung
     </p>
 
-    <nav class="b4um-footer__links" aria-label="Footer">
+    <nav class="b4um-footer__links" aria-label="Rechtliche Hinweise">
       <%# B4UM_FOOTER_LINKS %>
     </nav>
   </div>

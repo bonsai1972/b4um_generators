@@ -200,6 +200,8 @@ RSpec.describe B4um::Generators::ControllerGenerator do
       destination_root: @destination_root
     )
 
+    expect(generator.options[:sitemap]).to be_nil
+
     generator.invoke_all
 
     # Ein zweiter Aufruf darf die Links nicht duplizieren.
@@ -432,6 +434,97 @@ RSpec.describe B4um::Generators::ControllerGenerator do
         footer.scan("current_page?(pages_#{action}_path)").count
       ).to eq(2)
     end
+  end
+
+  it "adds controller actions to the selected B4UM sitemap section" do
+    shared_directory = File.join(
+      @destination_root,
+      "app/views/shared"
+    )
+
+    FileUtils.mkdir_p(shared_directory)
+
+    footer_path = File.join(
+      shared_directory,
+      "_footer.html.erb"
+    )
+
+    File.write(
+      footer_path,
+      <<~ERB
+        <footer class="b4um-footer">
+          <nav class="b4um-sitemap" aria-label="Sitemap">
+            <ul class="b4um-sitemap__list">
+              <%# B4UM_SITEMAP_SERVICE_LINKS %>
+            </ul>
+          </nav>
+
+          <nav class="b4um-footer__links" aria-label="Footer">
+            <%# B4UM_FOOTER_LINKS %>
+          </nav>
+        </footer>
+      ERB
+    )
+
+    routes_directory = File.join(
+      @destination_root,
+      "config"
+    )
+
+    FileUtils.mkdir_p(routes_directory)
+
+    File.write(
+      File.join(routes_directory, "routes.rb"),
+      <<~RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Help faq support],
+      { sitemap: "service" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    # Ein zweiter Aufruf darf die Links nicht duplizieren.
+    generator.add_sitemap_links
+
+    footer = File.read(footer_path)
+
+    expect(footer).to include(
+      'link_to "FAQ"'
+    )
+
+    expect(footer).to include(
+      "help_faq_path"
+    )
+
+    expect(footer).to include(
+      'link_to "Support"'
+    )
+
+    expect(footer).to include(
+      "help_support_path"
+    )
+
+    expect(footer).to include(
+      'class: "b4um-sitemap__link"'
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_SITEMAP_SERVICE_LINKS %>"
+    )
+
+    expect(
+      footer.scan("help_faq_path").count
+    ).to eq(1)
+
+    expect(
+      footer.scan("help_support_path").count
+    ).to eq(1)
   end
 
   it "upgrades existing B4UM footer links with an active state" do

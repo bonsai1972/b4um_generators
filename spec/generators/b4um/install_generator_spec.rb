@@ -496,6 +496,33 @@ RSpec.describe B4um::Generators::InstallGenerator do
       "this.toggleTarget.setAttribute('aria-expanded', 'false')"
     )
 
+    sitemap_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/sitemap_controller.js"
+    )
+
+    expect(File).to exist(sitemap_controller_path)
+
+    sitemap_controller = File.read(
+      sitemap_controller_path
+    )
+
+    expect(sitemap_controller).to include(
+      "static targets = ['title', 'list']"
+    )
+
+    expect(sitemap_controller).to include(
+      "title.setAttribute('aria-expanded', String(!isOpen))"
+    )
+
+    expect(sitemap_controller).to include(
+      "item.classList.toggle('is-open', !isOpen)"
+    )
+
+    expect(sitemap_controller).to include(
+      "if (window.matchMedia('(min-width: 78rem)').matches) return"
+    )
+
     expect(
       File
     ).to exist(
@@ -588,6 +615,30 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(footer).to include(
       "<%# B4UM_FOOTER_LINKS %>"
+    )
+
+    expect(footer).to include(
+      'data-controller="sitemap"'
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_SITEMAP_CONTACT_LINKS %>"
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_SITEMAP_CONTENT_LINKS %>"
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_SITEMAP_SERVICE_LINKS %>"
+    )
+
+    expect(footer).to include(
+      "<%# B4UM_SITEMAP_MORE_LINKS %>"
+    )
+
+    expect(footer).not_to include(
+      'href="#"'
     )
 
     layout = File.read(
@@ -742,6 +793,25 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     first_generator.invoke_all
 
+    footer_path = File.join(
+      @destination_root,
+      "app/views/shared/_footer.html.erb"
+    )
+
+    footer = File.read(footer_path)
+
+    File.write(
+      footer_path,
+      footer.sub(
+        "<%# B4UM_FOOTER_LINKS %>",
+        <<~ERB.chomp
+          <%= link_to "AGB", legaltest_agb_path, class: "b4um-footer__link" %>
+
+          <%# B4UM_FOOTER_LINKS %>
+        ERB
+      )
+    )
+
     second_generator = build_generator(
       false,
       false,
@@ -776,6 +846,16 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(
       layout.scan("</main>").count
+    ).to eq(1)
+
+    footer = File.read(footer_path)
+
+    expect(footer).to include(
+      '<%= link_to "AGB", legaltest_agb_path, class: "b4um-footer__link" %>'
+    )
+
+    expect(
+      footer.scan("<%# B4UM_FOOTER_LINKS %>").count
     ).to eq(1)
 
     expect(

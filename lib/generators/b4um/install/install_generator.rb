@@ -101,9 +101,19 @@ module B4um
           return
         end
 
+        footer_path = "app/views/shared/_footer.html.erb"
+        full_footer_path = File.join(destination_root, footer_path)
+
+        if File.exist?(full_footer_path)
+          @footer_installed = true
+
+          say "  Footer already exists; keeping existing footer."
+          return
+        end
+
         copy_file(
           "_footer.html.erb",
-          "app/views/shared/_footer.html.erb"
+          footer_path
         )
 
         @footer_installed = true
@@ -119,6 +129,11 @@ module B4um
       def copy_navigation_controller
         copy_file "navigation_controller.js",
                   "app/javascript/controllers/navigation_controller.js"
+      end
+
+      def copy_sitemap_controller
+        copy_file "sitemap_controller.js",
+                  "app/javascript/controllers/sitemap_controller.js"
       end
 
       def copy_image_preview_controller

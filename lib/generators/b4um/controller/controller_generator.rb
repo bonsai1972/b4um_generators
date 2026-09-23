@@ -8,6 +8,11 @@ module B4um
     class ControllerGenerator < Rails::Generators::ControllerGenerator
       source_root Rails::Generators::ControllerGenerator.source_root
 
+      class_option :sitemap,
+                   type: :string,
+                   aliases: "-s",
+                   desc: "Add generated actions to a B4UM sitemap section: contact, content, service, or more"
+
       class << self
         def desc(_description = nil)
           "Generates a B4UM controller with views, navigation links, and legal footer links."
@@ -62,6 +67,54 @@ module B4um
             marker,
             navigation_link.chomp
           )
+        end
+      end
+
+      def add_sitemap_links
+        section = sitemap_section
+
+        return unless section
+
+        footer_path = "app/views/shared/_footer.html.erb"
+        full_footer_path = File.join(destination_root, footer_path)
+
+        return unless File.exist?(full_footer_path)
+
+        footer = File.read(full_footer_path)
+        marker = "<%# B4UM_SITEMAP_#{section.upcase}_LINKS %>"
+
+        return unless footer.include?(marker)
+
+        actions.each do |action|
+          path_name = "#{file_name}_#{action}_path"
+
+          next if footer.include?(path_name)
+
+          sitemap_link = <<~ERB.chomp
+            <li>
+              <%= link_to "#{navigation_label(action)}",
+                          #{path_name},
+                          class: "b4um-sitemap__link" %>
+            </li>
+
+            #{marker}
+          ERB
+
+          indented_marker = /^([ \t]*)#{Regexp.escape(marker)}$/
+
+          gsub_file(
+            footer_path,
+            indented_marker
+          ) do |match|
+            indentation = match[/^[ \t]*/]
+
+            indent_sitemap_link(
+              sitemap_link,
+              indentation
+            )
+          end
+
+          footer = File.read(full_footer_path)
         end
       end
 
@@ -176,6 +229,39 @@ module B4um
       end
 
       private
+
+      def indent_sitemap_link(sitemap_link, indentation)
+        sitemap_link
+          .lines
+          .map do |line|
+            line.strip.empty? ? line : "#{indentation}#{line}"
+          end
+          .join
+          .chomp
+      end
+
+      def sitemap_section
+        section = options[:sitemap].to_s.downcase
+
+        return if section.empty?
+
+        valid_sections = %w[
+          contact
+          content
+          service
+          more
+        ]
+
+        return section if valid_sections.include?(section)
+
+        say(
+          "  Unknown sitemap section '#{section}'. " \
+          "Use contact, content, service, or more.",
+          :yellow
+        )
+
+        nil
+      end
 
       def upgrade_footer_link(footer_path, footer, path_name)
         return if footer.include?(
