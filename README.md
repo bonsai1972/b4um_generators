@@ -1,39 +1,149 @@
-# B4umGenerators
+# B4UM Generators
 
-TODO: Delete this and the text below, and describe your gem
+B4UM Generators is a collection of reusable Rails generators, templates and application defaults for B4UM Rails
+projects.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/b4um_generators`. To experiment with that code, run `bin/console` for an interactive prompt.
+The gem provides generators for common application components such as layouts, controllers, scaffolds, tables,
+pagination, search, comments and rich-text editing.
+
+## Requirements
+
+- Ruby >= 3.1
+- Rails >= 8.0 and < 9.0
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+B4UM Generators is currently used as a local gem during development.
 
-Install the gem and add to the application's Gemfile by executing:
+Add the gem to the Rails application's `Gemfile`:
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "b4um_generators", "~> 0.1.0", path: "/path/to/b4um_generators"
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Then run:
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle install
 ```
 
-## Usage
+## Getting Started
 
-TODO: Write usage instructions here
+Install the B4UM application defaults:
+
+```bash
+bin/rails generate b4um:install
+```
+
+The installer adds the shared B4UM application structure and configuration to the Rails application.
+
+The central B4UM configuration is stored in:
+
+```text
+config/b4um.yml
+```
+
+## Generators
+
+The gem currently provides the following generators:
+
+```text
+b4um:install
+b4um:scaffold
+b4um:bento
+b4um:table
+b4um:controller
+b4um:pagination
+b4um:infinite_scroll
+b4um:search
+b4um:comments
+b4um:trix
+b4um:help
+```
+
+For detailed usage information and examples, run:
+
+```bash
+bin/rails generate b4um:help
+```
+
+## Sitemap and Footer
+
+The B4UM footer supports configurable sitemap columns through `config/b4um.yml`.
+
+Example:
+
+```yaml
+sitemap:
+  - key: column_1
+    title: Kontakt
+
+  - key: column_2
+    title: Inhalte
+
+  - key: column_3
+    title: Service
+
+  - key: column_4
+    title: Mehr
+```
+
+Controller actions can be assigned directly to a sitemap column:
+
+```bash
+bin/rails generate b4um:controller Pages faq support --sitemap=column_3
+```
+
+Legal pages use the separate legal footer area by default:
+
+```yaml
+legal_links:
+  placement: footer
+```
+
+They can alternatively be placed in an existing sitemap column:
+
+```yaml
+legal_links:
+  placement: column_4
+```
+
+When legal pages are placed in a sitemap column, they are not duplicated in the separate legal footer area.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repository, install the dependencies:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```bash
+bin/setup
+```
 
-## Contributing
+Run the complete test suite with:
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/b4um_generators.
+```bash
+bundle exec rspec
+```
+
+Run RuboCop with:
+
+```bash
+bundle exec rubocop
+```
+
+The gem can be tested locally by referencing the repository with `path:` from a Rails application's `Gemfile`.
+
+## Version
+
+Current version: `0.1.0`
+
+## Author
+
+Alexander Baum
+
+B4UM
+
+https://www.b4um.com
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+B4UM Generators is available under the terms of the MIT License.
