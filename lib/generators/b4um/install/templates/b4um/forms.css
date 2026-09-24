@@ -566,16 +566,54 @@
   background-color: #000;
 }
 
-/* Video attachments do not need the default Trix attachment frame. */
+/* Video attachments stay clearly visible inside the editor. */
 
-.form-field--rich-text trix-editor .attachment--mp4,
+.form-field--rich-text trix-editor .attachment--mp4 {
+  display: block;
+
+  width: 100%;
+  min-height: 70px;
+
+  margin: 1rem 0;
+  padding: 1rem;
+
+  box-sizing: border-box;
+
+  border: 1px solid currentColor;
+  border-radius: var(--b4um-radius);
+
+  box-shadow: none;
+}
+
+.form-field--rich-text trix-editor .attachment--mp4 .attachment__caption {
+  display: block;
+
+  position: static;
+
+  width: auto;
+  height: auto;
+  min-height: 1em;
+
+  visibility: visible;
+  opacity: 1;
+
+  text-align: left;
+}
+
+.form-field--rich-text trix-editor .attachment--mp4 .attachment__caption::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 0.5em;
+}
+
+/* The rendered video does not need the Trix attachment frame or caption. */
+
 .trix-content .attachment--mp4 {
   border: 0;
   padding: 0;
   box-shadow: none;
 }
 
-.form-field--rich-text trix-editor .attachment--mp4 .attachment__caption,
 .trix-content .attachment--mp4 .attachment__caption {
   display: none;
 }
