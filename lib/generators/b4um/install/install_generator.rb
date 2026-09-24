@@ -121,6 +121,27 @@ module B4um
         say "  Footer installed."
       end
 
+      def install_cookie_consent
+        unless yes?("Add cookie consent? (y/n)")
+          say "  Cookie consent skipped."
+          return
+        end
+
+        copy_file(
+          "_cookie_consent.html.erb",
+          "app/views/shared/_cookie_consent.html.erb"
+        )
+
+        copy_file(
+          "cookie_consent_controller.js",
+          "app/javascript/controllers/cookie_consent_controller.js"
+        )
+
+        @cookie_consent_installed = true
+
+        say "  Cookie consent installed."
+      end
+
       def copy_navigation
         copy_file "_navigation.html.erb",
                   "app/views/shared/_navigation.html.erb"
@@ -188,6 +209,7 @@ module B4um
         ensure_hero(layout_path, full_layout_path)
         ensure_theme_switcher(layout_path, full_layout_path)
         ensure_footer(layout_path, full_layout_path)
+        ensure_cookie_consent(layout_path, full_layout_path)
       end
 
       def install_selected_gems
@@ -296,6 +318,23 @@ module B4um
           "</body>",
           <<~ERB.chomp
             <%= render "shared/footer" %>
+            </body>
+          ERB
+        )
+      end
+
+      def ensure_cookie_consent(layout_path, full_layout_path)
+        return unless @cookie_consent_installed
+
+        layout = File.read(full_layout_path)
+
+        return if layout.include?('render "shared/cookie_consent"')
+
+        gsub_file(
+          layout_path,
+          "</body>",
+          <<~ERB.chomp
+            <%= render "shared/cookie_consent" %>
             </body>
           ERB
         )

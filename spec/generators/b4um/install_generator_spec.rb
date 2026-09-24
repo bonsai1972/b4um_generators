@@ -77,6 +77,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       true,
       false,
       false,
+      false,
       false
     )
 
@@ -103,7 +104,8 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
-      true
+      true,
+      false
     )
 
     generator.invoke_all
@@ -136,6 +138,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       flash.css
       comments.css
       footer.css
+      cookie-consent.css
       theme-switcher.css
     ]
 
@@ -169,6 +172,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       flash.css
       comments.css
       footer.css
+      cookie-consent.css
       theme-switcher.css
     ]
 
@@ -829,7 +833,8 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       false,
-      true
+      true,
+      false
     )
 
     generator.invoke_all
@@ -871,6 +876,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
+      false,
       false
     )
 
@@ -913,7 +919,8 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
-      true
+      true,
+      false
     )
 
     first_generator.invoke_all
@@ -941,7 +948,8 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
-      true
+      true,
+      false
     )
 
     second_generator.invoke_all
@@ -990,5 +998,79 @@ RSpec.describe B4um::Generators::InstallGenerator do
     expect(
       layout.scan('<%= render "shared/theme_switcher" %>').count
     ).to eq(1)
+  end
+
+  it "can install cookie consent" do
+    create_application_layout
+    create_gemfile
+
+    generator = build_generator(
+      false,
+      false,
+      false,
+      false,
+      true
+    )
+
+    generator.invoke_all
+
+    cookie_consent_path = File.join(
+      @destination_root,
+      "app/views/shared/_cookie_consent.html.erb"
+    )
+
+    cookie_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/cookie_consent_controller.js"
+    )
+
+    expect(File).to exist(cookie_consent_path)
+    expect(File).to exist(cookie_controller_path)
+
+    layout = File.read(
+      File.join(
+        @destination_root,
+        "app/views/layouts/application.html.erb"
+      )
+    )
+
+    expect(layout).to include(
+      '<%= render "shared/cookie_consent" %>'
+    )
+
+    cookie_consent = File.read(cookie_consent_path)
+    cookie_controller = File.read(cookie_controller_path)
+
+    expect(cookie_consent).to include(
+      'data-controller="cookie-consent"'
+    )
+
+    expect(cookie_consent).to include(
+      'data-action="cookie-consent#reject"'
+    )
+
+    expect(cookie_consent).to include(
+      'data-action="cookie-consent#accept"'
+    )
+
+    expect(cookie_controller).to include(
+      "const STORAGE_KEY = 'b4um-cookie-consent'"
+    )
+
+    expect(cookie_controller).to include(
+      "window.localStorage.setItem(STORAGE_KEY, 'accepted')"
+    )
+
+    expect(cookie_controller).to include(
+      "window.localStorage.setItem(STORAGE_KEY, 'rejected')"
+    )
+
+    expect(cookie_controller).to include(
+      "new CustomEvent('b4um:cookie-consent-accepted')"
+    )
+
+    expect(cookie_controller).to include(
+      "new CustomEvent('b4um:cookie-consent-rejected')"
+    )
   end
 end
