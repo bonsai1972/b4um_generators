@@ -1058,11 +1058,15 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(cookie_controller).to include(
-      "window.localStorage.setItem(STORAGE_KEY, 'accepted')"
+      "this.storeConsent('accepted')"
     )
 
     expect(cookie_controller).to include(
-      "window.localStorage.setItem(STORAGE_KEY, 'rejected')"
+      "this.storeConsent('rejected')"
+    )
+
+    expect(cookie_controller).to include(
+      "window.localStorage.setItem(STORAGE_KEY, consent)"
     )
 
     expect(cookie_controller).to include(
@@ -1072,5 +1076,94 @@ RSpec.describe B4um::Generators::InstallGenerator do
     expect(cookie_controller).to include(
       "new CustomEvent('b4um:cookie-consent-rejected')"
     )
+  end
+
+  it "can install cookie consent without footer" do
+    create_application_layout
+    create_gemfile
+
+    generator = build_generator(
+      false,
+      false,
+      false,
+      false,
+      true
+    )
+
+    generator.invoke_all
+
+    footer_path = File.join(
+      @destination_root,
+      "app/views/shared/_footer.html.erb"
+    )
+
+    cookie_consent_path = File.join(
+      @destination_root,
+      "app/views/shared/_cookie_consent.html.erb"
+    )
+
+    cookie_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/cookie_consent_controller.js"
+    )
+
+    expect(File).not_to exist(footer_path)
+    expect(File).to exist(cookie_consent_path)
+    expect(File).to exist(cookie_controller_path)
+
+    layout = File.read(
+      File.join(
+        @destination_root,
+        "app/views/layouts/application.html.erb"
+      )
+    )
+
+    expect(layout).not_to include(
+      'render "shared/footer"'
+    )
+
+    expect(layout).to include(
+      '<%= render "shared/cookie_consent" %>'
+    )
+  end
+
+  it "adds cookie settings to the footer when cookie consent is installed" do
+    create_application_layout
+    create_gemfile
+
+    generator = build_generator(
+      false,
+      false,
+      false,
+      true,
+      true
+    )
+
+    generator.invoke_all
+
+    footer_path = File.join(
+      @destination_root,
+      "app/views/shared/_footer.html.erb"
+    )
+
+    expect(File).to exist(footer_path)
+
+    footer = File.read(footer_path)
+
+    expect(footer).to include(
+      "data-b4um-cookie-consent-open"
+    )
+
+    expect(footer).to include(
+      "Cookie-Einstellungen"
+    )
+
+    expect(footer).to include(
+      "b4um-footer__link--button"
+    )
+
+    expect(
+      footer.scan("data-b4um-cookie-consent-open").count
+    ).to eq(1)
   end
 end

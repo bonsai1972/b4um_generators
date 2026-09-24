@@ -210,6 +210,7 @@ module B4um
         ensure_theme_switcher(layout_path, full_layout_path)
         ensure_footer(layout_path, full_layout_path)
         ensure_cookie_consent(layout_path, full_layout_path)
+        ensure_cookie_consent_footer_link
       end
 
       def install_selected_gems
@@ -336,6 +337,36 @@ module B4um
           <<~ERB.chomp
             <%= render "shared/cookie_consent" %>
             </body>
+          ERB
+        )
+      end
+
+      def ensure_cookie_consent_footer_link
+        return unless @cookie_consent_installed
+
+        footer_path = "app/views/shared/_footer.html.erb"
+        full_footer_path = File.join(destination_root, footer_path)
+
+        return unless File.exist?(full_footer_path)
+
+        footer = File.read(full_footer_path)
+
+        return if footer.include?("data-b4um-cookie-consent-open")
+        return unless footer.include?("<%# B4UM_FOOTER_LINKS %>")
+
+        gsub_file(
+          footer_path,
+          "<%# B4UM_FOOTER_LINKS %>",
+          <<~ERB.chomp
+            <button
+              type="button"
+              class="b4um-footer__link b4um-footer__link--button"
+              data-b4um-cookie-consent-open
+            >
+              Cookie-Einstellungen
+            </button>
+
+            <%# B4UM_FOOTER_LINKS %>
           ERB
         )
       end
