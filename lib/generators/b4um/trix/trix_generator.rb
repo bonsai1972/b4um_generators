@@ -238,6 +238,30 @@ module B4um
       def update_action_text_blob_partial
         return unless File.exist?(action_text_blob_partial_path)
 
+        partial = File.read(action_text_blob_partial_path)
+
+        unless partial.include?("blob.video?")
+          gsub_file(
+            action_text_blob_partial_path,
+            /<% if blob\.representable\? %>\s*(<%= image_tag .+? %>)\s*<% end %>/m,
+            <<~ERB.chomp
+              <% if blob.video? %>
+                <%= video_tag rails_blob_path(blob, disposition: "inline"),
+                      controls: true,
+                      playsinline: true,
+                      preload: "metadata",
+                      class: "b4um-rich-text-video" %>
+              <% elsif blob.representable? %>
+                \\1
+              <% end %>
+            ERB
+          )
+        end
+
+        partial = File.read(action_text_blob_partial_path)
+
+        return if partial.include?('image_lightbox_target: "item"')
+
         gsub_file(
           action_text_blob_partial_path,
           /<%= image_tag (.+?) %>/,
@@ -274,6 +298,7 @@ module B4um
                 align-right
                 section
                 article
+                video
               ]
 
             ActionText::ContentHelper.allowed_attributes =
@@ -282,6 +307,10 @@ module B4um
               %w[
                 style
                 id
+                src
+                controls
+                playsinline
+                preload
                 data-image-lightbox-target
                 data-image-lightbox-url
                 data-image-lightbox-alt

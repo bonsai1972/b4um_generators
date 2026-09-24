@@ -550,6 +550,36 @@
   border-radius: var(--b4um-radius);
 }
 
+/* Rich-text videos */
+
+.form-field--rich-text trix-editor video,
+.trix-content video,
+.trix-content .b4um-rich-text-video {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+
+  border-radius: var(--b4um-radius);
+
+  background-color: #000;
+}
+
+/* Video attachments do not need the default Trix attachment frame. */
+
+.form-field--rich-text trix-editor .attachment--mp4,
+.trix-content .attachment--mp4 {
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.form-field--rich-text trix-editor .attachment--mp4 .attachment__caption,
+.trix-content .attachment--mp4 .attachment__caption {
+  display: none;
+}
+
 /* -------------------------------------------------------
    Rich Text Content
 ------------------------------------------------------- */

@@ -624,7 +624,90 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
   end
 
-  it "does not duplicate image lightbox attributes when invoked twice" do
+  it "adds video support to the Action Text blob partial" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/active_storage/blobs")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/views/active_storage/blobs/_blob.html.erb"
+      ),
+      <<~ERB
+        <figure class="attachment attachment--<%= blob.representable? ? "preview" : "file" %>">
+          <% if blob.representable? %>
+            <%= image_tag blob.representation(resize_to_limit: [ 1024, 768 ]) %>
+          <% end %>
+        </figure>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    blob_partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/active_storage/blobs/_blob.html.erb"
+      )
+    )
+
+    expect(blob_partial).to include(
+      "<% if blob.video? %>"
+    )
+
+    expect(blob_partial).to include(
+      'video_tag rails_blob_path(blob, disposition: "inline")'
+    )
+
+    expect(blob_partial).to include(
+      "controls: true"
+    )
+
+    expect(blob_partial).to include(
+      "playsinline: true"
+    )
+
+    expect(blob_partial).to include(
+      'preload: "metadata"'
+    )
+
+    expect(blob_partial).to include(
+      'class: "b4um-rich-text-video"'
+    )
+
+    expect(blob_partial).to include(
+      "<% elsif blob.representable? %>"
+    )
+  end
+
+  it "does not duplicate image lightbox or video attributes when invoked twice" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/models")
     )
@@ -689,7 +772,15 @@ RSpec.describe B4um::Generators::TrixGenerator do
     ).to eq(1)
 
     expect(
-      blob_partial.scan("rails_blob_path(blob").length
+      blob_partial.scan("blob.video?").length
+    ).to eq(1)
+
+    expect(
+      blob_partial.scan("video_tag rails_blob_path").length
+    ).to eq(1)
+
+    expect(
+      blob_partial.scan('class: "b4um-rich-text-video"').length
     ).to eq(1)
   end
 
