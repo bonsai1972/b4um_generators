@@ -170,15 +170,17 @@ module B4um
         layout_path = "app/views/layouts/application.html.erb"
         full_layout_path = File.join(destination_root, layout_path)
 
+        ensure_page_top_anchor(layout_path, full_layout_path)
+
         layout = File.read(full_layout_path)
 
         unless layout.include?('render "shared/navigation"')
           gsub_file(
             layout_path,
-            "<body>",
+            '<div id="b4um-page-top"></div>',
             <<~ERB.chomp
-              <body>
-                <%= render "shared/navigation" %>
+              <div id="b4um-page-top"></div>
+              <%= render "shared/navigation" %>
             ERB
           )
         end
@@ -255,6 +257,23 @@ module B4um
         run "bundle install"
 
         say "Selected gems installed."
+      end
+
+      private
+
+      def ensure_page_top_anchor(layout_path, full_layout_path)
+        layout = File.read(full_layout_path)
+
+        return if layout.include?('id="b4um-page-top"')
+
+        gsub_file(
+          layout_path,
+          "<body>",
+          <<~ERB.chomp
+            <body>
+              <div id="b4um-page-top"></div>
+          ERB
+        )
       end
     end
   end

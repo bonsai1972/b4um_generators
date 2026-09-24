@@ -508,7 +508,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(sitemap_controller).to include(
-      "static targets = ['title', 'list']"
+      "static targets = ['title']"
     )
 
     expect(sitemap_controller).to include(

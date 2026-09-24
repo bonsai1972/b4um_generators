@@ -77,7 +77,7 @@ body.image-lightbox-open {
 
   margin: auto;
 
-  border-radius: 6px;
+  border-radius: var(--b4um-radius);
 
   object-fit: contain;
 

@@ -1,4 +1,7 @@
 <footer class="b4um-footer">
+  <a class="b4um-footer__back-to-top" href="#b4um-page-top">
+    Zurück zum Seitenanfang
+  </a>
   <div
     class="b4um-footer__sitemap"
     data-controller="sitemap"
@@ -20,22 +23,29 @@
             <%= column["title"] %>
           </button>
 
-          <ul
-            id="b4um-sitemap-<%= column_key.tr("_", "-") %>"
-            class="b4um-sitemap__list"
-            data-sitemap-target="list"
-            hidden
-          >
-            <% Array(column["links"]).each do |link| %>
-              <% path = b4um_sitemap_path(link["route"]) %>
+          <div class="b4um-sitemap__content">
+            <ul
+              id="b4um-sitemap-<%= column_key.tr("_", "-") %>"
+              class="b4um-sitemap__list"
+              data-sitemap-target="list"
+            >
+              <% Array(column["links"]).each do |link| %>
+                <% path = b4um_sitemap_path(link["route"]) %>
 
-              <% if path %>
-                <li>
-                  <%= link_to link["title"], path, class: "b4um-sitemap__link" %>
-                </li>
+                <% if path %>
+                  <li>
+                    <%= link_to link["title"],
+                    path,
+                    class: [
+                      "b4um-sitemap__link",
+                      ("is-active" if current_page?(path)),
+                    ].compact.join(" "),
+                    aria: (current_page?(path) ? { current: "page" } : {}) %>
+                  </li>
+                <% end %>
               <% end %>
-            <% end %>
-          </ul>
+            </ul>
+          </div>
         </div>
       <% end %>
     </nav>

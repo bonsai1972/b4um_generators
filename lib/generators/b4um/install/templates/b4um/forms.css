@@ -548,6 +548,8 @@
   width: 100%;
   max-width: 100%;
   height: auto;
+
+  border-radius: var(--b4um-radius);
 }
 
 .trix-content action-text-attachment[content-type='vnd.rubyonrails.horizontal-rule.html'] {
