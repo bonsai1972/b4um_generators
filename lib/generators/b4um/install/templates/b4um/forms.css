@@ -447,6 +447,10 @@
 /* Trix liefert seine Standard-Icons als schwarze SVGs aus.
    Im dunklen Theme werden sie deshalb aufgehellt. */
 .form-field--rich-text trix-toolbar .trix-button--icon::before {
+  filter: none;
+}
+
+[data-b4um-theme='dark'] .form-field--rich-text trix-toolbar .trix-button--icon::before {
   filter: invert(1);
 }
 
@@ -542,6 +546,8 @@
   width: 100%;
   max-width: 100%;
   height: auto;
+
+  border-radius: var(--b4um-radius);
 }
 
 /* -------------------------------------------------------
@@ -601,6 +607,8 @@
   box-sizing: border-box;
 }
 
+.trix-content action-text-attachment img,
+.trix-content .attachment img,
 .trix-content .attachment-gallery img {
   display: block;
   width: 100%;
