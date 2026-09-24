@@ -1166,4 +1166,42 @@ RSpec.describe B4um::Generators::InstallGenerator do
       footer.scan("data-b4um-cookie-consent-open").count
     ).to eq(1)
   end
+
+  it "does not duplicate cookie consent setup" do
+    create_application_layout
+    create_gemfile
+
+    generator = build_generator(
+      false,
+      false,
+      false,
+      true,
+      true
+    )
+
+    generator.invoke_all
+    generator.invoke_all
+
+    layout = File.read(
+      File.join(
+        @destination_root,
+        "app/views/layouts/application.html.erb"
+      )
+    )
+
+    footer = File.read(
+      File.join(
+        @destination_root,
+        "app/views/shared/_footer.html.erb"
+      )
+    )
+
+    expect(
+      layout.scan('<%= render "shared/cookie_consent" %>').count
+    ).to eq(1)
+
+    expect(
+      footer.scan("data-b4um-cookie-consent-open").count
+    ).to eq(1)
+  end
 end
