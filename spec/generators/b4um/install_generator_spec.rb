@@ -136,6 +136,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       flash.css
       comments.css
       footer.css
+      theme-switcher.css
     ]
 
     expected_imports.each do |stylesheet_name|
@@ -168,6 +169,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       flash.css
       comments.css
       footer.css
+      theme-switcher.css
     ]
 
     expected_components.each do |stylesheet_name|
@@ -616,6 +618,67 @@ RSpec.describe B4um::Generators::InstallGenerator do
       )
     )
 
+    theme_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/theme_controller.js"
+    )
+
+    expect(File).to exist(theme_controller_path)
+
+    theme_controller = File.read(
+      theme_controller_path
+    )
+
+    expect(theme_controller).to include(
+      "const STORAGE_KEY = 'b4um-theme'"
+    )
+
+    expect(theme_controller).to include(
+      "const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)'"
+    )
+
+    expect(theme_controller).to include(
+      "static targets = ['menu', 'toggle', 'icon', 'option']"
+    )
+
+    theme_switcher_path = File.join(
+      @destination_root,
+      "app/views/shared/_theme_switcher.html.erb"
+    )
+
+    expect(File).to exist(theme_switcher_path)
+
+    theme_switcher = File.read(
+      theme_switcher_path
+    )
+
+    expect(theme_switcher).to include(
+      'class="b4um-theme-switcher"'
+    )
+
+    expect(theme_switcher).to include(
+      'data-controller="theme"'
+    )
+
+    expect(theme_switcher).to include(
+      'data-theme-value="system"'
+    )
+
+    expect(theme_switcher).to include(
+      'data-theme-value="light"'
+    )
+
+    expect(theme_switcher).to include(
+      'data-theme-value="dark"'
+    )
+
+    theme_switcher_css_path = File.join(
+      @destination_root,
+      "app/assets/stylesheets/b4um/theme-switcher.css"
+    )
+
+    expect(File).to exist(theme_switcher_css_path)
+
     navigation_helper_path = File.join(
       @destination_root,
       "app/helpers/navigation_helper.rb"
@@ -744,6 +807,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(layout).to include(
       '<%= render "shared/footer" %>'
+    )
+
+    expect(layout).to include(
+      '<%= render "shared/theme_switcher" %>'
     )
 
     main_end = layout.index("</main>")
@@ -918,6 +985,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(
       layout.scan('<%= render "shared/footer" %>').count
+    ).to eq(1)
+
+    expect(
+      layout.scan('<%= render "shared/theme_switcher" %>').count
     ).to eq(1)
   end
 end

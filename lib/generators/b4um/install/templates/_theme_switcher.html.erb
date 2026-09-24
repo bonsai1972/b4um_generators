@@ -1,0 +1,57 @@
+<div class="b4um-theme-switcher" data-controller="theme">
+  <div class="b4um-theme-switcher__menu" data-theme-target="menu" hidden>
+    <div class="b4um-theme-switcher__title">
+      Darstellung
+    </div>
+
+    <button
+      type="button"
+      class="b4um-theme-switcher__option"
+      data-theme-target="option"
+      data-theme-value="system"
+      data-action="theme#select"
+      role="menuitemradio"
+      aria-checked="false"
+    >
+      <span class="b4um-theme-switcher__indicator" aria-hidden="true"></span>
+      System
+    </button>
+
+    <button
+      type="button"
+      class="b4um-theme-switcher__option"
+      data-theme-target="option"
+      data-theme-value="light"
+      data-action="theme#select"
+      role="menuitemradio"
+      aria-checked="false"
+    >
+      <span class="b4um-theme-switcher__indicator" aria-hidden="true"></span>
+      Hell
+    </button>
+
+    <button
+      type="button"
+      class="b4um-theme-switcher__option"
+      data-theme-target="option"
+      data-theme-value="dark"
+      data-action="theme#select"
+      role="menuitemradio"
+      aria-checked="false"
+    >
+      <span class="b4um-theme-switcher__indicator" aria-hidden="true"></span>
+      Dunkel
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="b4um-theme-switcher__toggle"
+    data-theme-target="toggle"
+    data-action="theme#toggle"
+    aria-expanded="false"
+    aria-label="Darstellung ändern"
+  >
+    <span data-theme-target="icon" aria-hidden="true">◐</span>
+  </button>
+</div>

@@ -434,6 +434,64 @@
   box-shadow: 0 2px 6px var(--b4um-primary-shadow-soft);
 }
 
+.form-field--rich-text trix-toolbar .trix-button-group {
+  border-color: var(--b4um-border);
+}
+
+.form-field--rich-text trix-toolbar .trix-button {
+  border-color: var(--b4um-border);
+  background-color: var(--b4um-surface);
+  color: var(--b4um-text-secondary);
+}
+
+/* Trix liefert seine Standard-Icons als schwarze SVGs aus.
+   Im dunklen Theme werden sie deshalb aufgehellt. */
+.form-field--rich-text trix-toolbar .trix-button--icon::before {
+  filter: invert(1);
+}
+
+.form-field--rich-text trix-toolbar .trix-button:not([data-trix-attribute^='bgColor']):hover {
+  background-color: var(--b4um-surface-soft);
+}
+
+.form-field--rich-text trix-toolbar .trix-button.trix-active:not([data-trix-attribute^='bgColor']) {
+  background-color: var(--b4um-primary-soft);
+}
+
+.form-field--rich-text trix-toolbar .trix-dialog {
+  border-color: var(--b4um-border);
+  background-color: var(--b4um-surface);
+  color: var(--b4um-text);
+  box-shadow: 0 4px 14px var(--b4um-primary-shadow-soft);
+}
+
+.form-field--rich-text trix-toolbar .trix-dialog__link-fields {
+  background-color: var(--b4um-surface);
+}
+
+/* Heading-Auswahl H1–H6 kompakt halten */
+.form-field--rich-text trix-toolbar .trix-dialog--heading {
+  width: fit-content;
+  max-width: none;
+
+  margin-left: 185px;
+}
+
+.form-field--rich-text trix-toolbar .trix-dialog--heading .trix-dialog__link-fields {
+  width: fit-content;
+}
+
+.form-field--rich-text trix-toolbar .trix-dialog--heading .trix-button-group {
+  width: auto;
+  margin: 0;
+}
+
+.form-field--rich-text trix-toolbar .trix-input {
+  border-color: var(--b4um-border);
+  background-color: var(--b4um-surface);
+  color: var(--b4um-text);
+}
+
 .form-field--rich-text .form-textarea {
   grid-row: 2;
 }
@@ -698,4 +756,93 @@
 
 .form-field--rich-text .trix-dialog--color [data-trix-attribute='bgColor9'] {
   background-color: rgb(242, 242, 242);
+}
+
+/* -------------------------------------------------------
+   Trix color palette states
+------------------------------------------------------- */
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute^='bgColor']:hover {
+  border-color: var(--b4um-primary);
+  box-shadow: inset 0 0 0 2px var(--b4um-primary);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute^='bgColor'].trix-active {
+  border-color: var(--b4um-primary);
+  box-shadow:
+    inset 0 0 0 2px var(--b4um-primary),
+    0 0 0 2px var(--b4um-surface);
+}
+
+.form-field--rich-text .trix-dialog--color [data-trix-attribute^='fgColor']:hover,
+.form-field--rich-text .trix-dialog--color [data-trix-attribute^='fgColor'].trix-active {
+  background-color: var(--b4um-surface-soft);
+  border-color: var(--b4um-primary);
+}
+
+/* -------------------------------------------------------
+   Trix color palette states
+------------------------------------------------------- */
+
+/* Farbfelder beim Hover nicht mit einem neuen Hintergrund übermalen */
+.form-field--rich-text .trix-dialog--color .trix-button[data-trix-attribute^='fgColor']:hover,
+.form-field--rich-text .trix-dialog--color .trix-button[data-trix-attribute^='bgColor']:hover {
+  border-color: var(--b4um-primary);
+  box-shadow: inset 0 0 0 1px var(--b4um-primary);
+}
+
+/* Schriftfarben: Hintergrund auch bei Hover/aktiv neutral lassen */
+.form-field--rich-text .trix-dialog--color .trix-button[data-trix-attribute^='fgColor']:hover,
+.form-field--rich-text .trix-dialog--color .trix-button[data-trix-attribute^='fgColor'].trix-active {
+  background-color: transparent;
+}
+
+/* Aktives Häkchen deutlicher */
+.form-field--rich-text .trix-dialog--color .trix-button.trix-active::after {
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+/* Schriftfarben: Häkchen übernimmt die jeweilige Schriftfarbe */
+.form-field--rich-text .trix-dialog--color .trix-button[data-trix-attribute^='fgColor'].trix-active::after {
+  color: currentColor;
+}
+
+/* Hintergrundfarben: Häkchen kontrastreicher darstellen */
+.form-field--rich-text .trix-dialog--color .trix-button[data-trix-attribute^='bgColor'].trix-active::after {
+  color: #1f2937;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+/* -------------------------------------------------------
+   Trix heading buttons
+------------------------------------------------------- */
+
+.form-field--rich-text trix-toolbar .trix-button[data-trix-attribute^='heading'] {
+  color: var(--b4um-text-muted);
+  background-color: var(--b4um-surface);
+
+  opacity: 0.65;
+
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.form-field--rich-text trix-toolbar .trix-button[data-trix-attribute^='heading']:hover {
+  color: var(--b4um-text);
+  background-color: var(--b4um-surface-soft);
+  border-color: var(--b4um-primary);
+
+  opacity: 1;
+}
+
+.form-field--rich-text trix-toolbar .trix-button[data-trix-attribute^='heading'].trix-active {
+  color: var(--b4um-text-on-primary);
+  background-color: var(--b4um-primary);
+  border-color: var(--b4um-primary);
+
+  opacity: 1;
 }

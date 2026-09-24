@@ -63,3 +63,70 @@
   --b4um-primary-shadow-soft: rgba(46, 71, 210, 0.12);
   --b4um-danger-shadow: rgba(204, 0, 0, 0.18);
 }
+
+/* -------------------------------------------------------
+   Dark theme
+------------------------------------------------------- */
+
+[data-b4um-theme='dark'] {
+  /* Backgrounds */
+  --b4um-page-background: #11151c;
+  --b4um-surface: #1c222b;
+  --b4um-surface-soft: #252c36;
+
+  /* Text */
+  --b4um-text: #f1f3f5;
+  --b4um-text-secondary: #c3c8d0;
+  --b4um-text-muted: #a8afb9;
+  --b4um-text-checkbox: #e5e7eb;
+  --b4um-text-on-primary: #ffffff;
+
+  /* Primary color */
+  --b4um-primary: #8ea2ff;
+  --b4um-primary-hover: #a9b8ff;
+  --b4um-primary-soft: rgba(142, 162, 255, 0.16);
+  --b4um-primary-focus: rgba(142, 162, 255, 0.32);
+
+  /* Links */
+  --b4um-link: #9aabff;
+  --b4um-link-visited: #b1a7ff;
+
+  /* Borders */
+  --b4um-border: #555c66;
+  --b4um-border-hover: #737c89;
+  --b4um-border-checkbox: #666e79;
+  --b4um-border-light: #383d45;
+  --b4um-border-list: #444a53;
+
+  /* Success */
+  --b4um-success-background: #173c2b;
+  --b4um-success-border: #3c8c65;
+
+  /* Warning */
+  --b4um-warning: #f6cf73;
+  --b4um-warning-background: #3b3217;
+  --b4um-warning-border: #756323;
+
+  /* Danger */
+  --b4um-danger: #ff8585;
+  --b4um-danger-hover: #ffa0a0;
+  --b4um-danger-border: #d65f5f;
+  --b4um-danger-soft-border: #8f4c4c;
+  --b4um-danger-background: #452323;
+
+  /* Neutral */
+  --b4um-neutral-background: #30343a;
+
+  /* Code */
+  --b4um-code-background: #0f1115;
+  --b4um-code-text: #f8fafc;
+  --b4um-code-border: #3b424d;
+
+  /* Shadows */
+  --b4um-container-shadow: rgba(0, 0, 0, 0.55);
+  --b4um-primary-shadow: rgba(142, 162, 255, 0.24);
+  --b4um-primary-shadow-soft: rgba(142, 162, 255, 0.14);
+  --b4um-danger-shadow: rgba(255, 133, 133, 0.18);
+
+  color-scheme: dark;
+}

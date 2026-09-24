@@ -136,6 +136,18 @@ module B4um
                   "app/javascript/controllers/sitemap_controller.js"
       end
 
+      def copy_theme_controller
+        copy_file "theme_controller.js",
+                  "app/javascript/controllers/theme_controller.js"
+      end
+
+      def copy_theme_switcher
+        copy_file(
+          "_theme_switcher.html.erb",
+          "app/views/shared/_theme_switcher.html.erb"
+        )
+      end
+
       def copy_b4um_config
         copy_file "b4um.yml",
                   "config/b4um.yml"
@@ -171,68 +183,108 @@ module B4um
         full_layout_path = File.join(destination_root, layout_path)
 
         ensure_page_top_anchor(layout_path, full_layout_path)
+        ensure_navigation(layout_path, full_layout_path)
+        ensure_main_container(layout_path, full_layout_path)
+        ensure_hero(layout_path, full_layout_path)
+        ensure_theme_switcher(layout_path, full_layout_path)
+        ensure_footer(layout_path, full_layout_path)
+      end
+
+      def install_selected_gems
+        return unless @gems_added
+
+        say "Installing selected gems..."
+
+        run "bundle install"
+
+        say "Selected gems installed."
+      end
+
+      private
+
+      def ensure_navigation(layout_path, full_layout_path)
+        layout = File.read(full_layout_path)
+
+        return if layout.include?('render "shared/navigation"')
+
+        gsub_file(
+          layout_path,
+          '<div id="b4um-page-top"></div>',
+          <<~ERB.chomp
+            <div id="b4um-page-top"></div>
+            <%= render "shared/navigation" %>
+          ERB
+        )
+      end
+
+      def ensure_main_container(layout_path, full_layout_path)
+        layout = File.read(full_layout_path)
+
+        return if layout.include?('class="container"')
+
+        gsub_file(
+          layout_path,
+          '<%= render "shared/navigation" %>',
+          <<~ERB.chomp
+            <%= render "shared/navigation" %>
+
+            <main class="container">
+              <% flash.each do |type, message| %>
+                <div class="flash <%= "flash--" + type.to_s %>"
+                    data-controller="dismissible">
+                  <%= message %>
+
+                  <button type="button"
+                          class="flash__close"
+                          data-action="dismissible#dismiss"
+                          aria-label="Close">
+                    &times;
+                  </button>
+                </div>
+              <% end %>
+          ERB
+        )
+
+        gsub_file(
+          layout_path,
+          "</body>",
+          "  </main>\n</body>"
+        )
+      end
+
+      def ensure_hero(layout_path, full_layout_path)
+        return unless @hero_installed
 
         layout = File.read(full_layout_path)
 
-        unless layout.include?('render "shared/navigation"')
-          gsub_file(
-            layout_path,
-            '<div id="b4um-page-top"></div>',
-            <<~ERB.chomp
-              <div id="b4um-page-top"></div>
-              <%= render "shared/navigation" %>
-            ERB
-          )
-        end
+        return if layout.include?('render "shared/hero"')
 
+        gsub_file(
+          layout_path,
+          '<main class="container">',
+          <<~ERB.chomp
+            <main class="container">
+                  <%= render "shared/hero" if request.path == root_path %>
+          ERB
+        )
+      end
+
+      def ensure_theme_switcher(layout_path, full_layout_path)
         layout = File.read(full_layout_path)
 
-        unless layout.include?('class="container"')
-          gsub_file(
-            layout_path,
-            '<%= render "shared/navigation" %>',
-            <<~ERB.chomp
-              <%= render "shared/navigation" %>
+        return if layout.include?('render "shared/theme_switcher"')
 
-              <main class="container">
-                <% flash.each do |type, message| %>
-                  <div class="flash <%= "flash--" + type.to_s %>"
-                      data-controller="dismissible">
-                    <%= message %>
+        gsub_file(
+          layout_path,
+          "</body>",
+          <<~ERB.chomp
+            <%= render "shared/theme_switcher" %>
+            </body>
+          ERB
+        )
+      end
 
-                    <button type="button"
-                            class="flash__close"
-                            data-action="dismissible#dismiss"
-                            aria-label="Close">
-                      &times;
-                    </button>
-                  </div>
-                <% end %>
-            ERB
-          )
-
-          gsub_file(
-            layout_path,
-            "</body>",
-            "  </main>\n</body>"
-          )
-        end
-
-        if @hero_installed
-          layout = File.read(full_layout_path)
-
-          unless layout.include?('render "shared/hero"')
-            gsub_file(
-              layout_path,
-              '<main class="container">',
-              <<~ERB.chomp
-                <main class="container">
-                      <%= render "shared/hero" if request.path == root_path %>
-              ERB
-            )
-          end
-        end
-
+      def ensure_footer(layout_path, full_layout_path)
         return unless @footer_installed
 
         layout = File.read(full_layout_path)
@@ -248,18 +300,6 @@ module B4um
           ERB
         )
       end
-
-      def install_selected_gems
-        return unless @gems_added
-
-        say "Installing selected gems..."
-
-        run "bundle install"
-
-        say "Selected gems installed."
-      end
-
-      private
 
       def ensure_page_top_anchor(layout_path, full_layout_path)
         layout = File.read(full_layout_path)
