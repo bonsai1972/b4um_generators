@@ -1099,7 +1099,23 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(helper).to include(
-      'heading = first_element if first_element&.name&.match?(/\Ah[1-6]\z/)'
+      "heading = b4um_preview_heading(first_element)"
+    )
+
+    expect(helper).to include(
+      "B4UM_RICH_TEXT_CONTAINERS = %w[div section article].freeze"
+    )
+
+    expect(helper).to include(
+      "def b4um_preview_heading(element)"
+    )
+
+    expect(helper).to include(
+      'return element if element.name.match?(/\Ah[1-6]\z/)'
+    )
+
+    expect(helper).to include(
+      "B4UM_RICH_TEXT_CONTAINERS.include?(element.name)"
     )
 
     expect(helper).to include(
@@ -1112,6 +1128,71 @@ RSpec.describe B4um::Generators::TrixGenerator do
 
     expect(helper).to include(
       'class: "b4um-rich-text-preview__text"'
+    )
+  end
+
+  it "supports headings inside B4UM rich text containers" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    helper = File.read(
+      File.join(
+        @destination_root,
+        "app/helpers/b4um_rich_text_helper.rb"
+      )
+    )
+
+    expect(helper).to include(
+      "B4UM_RICH_TEXT_CONTAINERS = %w[div section article].freeze"
+    )
+
+    expect(helper).to include(
+      "heading = b4um_preview_heading(first_element)"
+    )
+
+    expect(helper).to include(
+      "def b4um_preview_heading(element)"
+    )
+
+    expect(helper).to include(
+      'return element if element.name.match?(/\Ah[1-6]\z/)'
+    )
+
+    expect(helper).to include(
+      "return unless B4UM_RICH_TEXT_CONTAINERS.include?(element.name)"
+    )
+
+    expect(helper).to include(
+      "first_child = element.element_children.first"
+    )
+
+    expect(helper).to include(
+      "b4um_preview_heading(first_child)"
     )
   end
 

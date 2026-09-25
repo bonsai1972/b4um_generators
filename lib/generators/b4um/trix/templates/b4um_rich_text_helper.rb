@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 module B4umRichTextHelper
+  B4UM_RICH_TEXT_CONTAINERS = %w[div section article].freeze
+
   def b4um_rich_text_preview(rich_text, length: 160)
     return if rich_text.blank?
 
     document = rich_text.body.fragment.source
     first_element = document.element_children.first
-    heading = first_element if first_element&.name&.match?(/\Ah[1-6]\z/)
+    heading = b4um_preview_heading(first_element)
 
     plain_text = rich_text.to_plain_text.strip
 
@@ -38,5 +40,19 @@ module B4umRichTextHelper
     else
       truncate(plain_text, length: length)
     end
+  end
+
+  private
+
+  def b4um_preview_heading(element)
+    return unless element
+
+    return element if element.name.match?(/\Ah[1-6]\z/)
+
+    return unless B4UM_RICH_TEXT_CONTAINERS.include?(element.name)
+
+    first_child = element.element_children.first
+
+    b4um_preview_heading(first_child)
   end
 end
