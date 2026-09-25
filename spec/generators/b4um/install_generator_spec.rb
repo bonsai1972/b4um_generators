@@ -466,6 +466,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
     navigation = File.read(navigation_path)
 
     expect(navigation).to include(
+      '<%= link_to "b4um", "/", class: "navigation__brand" %>'
+    )
+
+    expect(navigation).to include(
       "<%# B4UM_NAVIGATION_LINKS %>"
     )
 
