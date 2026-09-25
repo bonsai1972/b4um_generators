@@ -97,6 +97,8 @@ module B4um
 
       def install_footer
         unless yes?("Add a footer? (y/n)")
+          @footer_installed = false
+
           say "  Footer skipped."
           return
         end
@@ -119,6 +121,39 @@ module B4um
         @footer_installed = true
 
         say "  Footer installed."
+      end
+
+      def install_sitemap
+        unless @footer_installed
+          say "  Sitemap skipped because footer is not installed."
+          return
+        end
+
+        unless yes?("Add a sitemap to the footer? (y/n)")
+          say "  Sitemap skipped."
+          return
+        end
+
+        @sitemap_titles = [
+          ask("Sitemap column 1 title [Kontakt]:").presence || "Kontakt",
+          ask("Sitemap column 2 title [Inhalte]:").presence || "Inhalte",
+          ask("Sitemap column 3 title [Service]:").presence || "Service",
+          ask("Sitemap column 4 title [Mehr]:").presence || "Mehr"
+        ]
+
+        copy_file(
+          "_sitemap.html.erb",
+          "app/views/shared/_sitemap.html.erb"
+        )
+
+        copy_file(
+          "sitemap_controller.js",
+          "app/javascript/controllers/sitemap_controller.js"
+        )
+
+        @sitemap_installed = true
+
+        say "  Sitemap installed."
       end
 
       def install_cookie_consent
@@ -152,11 +187,6 @@ module B4um
                   "app/javascript/controllers/navigation_controller.js"
       end
 
-      def copy_sitemap_controller
-        copy_file "sitemap_controller.js",
-                  "app/javascript/controllers/sitemap_controller.js"
-      end
-
       def copy_theme_controller
         copy_file "theme_controller.js",
                   "app/javascript/controllers/theme_controller.js"
@@ -172,6 +202,26 @@ module B4um
       def copy_b4um_config
         copy_file "b4um.yml",
                   "config/b4um.yml"
+
+        return unless @sitemap_installed
+        return unless @sitemap_titles
+
+        config_path = "config/b4um.yml"
+
+        replacements = {
+          "Kontakt" => @sitemap_titles[0],
+          "Inhalte" => @sitemap_titles[1],
+          "Service" => @sitemap_titles[2],
+          "Mehr" => @sitemap_titles[3]
+        }
+
+        replacements.each do |default_title, custom_title|
+          gsub_file(
+            config_path,
+            "title: #{default_title}",
+            "title: #{custom_title}"
+          )
+        end
       end
 
       def copy_image_preview_controller
@@ -209,6 +259,7 @@ module B4um
         ensure_hero(layout_path, full_layout_path)
         ensure_theme_switcher(layout_path, full_layout_path)
         ensure_footer(layout_path, full_layout_path)
+        ensure_sitemap_footer_render
         ensure_cookie_consent(layout_path, full_layout_path)
         ensure_cookie_consent_footer_link
       end
@@ -337,6 +388,29 @@ module B4um
           <<~ERB.chomp
             <%= render "shared/cookie_consent" %>
             </body>
+          ERB
+        )
+      end
+
+      def ensure_sitemap_footer_render
+        return unless @sitemap_installed
+
+        footer_path = "app/views/shared/_footer.html.erb"
+        full_footer_path = File.join(destination_root, footer_path)
+
+        return unless File.exist?(full_footer_path)
+
+        footer = File.read(full_footer_path)
+
+        return if footer.include?('render "shared/sitemap"')
+
+        gsub_file(
+          footer_path,
+          '<div class="b4um-footer__inner">',
+          <<~ERB.chomp
+            <%= render "shared/sitemap" %>
+
+            <div class="b4um-footer__inner">
           ERB
         )
       end

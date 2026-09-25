@@ -44,7 +44,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
   end
 
-  def build_generator(*answers)
+  def build_generator(*answers, sitemap_titles: nil)
     generator = described_class.new(
       [],
       {},
@@ -52,6 +52,10 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     allow(generator).to receive(:yes?).and_return(*answers)
+
+    allow(generator).to receive(:ask).and_return(
+      *(sitemap_titles || ["", "", "", ""])
+    )
 
     generator
   end
@@ -103,6 +107,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     generator = build_generator(
       false,
       false,
+      true,
       true,
       true,
       false
@@ -751,14 +756,27 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(footer).to include(
+      '<%= render "shared/sitemap" %>'
+    )
+
+    sitemap_path = File.join(
+      @destination_root,
+      "app/views/shared/_sitemap.html.erb"
+    )
+
+    expect(File).to exist(sitemap_path)
+
+    sitemap = File.read(sitemap_path)
+
+    expect(sitemap).to include(
       'data-controller="sitemap"'
     )
 
-    expect(footer).to include(
+    expect(sitemap).to include(
       "b4um_sitemap_columns"
     )
 
-    expect(footer).to include(
+    expect(sitemap).to include(
       'column["title"]'
     )
 
@@ -825,6 +843,67 @@ RSpec.describe B4um::Generators::InstallGenerator do
     expect(footer_position).to be > main_end
   end
 
+  it "can customize sitemap column titles" do
+    create_application_layout
+    create_gemfile
+
+    generator = build_generator(
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      sitemap_titles: %w[
+        Unternehmen
+        Produkte
+        Hilfe
+        Rechtliches
+      ]
+    )
+
+    generator.invoke_all
+
+    config_path = File.join(
+      @destination_root,
+      "config/b4um.yml"
+    )
+
+    config = File.read(config_path)
+
+    expect(config).to include(
+      "title: Unternehmen"
+    )
+
+    expect(config).to include(
+      "title: Produkte"
+    )
+
+    expect(config).to include(
+      "title: Hilfe"
+    )
+
+    expect(config).to include(
+      "title: Rechtliches"
+    )
+
+    expect(config).not_to include(
+      "title: Kontakt"
+    )
+
+    expect(config).not_to include(
+      "title: Inhalte"
+    )
+
+    expect(config).not_to include(
+      "title: Service"
+    )
+
+    expect(config).not_to include(
+      "title: Mehr"
+    )
+  end
+
   it "can skip hero and footer independently" do
     create_application_layout
     create_gemfile
@@ -834,6 +913,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
+      false,
       false
     )
 
@@ -920,6 +1000,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       true,
       true,
+      false,
       false
     )
 
@@ -949,6 +1030,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       true,
       true,
+      false,
       false
     )
 
@@ -1136,6 +1218,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
+      false,
       true
     )
 
@@ -1176,6 +1259,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       false,
       false,
       true,
+      false,
       true
     )
 

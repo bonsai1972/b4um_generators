@@ -2,54 +2,6 @@
   <a class="b4um-footer__back-to-top" href="#b4um-page-top">
     Zurück zum Seitenanfang
   </a>
-  <div
-    class="b4um-footer__sitemap"
-    data-controller="sitemap"
-    data-action="resize@window->sitemap#reset"
-  >
-    <nav class="b4um-sitemap" aria-label="Sitemap">
-      <% b4um_sitemap_columns.each do |column| %>
-        <% column_key = column["key"].to_s %>
-
-        <div class="b4um-sitemap__item">
-          <button
-            type="button"
-            class="b4um-sitemap__title"
-            aria-expanded="false"
-            aria-controls="b4um-sitemap-<%= column_key.tr("_", "-") %>"
-            data-sitemap-target="title"
-            data-action="sitemap#toggle"
-          >
-            <%= column["title"] %>
-          </button>
-
-          <div class="b4um-sitemap__content">
-            <ul
-              id="b4um-sitemap-<%= column_key.tr("_", "-") %>"
-              class="b4um-sitemap__list"
-              data-sitemap-target="list"
-            >
-              <% Array(column["links"]).each do |link| %>
-                <% path = b4um_sitemap_path(link["route"]) %>
-
-                <% if path %>
-                  <li>
-                    <%= link_to link["title"],
-                    path,
-                    class: [
-                      "b4um-sitemap__link",
-                      ("is-active" if current_page?(path)),
-                    ].compact.join(" "),
-                    aria: (current_page?(path) ? { current: "page" } : {}) %>
-                  </li>
-                <% end %>
-              <% end %>
-            </ul>
-          </div>
-        </div>
-      <% end %>
-    </nav>
-  </div>
 
   <div class="b4um-footer__inner">
     <p class="b4um-footer__copyright">
