@@ -2,11 +2,14 @@
 
 # b4um Generators
 
-b4um Generators ist eine Sammlung wiederverwendbarer Rails-Generatoren, Templates und Anwendungsvorgaben für
-b4um-Rails-Projekte.
+b4um Generators ist eine Sammlung wiederverwendbarer Rails-Generatoren, Templates, Komponenten und Anwendungsvorgaben
+für b4um-Rails-Projekte.
 
-Das Gem stellt Generatoren für häufig benötigte Anwendungskomponenten wie Layouts, Controller, Scaffolds, Tabellen,
-Pagination, Suche, Kommentare und Rich-Text-Bearbeitung bereit.
+Das Gem bietet eine einheitliche Grundlage für Rails-Anwendungen und enthält Generatoren für Scaffolds, Controller,
+Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare und Rich-Text-Bearbeitung.
+
+Die generierten Komponenten verwenden ein gemeinsames b4um-Styling und sind darauf ausgelegt, miteinander zu
+funktionieren.
 
 ## Voraussetzungen
 
@@ -20,7 +23,7 @@ b4um Generators wird während der Entwicklung derzeit als lokales Gem verwendet.
 Füge das Gem zur `Gemfile` der Rails-Anwendung hinzu:
 
 ```ruby
-gem "b4um_generators", "~> 0.1.0", path: "/path/to/b4um_generators"
+gem "b4um_generators", "~> 0.1.0", path: "/pfad/zu/b4um_generators"
 ```
 
 Führe anschließend aus:
@@ -37,12 +40,27 @@ Installiere die b4um-Anwendungsvorgaben:
 bin/rails generate b4um:install
 ```
 
-Der Installer fügt der Rails-Anwendung die gemeinsame b4um-Anwendungsstruktur und -Konfiguration hinzu.
+Der Installer fügt der Rails-Anwendung die gemeinsame b4um-Anwendungsstruktur, Stylesheets, JavaScript-Controller,
+Helper und Konfiguration hinzu.
 
-Während der Installation können optionale Komponenten wie Hero-Bereich, Footer, Footer-Sitemap und Cookie-Einwilligung
-interaktiv ausgewählt werden.
+Während der Installation können optionale Funktionen interaktiv ausgewählt werden:
 
-Die zentrale b4um-Konfiguration wird gespeichert unter:
+- bcrypt für Passwort-Unterstützung
+- Active Storage für Bildanhänge
+- Hero-Bereich
+- Footer
+- Footer-Sitemap
+- Cookie-Einwilligung
+
+Die Sitemap steht zur Verfügung, wenn der Footer installiert wird.
+
+Wenn ein optionales Gem ausgewählt wird und noch nicht vorhanden ist, fügt b4um es zur `Gemfile` hinzu und führt
+`bundle install` aus.
+
+Wenn Active Storage ausgewählt wird und noch nicht installiert ist, installiert b4um Active Storage und führt die
+erforderliche Datenbankmigration aus.
+
+Die zentrale b4um-Konfiguration befindet sich unter:
 
 ```text
 config/b4um.yml
@@ -66,30 +84,544 @@ b4um:trix
 b4um:help
 ```
 
-Ausführliche Informationen zur Verwendung und Beispiele erhältst du mit:
+Für eine ausführliche Befehlsübersicht und zusätzliche Beispiele:
 
 ```bash
 bin/rails generate b4um:help
 ```
 
+## Scaffold-Generator
+
+Erzeuge eine Rails-Ressource mit den b4um-Views und -Komponenten:
+
+```bash
+bin/rails generate b4um:scaffold MODEL ATTRIBUTES
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string description:text price:decimal status:string
+```
+
+Der Scaffold-Generator bietet:
+
+- b4um-Formulare
+- Index-, Show-, New- und Edit-Views
+- Standardmäßig ein Bento-Index-Layout
+- Optionales Tabellen-Index-Layout
+- Automatischen Navigationseintrag
+- Aktiven Navigationszustand
+- Anzeige von Formular-Validierungsfehlern
+- Flash-Meldungen
+- Unterstützung für Passwortfelder
+- Optionale lesbare URL-Parameter
+
+### Bento-Index
+
+Der standardmäßige Scaffold-Index verwendet das responsive b4um-Bento-Kartenlayout.
+
+### Tabellen-Index
+
+Um stattdessen einen tabellenbasierten Index zu erzeugen, verwende:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string description:text price:decimal status:string --layout=table
+```
+
+Tabellen-Layouts bieten automatisch:
+
+- Responsives b4um-Tabellen-Styling
+- Kürzung von Textfeldern auf 100 Zeichen
+- Darstellung von Statusfeldern als b4um-Badges
+- Aktionsspalte
+- Empty-State-Darstellung
+
+### Lesbare URL-Parameter
+
+Ein Scaffold kann lesbare URLs erzeugen und dabei die Datenbank-ID in der URL beibehalten.
+
+Verwende:
+
+```text
+--param=ATTRIBUTE
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Article title:string body:text --param=title
+```
+
+Dadurch entstehen URLs wie:
+
+```text
+/articles/17-my-first-article
+```
+
+Die ID bleibt Bestandteil der URL, sodass die normale Rails-Ressourcensuche weiterhin verwendet werden kann.
+
+Der lesbare Teil wird aus dem ausgewählten Attribut erzeugt und ändert sich automatisch, wenn sich dieses Attribut
+ändert.
+
+## Bento und Karten
+
+b4um enthält ein responsives Kartensystem, das auch unabhängig von den Generatoren verwendet werden kann.
+
+Grundlegendes Beispiel:
+
+```html
+<div class="b4um-grid">
+  <article class="b4um-card">...</article>
+</div>
+```
+
+Verfügbare Kartenvarianten:
+
+```text
+b4um-card
+b4um-card--wide
+b4um-card--large
+b4um-card--full
+b4um-card--soft
+```
+
+Häufig verwendete Klassen für Karteninhalte:
+
+```text
+b4um-card__eyebrow
+b4um-card__title
+b4um-card__text
+b4um-card__actions
+b4um-card__media
+b4um-card__image
+```
+
+Das Kartenraster passt sich automatisch an Tablet- und Mobil-Layouts an.
+
+### Bento-Generator
+
+Erzeuge ein wiederverwendbares Layout für ein bestehendes Modell:
+
+```bash
+bin/rails generate b4um:bento Product
+```
+
+Das Standardlayout ist `grid`.
+
+Verfügbare Layouts:
+
+```bash
+bin/rails generate b4um:bento Product --layout=grid
+bin/rails generate b4um:bento Product --layout=list
+bin/rails generate b4um:bento Product --layout=alternating
+bin/rails generate b4um:bento Product --layout=bento
+```
+
+Die Layouts:
+
+- `grid` — responsives Kartenraster mit drei Spalten
+- `list` — kompaktes horizontales Listenlayout
+- `alternating` — großzügiges, abwechselndes Inhaltslayout
+- `bento` — klassisches Bento-Layout mit unterschiedlichen Kartengrößen
+
+Das Modell und das zugehörige Ressourcen-Partial müssen bereits vorhanden sein.
+
+Für ein `Product`-Modell wird das generierte Partial hier gespeichert:
+
+```text
+app/views/products/_bento.html.erb
+```
+
+Einbindung:
+
+```erb
+<%= render "bento", products: @products %>
+```
+
+Das Partial verwendet eine lokale Collection und kann daher auch mit einer anderen Collection wiederverwendet werden:
+
+```erb
+<%= render "products/bento", products: @featured_products %>
+```
+
+## Tabellen-Generator
+
+Erzeuge eine wiederverwendbare b4um-Tabelle für ein bestehendes Modell:
+
+```bash
+bin/rails generate b4um:table MODEL FIELDS
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:table Product name:string description:text price:decimal status:string
+```
+
+Das Modell muss bereits vorhanden sein.
+
+Für ein `Product`-Modell wird das generierte Partial hier gespeichert:
+
+```text
+app/views/products/_table.html.erb
+```
+
+Die generierte Tabelle bietet:
+
+- Responsives Tabellenlayout
+- Typisierte Felddefinitionen
+- Kürzung von Textfeldern auf 100 Zeichen
+- Darstellung von Statusfeldern als b4um-Badges
+- Aktionsspalte mit Show-Button
+- Empty-State-Darstellung
+
+Einbindung:
+
+```erb
+<%= render "table", products: @products %>
+```
+
+Das Partial kann auch mit einer anderen Collection verwendet werden:
+
+```erb
+<%= render "products/table", products: @featured_products %>
+```
+
+## Controller-Generator
+
+Erzeuge einen Controller und seine Actions mit:
+
+```bash
+bin/rails generate b4um:controller NAME ACTIONS
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:controller Pages home about impressum agb
+```
+
+Der Controller-Generator:
+
+- Verwendet den Standard-Rails-Controller-Generator
+- Erstellt die gewünschten Actions und Views
+- Fügt reguläre Action-Links automatisch zur b4um-Navigation hinzu
+- Fügt unterstützte rechtliche Seiten automatisch zum b4um-Footer hinzu
+- Hält rechtliche Seiten aus der Hauptnavigation heraus
+
+Erkannte deutsche rechtliche Seiten:
+
+```text
+impressum
+datenschutz
+agb
+```
+
+Erkannte englische rechtliche Seiten:
+
+```text
+imprint
+privacy
+privacy_policy
+terms
+terms_and_conditions
+```
+
+Footer-Links setzen voraus, dass der b4um-Footer installiert ist.
+
+Controller-Actions können außerdem direkt einer Sitemap-Spalte zugewiesen werden:
+
+```bash
+bin/rails generate b4um:controller Pages faq support --sitemap=column_3
+```
+
+## Passwort-Unterstützung
+
+Definiere für die Passwort-Authentifizierung ein `password_digest`-Attribut:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+```
+
+Der Scaffold-Generator erzeugt automatisch Passwortfelder, anstatt `password_digest` direkt anzuzeigen.
+
+Die Passwort-Unterstützung benötigt bcrypt.
+
+bcrypt kann während der Installation ausgewählt werden:
+
+```bash
+bin/rails generate b4um:install
+```
+
+Falls erforderlich, fügt b4um bcrypt zur `Gemfile` der Anwendung hinzu und installiert es.
+
+## Active Storage und Bilder
+
+Bildanhänge verwenden Rails Active Storage.
+
+Active Storage kann während der Installation ausgewählt werden:
+
+```bash
+bin/rails generate b4um:install
+```
+
+Wenn Active Storage noch nicht installiert ist, installiert b4um es und führt die erforderliche Migration aus.
+
+### Einzelnes Bild
+
+Verwende:
+
+```text
+image:attachment
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Article title:string image:attachment
+```
+
+### Mehrere Bilder
+
+Verwende:
+
+```text
+images:attachments
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Gallery title:string images:attachments
+```
+
+Die Bildunterstützung umfasst:
+
+- Active-Storage-Integration
+- Bildvorschau vor dem Speichern
+- Vorschau bestehender Bilder beim Bearbeiten
+- Hinzufügen neuer Bilder, ohne bestehende Bilder zu entfernen
+- Entfernen einzelner bestehender Bilder
+- Bild-Lightbox
+- Vorher-/Weiter-Navigation
+- Maus- und Touch-Swipe
+- Tastaturnavigation
+
+## Pagination
+
+Füge einer bestehenden Ressource serverseitige Pagination hinzu:
+
+```bash
+bin/rails generate b4um:pagination Product
+```
+
+Standardmäßig werden 20 Datensätze pro Seite angezeigt.
+
+Eine eigene Seitengröße kann angegeben werden:
+
+```bash
+bin/rails generate b4um:pagination Product --per-page=50
+```
+
+Modell, Controller und Index-View müssen bereits vorhanden sein.
+
+Pagination bietet:
+
+- Serverseitige Pagination mit Active Record `limit` und `offset`
+- Kein zusätzliches Pagination-Gem erforderlich
+- Vorher-/Weiter-Navigation
+- Nummerierte Seitennavigation
+- Beibehaltung bestehender Query-Parameter
+- Integration mit Bento- und Tabellen-Layouts
+- Sichere Behandlung ungültiger oder zu großer Seitennummern
+
+## Infinite Scroll
+
+Füge einer bestehenden Ressource automatisches Infinite Scrolling hinzu:
+
+```bash
+bin/rails generate b4um:infinite_scroll Product
+```
+
+Standardmäßig werden 20 Datensätze pro Seite geladen.
+
+Eine eigene Seitengröße kann angegeben werden:
+
+```bash
+bin/rails generate b4um:infinite_scroll Product --per-page=50
+```
+
+Modell, Controller und Index-View müssen bereits vorhanden sein.
+
+Infinite Scroll bietet:
+
+- Automatisches Nachladen beim Scrollen
+- Serverseitige Pagination mit Active Record `limit` und `offset`
+- Kein zusätzliches Pagination-Gem erforderlich
+- Integration mit Bento- und Tabellen-Layouts
+- Beibehaltung bestehender Query-Parameter
+- Automatisches Beenden nach der letzten Seite
+- Ersetzen einer bestehenden b4um-Pagination-Navigation
+- Sichere wiederholte Ausführung des Generators
+
+## Suche
+
+Füge einer bestehenden Ressource eine datenbankgestützte Suche hinzu:
+
+```bash
+bin/rails generate b4um:search Product
+```
+
+Modell, Controller und Index-View müssen bereits vorhanden sein.
+
+Die Suche bietet:
+
+- Suche über String- und Text-Spalten
+- Groß-/Kleinschreibung ignorierende Teiltreffer
+- Sicheres Escaping von Suchbegriffen
+- Vollständige Collection bei leerer Suche
+- Integration mit Bento- und Tabellen-Layouts
+- Integration mit Pagination und Infinite Scroll
+- Beibehaltung des Suchbegriffs beim Navigieren zwischen Seiten
+- Kein zusätzliches Such-Gem erforderlich
+- Sichere wiederholte Ausführung des Generators
+
+## Kommentare
+
+Füge einem bestehenden Modell polymorphe Kommentare hinzu:
+
+```bash
+bin/rails generate b4um:comments Article
+```
+
+Der Kommentar-Generator bietet:
+
+- Polymorphes `Comment`-Modell
+- Kommentar-Verknüpfung am ausgewählten Modell
+- Verschachtelte Create- und Destroy-Routen
+- Comments-Controller
+- Kommentarliste und Formular
+- Löschbestätigung
+- b4um-Formular- und Karten-Styling
+- Unterstützung mehrerer kommentierbarer Modelle
+- Sichere wiederholte Ausführung des Generators
+
+Weitere Modelle können dasselbe Kommentarsystem verwenden:
+
+```bash
+bin/rails generate b4um:comments Product
+```
+
+Bestehende b4um-Comments-Controller werden automatisch erweitert.
+
+Unbekannte benutzerdefinierte Comments-Controller bleiben unverändert und führen dazu, dass der Generator abbricht,
+anstatt eigenen Code zu überschreiben.
+
+## Trix und Rich Text
+
+Füge einer bestehenden b4um-Ressource Rails Action Text mit Trix hinzu:
+
+```bash
+bin/rails generate b4um:trix MODEL ATTRIBUTE
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:trix Article content
+```
+
+Modell und Formular müssen bereits vorhanden sein.
+
+Der Generator fügt hinzu:
+
+```ruby
+has_rich_text :content
+```
+
+und ersetzt das ausgewählte Formularfeld durch einen Rich-Text-Editor:
+
+```ruby
+form.rich_text_area :content
+```
+
+Die b4um-Trix-Integration bietet:
+
+- Automatische Installation von Action Text, falls erforderlich
+- Rich-Text-Verknüpfung im Modell
+- Austausch ausschließlich des ausgewählten Formularfeldes
+- Kompakte Plain-Text-Vorschauen in Bento-Karten
+- Bild-Lightbox
+- Vorher-/Weiter-Navigation für Bilder
+- Maus- und Touch-Swipe
+- Tastaturnavigation
+- Responsive Bildergalerien
+- Sticky Trix Toolbar
+- Überschriften H1 bis H6
+- Linke, zentrierte und rechte Textausrichtung
+- Text- und Hintergrundfarben
+- Horizontale Trennlinien
+- Editierbare `DIV`-, `SECTION`- und `ARTICLE`-Container mit IDs
+- Editierbare Container-Formatierung
+- Entfernen aktiver Container-Wrapper
+- Sichere wiederholte Ausführung des Generators
+
+## Hero-Bereich
+
+Der Installer kann optional einen Hero-Bereich erstellen.
+
+Wähle ihn bei der Ausführung von:
+
+```bash
+bin/rails generate b4um:install
+```
+
+Das generierte Partial befindet sich unter:
+
+```text
+app/views/shared/_hero.html.erb
+```
+
+Der Hero funktioniert standardmäßig auch ohne Bild und enthält Beispiele für:
+
+- Hero-Titel und Text
+- Optionalen Aktionslink
+- Optionales Hero-Bild
+
+Die Hero-CSS-Klassen verwenden das Präfix `b4um-hero`.
+
 ## Footer und Sitemap
 
-Der b4um-Footer ist optional und kann während der interaktiven Einrichtung installiert werden:
+Der b4um-Footer ist optional und kann während der interaktiven Installation ausgewählt werden:
 
 ```text
 Add a footer? (y/n)
 ```
 
-Wenn der Footer installiert wird, kann b4um diesem optional eine Sitemap hinzufügen:
+Der generierte Footer befindet sich unter:
+
+```text
+app/views/shared/_footer.html.erb
+```
+
+Er bietet:
+
+- Automatisches aktuelles Jahr
+- Platzhalter für den Anwendungsnamen
+- Automatische Links zu rechtlichen Seiten, die mit `b4um:controller` erzeugt wurden
+- Optionale Sitemap
+- Optionale Cookie-Einstellungen
+
+Wenn der Footer installiert wird, kann b4um optional eine Sitemap hinzufügen:
 
 ```text
 Add a sitemap to the footer? (y/n)
 ```
 
-Die Sitemap wird als separates Partial installiert und nur dann innerhalb des Footers gerendert, wenn sie bei der
-Installation ausgewählt wurde.
+Die Sitemap wird als separates Partial installiert und nur dann im Footer gerendert, wenn sie ausgewählt wurde.
 
-Das erzeugte Sitemap-Partial befindet sich unter:
+Das generierte Sitemap-Partial befindet sich unter:
 
 ```text
 app/views/shared/_sitemap.html.erb
@@ -103,17 +635,19 @@ app/javascript/controllers/sitemap_controller.js
 
 ### Sitemap-Spalten
 
-Wenn die Sitemap aktiviert ist, kann während der Installation die Anzahl der Sitemap-Spalten ausgewählt werden:
+Wenn die Sitemap aktiviert wird, kann während der Installation die Anzahl der Sitemap-Spalten ausgewählt werden:
 
 ```text
 Number of sitemap columns [4]:
 ```
 
-Die Sitemap unterstützt zwischen 2 und 5 Spalten. Drücke Enter, um die voreingestellten 4 Spalten zu verwenden.
+Die Sitemap unterstützt zwischen 2 und 5 Spalten.
+
+Drücke Enter, um den Standardwert von 4 Spalten zu verwenden.
 
 Nach Auswahl der Spaltenanzahl fragt b4um nach dem Titel jeder ausgewählten Spalte.
 
-Beispielsweise bei vier Spalten:
+Beispiel mit vier Spalten:
 
 ```text
 Sitemap column 1 title [Kontakt]:
@@ -128,7 +662,7 @@ Bei fünf Spalten steht eine zusätzliche Spalte zur Verfügung:
 Sitemap column 5 title [Weitere]:
 ```
 
-Drücke Enter, um den jeweils in Klammern angezeigten Standardtitel zu übernehmen.
+Drücke Enter, um den jeweils in Klammern angezeigten Standardtitel beizubehalten.
 
 Nur die ausgewählte Anzahl von Spalten wird in `config/b4um.yml` geschrieben.
 
@@ -149,29 +683,32 @@ legal_links:
   placement: footer
 ```
 
-Eine Sitemap mit zwei Spalten enthält nur `column_1` und `column_2`. Bei einer Sitemap mit fünf Spalten kommt zusätzlich
-`column_5` hinzu.
+Eine Sitemap mit zwei Spalten enthält nur `column_1` und `column_2`. Eine Sitemap mit fünf Spalten enthält zusätzlich
+`column_5`.
 
-Die Titel können später auch durch Bearbeiten von `config/b4um.yml` geändert werden.
+Die Titel können später durch Bearbeiten von `config/b4um.yml` geändert werden.
 
-Die Spaltenschlüssel (`column_1` bis `column_5`) identifizieren die Sitemap-Spalten und werden verwendet, wenn
-generierte Seiten einer Spalte zugeordnet werden. Es sollten nur Schlüssel für Spalten verwendet werden, die in der
-aktuellen Konfiguration vorhanden sind.
+Die Schlüssel `column_1` bis `column_5` identifizieren die Sitemap-Spalten unabhängig von ihren sichtbaren Titeln.
 
-Auf größeren Bildschirmen werden die vorhandenen Sitemap-Spalten automatisch über den Footer verteilt. Auf kleineren
-Bildschirmen bleibt die Sitemap responsiv und verwendet ihr einklappbares mobiles Layout.
+Es sollten nur Schlüssel für Spalten verwendet werden, die in der aktuellen Konfiguration tatsächlich vorhanden sind.
+
+Auf größeren Bildschirmen werden die konfigurierten Sitemap-Spalten automatisch über den Footer verteilt. Auf kleineren
+Bildschirmen verwendet die Sitemap ihr responsives, einklappbares Layout.
 
 ### Seiten zur Sitemap hinzufügen
 
-Controller-Actions können direkt einer Sitemap-Spalte zugeordnet werden:
+Controller-Actions können direkt einer Sitemap-Spalte zugewiesen werden:
 
 ```bash
 bin/rails generate b4um:controller Pages faq support --sitemap=column_3
 ```
 
-Die erzeugten Sitemap-Einträge werden der ausgewählten Spalte in `config/b4um.yml` hinzugefügt.
+Wenn `--sitemap` verwendet wird, werden die generierten Actions der ausgewählten Sitemap-Spalte hinzugefügt und nicht
+der Hauptnavigation.
 
-Sitemap-Links verwenden Rails-Route-Helper wie beispielsweise:
+Die Einträge werden in `config/b4um.yml` gespeichert.
+
+Sitemap-Links verwenden Rails-Route-Helper:
 
 ```yaml
 links:
@@ -179,7 +716,7 @@ links:
     route: faq_path
 ```
 
-Vom b4um-Sitemap-Helper werden nur gültige Rails-Path-Helper aufgelöst, die auf `_path` enden.
+Nur gültige Rails-Path-Helper, die auf `_path` enden, werden vom b4um-Sitemap-Helper aufgelöst.
 
 ### Rechtliche Links
 
@@ -190,27 +727,30 @@ legal_links:
   placement: footer
 ```
 
-Alternativ können sie einer vorhandenen Sitemap-Spalte zugeordnet werden:
+Alternativ können sie einer bestehenden Sitemap-Spalte zugewiesen werden:
 
 ```yaml
 legal_links:
   placement: column_4
 ```
 
-Wenn rechtliche Seiten in einer Sitemap-Spalte platziert werden, werden sie nicht zusätzlich im separaten rechtlichen
-Footer-Bereich angezeigt.
+Wenn rechtliche Seiten einer Sitemap-Spalte zugewiesen sind, fügt b4um sie automatisch dieser Spalte hinzu und
+dupliziert sie nicht zusätzlich im separaten rechtlichen Footer-Bereich.
+
+Für die Platzierung wird der Sitemap-Spaltenschlüssel und nicht der sichtbare Titel verwendet. Dadurch können die
+Spaltentitel frei geändert werden.
 
 ## Cookie-Einwilligung
 
-Die Cookie-Einwilligung kann während der b4um-Einrichtung optional installiert werden:
+Die Cookie-Einwilligung kann während der b4um-Installation optional aktiviert werden:
 
 ```text
 Add cookie consent? (y/n)
 ```
 
-Wenn sie aktiviert wird, installiert b4um das Cookie-Consent-Partial und den zugehörigen Stimulus-Controller.
+Die Cookie-Einwilligung kann unabhängig vom Footer installiert werden.
 
-Die erzeugten Dateien sind:
+Wenn sie aktiviert wird, erstellt b4um:
 
 ```text
 app/views/shared/_cookie_consent.html.erb
@@ -219,10 +759,21 @@ app/javascript/controllers/cookie_consent_controller.js
 
 Die Einwilligungsentscheidung des Besuchers wird im Local Storage des Browsers gespeichert.
 
-Wenn sowohl der Footer als auch die Cookie-Einwilligung installiert sind, fügt b4um dem Footer eine Schaltfläche
-`Cookie-Einstellungen` hinzu. Darüber können Besucher das Cookie-Banner erneut öffnen und ihre Auswahl später ändern.
+Wenn sowohl Footer als auch Cookie-Einwilligung installiert sind, fügt b4um dem Footer automatisch eine
+`Cookie-Einstellungen`-Schaltfläche hinzu.
 
-Die Cookie-Einwilligung kann auch ohne Footer installiert werden.
+Damit können Besucher das Cookie-Banner erneut öffnen und ihre Auswahl später ändern.
+
+Wenn die Cookie-Einwilligung ohne Footer installiert wird, funktioniert das Banner weiterhin. Es wird lediglich keine
+Schaltfläche für die Cookie-Einstellungen im Footer hinzugefügt.
+
+## Hilfe
+
+Für die vollständige integrierte Übersicht der Generatoren, Optionen und Funktionen:
+
+```bash
+bin/rails generate b4um:help
+```
 
 ## Entwicklung
 
@@ -242,6 +793,12 @@ Führe RuboCop aus mit:
 
 ```bash
 bundle exec rubocop
+```
+
+Prüfe Änderungen auf Whitespace-Fehler mit:
+
+```bash
+git diff --check
 ```
 
 Das Gem kann lokal getestet werden, indem das Repository über `path:` in der `Gemfile` einer Rails-Anwendung eingebunden
