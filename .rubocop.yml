@@ -15,7 +15,7 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
 Metrics/MethodLength:
-  Max: 425
+  Max: 525
 
 Metrics/BlockLength:
   Exclude:

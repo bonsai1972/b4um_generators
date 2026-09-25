@@ -1,6 +1,6 @@
-# B4UM Generators
+# b4um Generators
 
-B4UM Generators is a collection of reusable Rails generators, templates and application defaults for B4UM Rails
+b4um Generators is a collection of reusable Rails generators, templates and application defaults for b4um Rails
 projects.
 
 The gem provides generators for common application components such as layouts, controllers, scaffolds, tables,
@@ -13,7 +13,7 @@ pagination, search, comments and rich-text editing.
 
 ## Installation
 
-B4UM Generators is currently used as a local gem during development.
+b4um Generators is currently used as a local gem during development.
 
 Add the gem to the Rails application's `Gemfile`:
 
@@ -29,15 +29,18 @@ bundle install
 
 ## Getting Started
 
-Install the B4UM application defaults:
+Install the b4um application defaults:
 
 ```bash
 bin/rails generate b4um:install
 ```
 
-The installer adds the shared B4UM application structure and configuration to the Rails application.
+The installer adds the shared b4um application structure and configuration to the Rails application.
 
-The central B4UM configuration is stored in:
+During installation, optional components such as the hero section, footer, footer sitemap and cookie consent can be
+selected interactively.
+
+The central b4um configuration is stored in:
 
 ```text
 config/b4um.yml
@@ -67,32 +70,90 @@ For detailed usage information and examples, run:
 bin/rails generate b4um:help
 ```
 
-## Sitemap and Footer
+## Footer and Sitemap
 
-The B4UM footer supports configurable sitemap columns through `config/b4um.yml`.
+The b4um footer is optional and can be installed during the interactive setup:
 
-Example:
+```text
+Add a footer? (y/n)
+```
+
+If the footer is installed, b4um can optionally add a sitemap to it:
+
+```text
+Add a sitemap to the footer? (y/n)
+```
+
+The sitemap is installed as a separate partial and rendered inside the footer only when it has been selected.
+
+The generated sitemap partial is stored in:
+
+```text
+app/views/shared/_sitemap.html.erb
+```
+
+Its Stimulus controller is stored in:
+
+```text
+app/javascript/controllers/sitemap_controller.js
+```
+
+### Sitemap Column Titles
+
+When the sitemap is enabled, its four column titles can be customized during installation:
+
+```text
+Sitemap column 1 title [Kontakt]:
+Sitemap column 2 title [Inhalte]:
+Sitemap column 3 title [Service]:
+Sitemap column 4 title [Mehr]:
+```
+
+Press Enter to keep the default title shown in brackets.
+
+The resulting sitemap configuration is stored in `config/b4um.yml`:
 
 ```yaml
 sitemap:
   - key: column_1
     title: Kontakt
-
   - key: column_2
     title: Inhalte
-
   - key: column_3
     title: Service
-
   - key: column_4
     title: Mehr
+
+legal_links:
+  placement: footer
 ```
+
+The titles can also be changed later by editing `config/b4um.yml`.
+
+The column keys (`column_1` through `column_4`) identify the sitemap columns and are used when assigning generated pages
+to a column.
+
+### Adding Pages to the Sitemap
 
 Controller actions can be assigned directly to a sitemap column:
 
 ```bash
 bin/rails generate b4um:controller Pages faq support --sitemap=column_3
 ```
+
+The generated sitemap entries are added to the selected column in `config/b4um.yml`.
+
+Sitemap links use Rails route helpers such as:
+
+```yaml
+links:
+  - title: FAQ
+    route: faq_path
+```
+
+Only valid Rails path helpers ending in `_path` are resolved by the b4um sitemap helper.
+
+### Legal Links
 
 Legal pages use the separate legal footer area by default:
 
@@ -109,6 +170,30 @@ legal_links:
 ```
 
 When legal pages are placed in a sitemap column, they are not duplicated in the separate legal footer area.
+
+## Cookie Consent
+
+Cookie consent can optionally be installed during the b4um setup:
+
+```text
+Add cookie consent? (y/n)
+```
+
+When enabled, b4um installs the cookie consent partial and its Stimulus controller.
+
+The generated files are:
+
+```text
+app/views/shared/_cookie_consent.html.erb
+app/javascript/controllers/cookie_consent_controller.js
+```
+
+The visitor's consent choice is stored in the browser's local storage.
+
+If both the footer and cookie consent are installed, b4um adds a `Cookie-Einstellungen` control to the footer. This
+allows visitors to reopen the cookie consent banner and change their choice later.
+
+Cookie consent can also be installed without installing the footer.
 
 ## Development
 
@@ -140,10 +225,10 @@ Current version: `0.1.0`
 
 Alexander Baum
 
-B4UM
+b4um
 
 https://www.b4um.com
 
 ## License
 
-B4UM Generators is available under the terms of the MIT License.
+b4um Generators is available under the terms of the MIT License.
