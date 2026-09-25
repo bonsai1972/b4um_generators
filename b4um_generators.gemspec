@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Alexander Baum"]
   spec.email = ["info@b4um.com"]
 
-  spec.summary = "Rails generators for B4UM applications"
-  spec.description = "Reusable Rails generators, templates and application defaults for B4UM projects."
+  spec.summary = "Rails generators for b4um applications"
+  spec.description = "Reusable Rails generators, templates and application defaults for b4um projects."
   spec.homepage = "https://www.b4um.com"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
