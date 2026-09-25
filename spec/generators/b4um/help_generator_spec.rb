@@ -145,6 +145,18 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
+        "Number of sitemap columns [4]:"
+      )
+
+      expect(text).to include(
+        "supports between 2 and 5 columns"
+      )
+
+      expect(text).to include(
+        "default of 4 columns"
+      )
+
+      expect(text).to include(
         "Sitemap column 1 title [Kontakt]:"
       )
 
@@ -161,7 +173,15 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
+        "Sitemap column 5 title [Weitere]:"
+      )
+
+      expect(text).to include(
         "Press Enter to keep the default title shown in brackets."
+      )
+
+      expect(text).to include(
+        "Only the selected number of sitemap columns is written"
       )
 
       expect(text).to include(
@@ -185,7 +205,19 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
-        "column_4"
+        "column_5"
+      )
+
+      expect(text).to include(
+        "Only keys for columns that exist in the current sitemap"
+      )
+
+      expect(text).to include(
+        "distributed automatically across the footer"
+      )
+
+      expect(text).to include(
+        "responsive"
       )
 
       expect(text).to include(

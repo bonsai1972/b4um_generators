@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators"
+require "yaml"
 
 module B4um
   module Generators
@@ -134,12 +135,23 @@ module B4um
           return
         end
 
-        @sitemap_titles = [
-          ask("Sitemap column 1 title [Kontakt]:").presence || "Kontakt",
-          ask("Sitemap column 2 title [Inhalte]:").presence || "Inhalte",
-          ask("Sitemap column 3 title [Service]:").presence || "Service",
-          ask("Sitemap column 4 title [Mehr]:").presence || "Mehr"
+        @sitemap_column_count = ask_sitemap_column_count
+
+        default_titles = %w[
+          Kontakt
+          Inhalte
+          Service
+          Mehr
+          Weitere
         ]
+
+        @sitemap_titles = Array.new(@sitemap_column_count) do |index|
+          default_title = default_titles[index]
+
+          ask(
+            "Sitemap column #{index + 1} title [#{default_title}]:"
+          ).presence || default_title
+        end
 
         copy_file(
           "_sitemap.html.erb",
@@ -207,21 +219,21 @@ module B4um
         return unless @sitemap_titles
 
         config_path = "config/b4um.yml"
+        full_config_path = File.join(destination_root, config_path)
 
-        replacements = {
-          "Kontakt" => @sitemap_titles[0],
-          "Inhalte" => @sitemap_titles[1],
-          "Service" => @sitemap_titles[2],
-          "Mehr" => @sitemap_titles[3]
-        }
+        config = YAML.safe_load_file(full_config_path) || {}
 
-        replacements.each do |default_title, custom_title|
-          gsub_file(
-            config_path,
-            "title: #{default_title}",
-            "title: #{custom_title}"
-          )
+        config["sitemap"] = @sitemap_titles.each_with_index.map do |title, index|
+          {
+            "key" => "column_#{index + 1}",
+            "title" => title
+          }
         end
+
+        File.write(
+          full_config_path,
+          config.to_yaml
+        )
       end
 
       def copy_image_preview_controller
@@ -275,6 +287,22 @@ module B4um
       end
 
       private
+
+      def ask_sitemap_column_count
+        loop do
+          answer = ask(
+            "Number of sitemap columns [4]:"
+          ).to_s.strip
+
+          return 4 if answer.empty?
+
+          column_count = Integer(answer, exception: false)
+
+          return column_count if column_count&.between?(2, 5)
+
+          say "  Please choose between 2 and 5 sitemap columns."
+        end
+      end
 
       def ensure_navigation(layout_path, full_layout_path)
         layout = File.read(full_layout_path)

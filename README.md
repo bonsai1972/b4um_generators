@@ -98,9 +98,19 @@ Its Stimulus controller is stored in:
 app/javascript/controllers/sitemap_controller.js
 ```
 
-### Sitemap Column Titles
+### Sitemap Columns
 
-When the sitemap is enabled, its four column titles can be customized during installation:
+When the sitemap is enabled, the number of sitemap columns can be selected during installation:
+
+```text
+Number of sitemap columns [4]:
+```
+
+The sitemap supports between 2 and 5 columns. Press Enter to use the default of 4 columns.
+
+After selecting the number of columns, b4um asks for the title of each selected column.
+
+For example, with four columns:
 
 ```text
 Sitemap column 1 title [Kontakt]:
@@ -109,9 +119,17 @@ Sitemap column 3 title [Service]:
 Sitemap column 4 title [Mehr]:
 ```
 
+With five columns, an additional column is available:
+
+```text
+Sitemap column 5 title [Weitere]:
+```
+
 Press Enter to keep the default title shown in brackets.
 
-The resulting sitemap configuration is stored in `config/b4um.yml`:
+Only the selected number of columns is written to `config/b4um.yml`.
+
+For example, the default four-column configuration is:
 
 ```yaml
 sitemap:
@@ -128,10 +146,16 @@ legal_links:
   placement: footer
 ```
 
+A two-column sitemap contains only `column_1` and `column_2`, while a five-column sitemap additionally contains
+`column_5`.
+
 The titles can also be changed later by editing `config/b4um.yml`.
 
-The column keys (`column_1` through `column_4`) identify the sitemap columns and are used when assigning generated pages
-to a column.
+The column keys (`column_1` through `column_5`) identify the sitemap columns and are used when assigning generated pages
+to a column. Only keys for columns that exist in the current configuration should be used.
+
+On larger screens, the available sitemap columns are distributed automatically across the footer. On smaller screens,
+the sitemap remains responsive and uses its collapsible mobile layout.
 
 ### Adding Pages to the Sitemap
 

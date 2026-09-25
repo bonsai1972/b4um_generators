@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require "yaml"
 require "tmpdir"
 require "fileutils"
 require "generators/b4um/install/install_generator"
@@ -44,7 +45,11 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
   end
 
-  def build_generator(*answers, sitemap_titles: nil)
+  def build_generator(
+    *answers,
+    sitemap_column_count: nil,
+    sitemap_titles: nil
+  )
     generator = described_class.new(
       [],
       {},
@@ -53,8 +58,20 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     allow(generator).to receive(:yes?).and_return(*answers)
 
+    ask_answers = []
+
+    ask_answers << if sitemap_column_count
+                     sitemap_column_count.to_s
+                   else
+                     ""
+                   end
+
+    ask_answers.concat(
+      sitemap_titles || ["", "", "", ""]
+    )
+
     allow(generator).to receive(:ask).and_return(
-      *(sitemap_titles || ["", "", "", ""])
+      *ask_answers
     )
 
     generator
@@ -841,6 +858,55 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(footer_position).to be > main_end
+  end
+
+  it "can configure between two and five sitemap columns" do
+    {
+      2 => %w[Kontakt Inhalte],
+      3 => %w[Kontakt Inhalte Service],
+      4 => %w[Kontakt Inhalte Service Mehr],
+      5 => %w[Kontakt Inhalte Service Mehr Extras]
+    }.each do |column_count, titles|
+      FileUtils.rm_rf(@destination_root)
+      FileUtils.mkdir_p(@destination_root)
+
+      create_application_layout
+      create_gemfile
+
+      generator = build_generator(
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        sitemap_column_count: column_count,
+        sitemap_titles: titles
+      )
+
+      generator.invoke_all
+
+      config_path = File.join(
+        @destination_root,
+        "config/b4um.yml"
+      )
+
+      config = YAML.safe_load_file(config_path)
+
+      sitemap = config.fetch("sitemap")
+
+      expect(sitemap.length).to eq(column_count)
+
+      expect(
+        sitemap.map { |column| column["key"] }
+      ).to eq(
+        (1..column_count).map { |number| "column_#{number}" }
+      )
+
+      expect(
+        sitemap.map { |column| column["title"] }
+      ).to eq(titles)
+    end
   end
 
   it "can customize sitemap column titles" do

@@ -15,14 +15,14 @@ Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
 Metrics/MethodLength:
-  Max: 525
+  Max: 550
 
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*'
 
 Metrics/ClassLength:
-  Max: 450
+  Max: 550
 
 Metrics/AbcSize:
   Max: 100

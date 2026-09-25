@@ -153,15 +153,34 @@ module B4um
 
             Add a sitemap to the footer? (y/n)
 
-          When the sitemap is enabled, four sitemap column titles can
-          be customized during installation:
+          When the sitemap is enabled, the number of sitemap columns
+          can be selected:
+
+            Number of sitemap columns [4]:
+
+          The sitemap supports between 2 and 5 columns.
+
+          Press Enter to use the default of 4 columns.
+
+          After selecting the number of columns, b4um asks for the
+          title of each selected column.
+
+          With the default four-column setup:
 
             Sitemap column 1 title [Kontakt]:
             Sitemap column 2 title [Inhalte]:
             Sitemap column 3 title [Service]:
             Sitemap column 4 title [Mehr]:
 
+          When five columns are selected, an additional title is
+          requested:
+
+            Sitemap column 5 title [Weitere]:
+
           Press Enter to keep the default title shown in brackets.
+
+          Only the selected number of sitemap columns is written to
+          the configuration.
 
           The sitemap partial is created at:
 
@@ -179,7 +198,7 @@ module B4um
 
             config/b4um.yml
 
-          Example:
+          Example using the default four columns:
 
             sitemap:
               - key: column_1
@@ -194,18 +213,34 @@ module B4um
             legal_links:
               placement: footer
 
+          A two-column sitemap contains only column_1 and column_2.
+
+          A five-column sitemap additionally contains:
+
+            column_5
+
           The sitemap column titles can also be changed later by
           editing config/b4um.yml.
 
-          The column keys remain:
+          Available column keys range from:
 
             column_1
-            column_2
-            column_3
-            column_4
+
+          through:
+
+            column_5
+
+          Only keys for columns that exist in the current sitemap
+          configuration should be used.
 
           The keys identify the sitemap columns independently of their
           visible titles.
+
+          On larger screens, the available sitemap columns are
+          distributed automatically across the footer.
+
+          On smaller screens, the sitemap uses its responsive
+          collapsible layout.
 
           Controller actions can be added directly to a sitemap column
           with --sitemap:
@@ -233,7 +268,7 @@ module B4um
 
           This is the default configuration.
 
-          Legal pages can alternatively be placed in an existing
+          Legal pages can alternatively be placed in any existing
           sitemap column:
 
             legal_links:
