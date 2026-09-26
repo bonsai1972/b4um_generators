@@ -143,7 +143,14 @@ RSpec.describe B4um::Generators::InfiniteScrollGenerator do
 
     content = File.read(path)
 
-    expect(content).to include("IntersectionObserver")
+    expect(content).to include(
+      "window.addEventListener('scroll', this.check"
+    )
+
+    expect(content).to include(
+      "window.addEventListener('resize', this.check)"
+    )
+
     expect(content).to include("fetch(")
   end
 
@@ -236,7 +243,7 @@ RSpec.describe B4um::Generators::InfiniteScrollGenerator do
     )
   end
 
-  it "stops observing when there is no next page" do
+  it "removes the sentinel when there is no next page" do
     generator = described_class.new(
       ["Product"],
       {},
@@ -251,10 +258,6 @@ RSpec.describe B4um::Generators::InfiniteScrollGenerator do
     )
 
     content = File.read(path)
-
-    expect(content).to include(
-      "this.observer.disconnect()"
-    )
 
     expect(content).to include(
       "this.element.remove()"
@@ -572,6 +575,85 @@ RSpec.describe B4um::Generators::InfiniteScrollGenerator do
         \),\s*
         per_page:\s*20\s*
       \)/x
+    )
+  end
+
+  it "checks the sentinel immediately after connecting" do
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    path = File.join(
+      @destination_root,
+      "app/javascript/controllers/infinite_scroll_controller.js"
+    )
+
+    content = File.read(path)
+
+    expect(content).to include(
+      "this.check = this.check.bind(this)"
+    )
+
+    expect(content).to include(
+      "this.check()"
+    )
+  end
+
+  it "loads more records when the sentinel approaches the viewport" do
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    path = File.join(
+      @destination_root,
+      "app/javascript/controllers/infinite_scroll_controller.js"
+    )
+
+    content = File.read(path)
+
+    expect(content).to include(
+      "this.element.getBoundingClientRect()"
+    )
+
+    expect(content).to include(
+      "rect.top <= window.innerHeight + 300"
+    )
+
+    expect(content).to include(
+      "this.loadMore()"
+    )
+  end
+
+  it "removes scroll listeners when disconnected" do
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    path = File.join(
+      @destination_root,
+      "app/javascript/controllers/infinite_scroll_controller.js"
+    )
+
+    content = File.read(path)
+
+    expect(content).to include(
+      "window.removeEventListener('scroll', this.check)"
+    )
+
+    expect(content).to include(
+      "window.removeEventListener('resize', this.check)"
     )
   end
 end
