@@ -119,3 +119,21 @@
 .resource-list-item:last-child {
   border-bottom: none;
 }
+
+/* -------------------------------------------------------
+   Responsive resource details
+------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .resource-field {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.5rem;
+    column-gap: 0;
+  }
+
+  .resource-label,
+  .resource-value {
+    min-width: 0;
+    width: 100%;
+  }
+}

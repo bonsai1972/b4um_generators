@@ -1,3 +1,16 @@
+/*
+ * B4UM stylesheet imports
+ *
+ * Rails 8 loads all stylesheets in app/assets/stylesheets automatically
+ * when using:
+ *
+ *   <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+ *
+ * Therefore these imports are disabled by default.
+ * Uncomment them if your application's asset setup requires explicit imports.
+ */
+
+/*
 @import 'b4um/theme.css';
 @import 'b4um/base.css';
 @import 'b4um/layout.css';
@@ -18,3 +31,4 @@
 @import 'b4um/footer.css';
 @import 'b4um/cookie-consent.css';
 @import 'b4um/theme-switcher.css';
+*/

@@ -417,11 +417,19 @@
 
 .form-field--rich-text {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .form-field--rich-text trix-toolbar {
   grid-row: 1;
+
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 
   position: sticky;
   top: 61px;
@@ -494,6 +502,15 @@
   border-color: var(--b4um-border);
   background-color: var(--b4um-surface);
   color: var(--b4um-text);
+}
+
+.form-field--rich-text .form-textarea,
+.form-field--rich-text trix-editor {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+
+  box-sizing: border-box;
 }
 
 .form-field--rich-text .form-textarea {
@@ -684,6 +701,18 @@
   height: auto;
 
   border-radius: var(--b4um-radius);
+}
+
+/* -------------------------------------------------------
+   Rich Text Attachments – responsive
+------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .trix-content .attachment-gallery,
+  .trix-content .attachment-gallery--2,
+  .trix-content .attachment-gallery--4 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .trix-content action-text-attachment[content-type='vnd.rubyonrails.horizontal-rule.html'] {
@@ -921,4 +950,131 @@
   border-color: var(--b4um-primary);
 
   opacity: 1;
+}
+/* -------------------------------------------------------
+   Responsive Rich Text
+------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .form-field--rich-text trix-toolbar {
+    overflow: visible;
+  }
+
+  /*
+   * Nur die Button-Zeile scrollt horizontal.
+   * Die Dialoge liegen außerhalb dieses Scrollcontainers
+   * und können deshalb vollständig sichtbar werden.
+   */
+  .form-field--rich-text trix-toolbar .trix-button-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+
+    width: 100%;
+    max-width: 100%;
+
+    gap: 4px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .form-field--rich-text trix-toolbar .trix-button-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .form-field--rich-text trix-toolbar .trix-button-group {
+    flex: 0 0 auto;
+
+    margin: 0;
+  }
+
+  .form-field--rich-text trix-toolbar .trix-button {
+    flex: 0 0 auto;
+
+    margin: 0;
+  }
+
+  /*
+   * Trix-Dialoge gehören NICHT zum horizontalen
+   * Scrollbereich der Buttons.
+   */
+  .form-field--rich-text trix-toolbar .trix-dialogs {
+    position: relative;
+
+    width: 100%;
+
+    overflow: visible;
+  }
+
+  .form-field--rich-text trix-toolbar .trix-dialog {
+    left: 0;
+    right: auto;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+  }
+
+  /*
+   * Link-Dialog nutzt auf kleinen Displays
+   * die komplette verfügbare Toolbarbreite.
+   */
+  .form-field--rich-text trix-toolbar .trix-dialog--link {
+    width: 100%;
+  }
+
+  /*
+   * H1–H6 bleiben kompakt nebeneinander.
+   */
+  .form-field--rich-text trix-toolbar .trix-dialog--heading {
+    width: max-content;
+    max-width: 100%;
+
+    margin-left: 0;
+  }
+
+  .form-field--rich-text trix-toolbar .trix-dialog--heading .trix-dialog__link-fields {
+    width: auto;
+  }
+
+  .form-field--rich-text trix-toolbar .trix-dialog--heading .trix-button-group {
+    display: flex;
+    flex-wrap: nowrap;
+
+    width: auto;
+    margin: 0;
+  }
+
+  /*
+   * Farbpalette ebenfalls vollständig innerhalb
+   * der verfügbaren Breite darstellen.
+   */
+  .form-field--rich-text trix-toolbar .trix-dialog--color {
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .form-field--rich-text trix-editor .attachment-gallery,
+  .form-field--rich-text trix-editor .attachment-gallery--2,
+  .form-field--rich-text trix-editor .attachment-gallery--4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field--rich-text trix-toolbar .trix-button-group--container-tools .trix-button {
+  height: 2.6em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  trix-toolbar .trix-button--icon {
+    height: 2em;
+  }
 }

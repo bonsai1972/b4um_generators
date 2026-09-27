@@ -23,4 +23,17 @@ module NavigationHelper
       data: { action: "click->navigation#close" }
     )
   end
+
+  def navigation_button_to(name, path, method:)
+    button_to(
+      name,
+      path,
+      method: method,
+      class: "navigation__link",
+      form: {
+        class: "navigation__form",
+        data: { action: "click->navigation#close" }
+      }
+    )
+  end
 end
