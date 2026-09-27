@@ -1,0 +1,35 @@
+<%% content_for :title, "Login" %>
+
+<div class="page-header">
+  <h1>Login</h1>
+</div>
+
+<div class="b4um-grid">
+  <section class="b4um-card b4um-card--full">
+    <h2 class="b4um-card__title">
+      Sign in
+    </h2>
+
+    <%%= form_with url: login_path, class: "form" do |form| %>
+      <div class="form-field">
+        <%%= form.email_field :email,
+              class: "form-input",
+              placeholder: " ",
+              required: true %>
+        <%%= form.label :email, "Email", class: "form-label" %>
+      </div>
+
+      <div class="form-field">
+        <%%= form.password_field :password,
+              class: "form-input",
+              placeholder: " ",
+              required: true %>
+        <%%= form.label :password, "Password", class: "form-label" %>
+      </div>
+
+      <div class="form-actions">
+        <%%= form.submit "Login", class: "form-submit" %>
+      </div>
+    <%% end %>
+  </section>
+</div>
