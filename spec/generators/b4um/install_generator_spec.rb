@@ -821,7 +821,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(layout).to include(
-      '<%= render "shared/hero" if request.path == root_path %>'
+      '<%= render "shared/hero" if respond_to?(:root_path) && request.path == root_path %>'
     )
 
     expect(layout).to include(
@@ -1010,7 +1010,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(layout).not_to include(
-      '<%= render "shared/hero" if request.path == root_path %>'
+      '<%= render "shared/hero" if respond_to?(:root_path) && request.path == root_path %>'
     )
 
     expect(layout).to include(
@@ -1053,7 +1053,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(layout).to include(
-      '<%= render "shared/hero" if request.path == root_path %>'
+      '<%= render "shared/hero" if respond_to?(:root_path) && request.path == root_path %>'
     )
 
     expect(layout).not_to include(
@@ -1122,7 +1122,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
     ).to eq(1)
 
     expect(
-      layout.scan('<%= render "shared/hero" if request.path == root_path %>').count
+      layout.scan('<%= render "shared/hero" if respond_to?(:root_path) && request.path == root_path %>').count
     ).to eq(1)
 
     expect(

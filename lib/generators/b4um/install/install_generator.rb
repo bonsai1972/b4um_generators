@@ -366,7 +366,7 @@ module B4um
           '<main class="container">',
           <<~ERB.chomp
             <main class="container">
-                  <%= render "shared/hero" if request.path == root_path %>
+                  <%= render "shared/hero" if respond_to?(:root_path) && request.path == root_path %>
           ERB
         )
       end
