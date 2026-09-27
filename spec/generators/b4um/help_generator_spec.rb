@@ -25,6 +25,38 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
+        "Home page with root route"
+      )
+
+      expect(text).to include(
+        "HOME PAGE"
+      )
+
+      expect(text).to include(
+        "Create a home page? (y/n)"
+      )
+
+      expect(text).to include(
+        "Home controller [Pages]:"
+      )
+
+      expect(text).to include(
+        "Home action [home]:"
+      )
+
+      expect(text).to include(
+        'root "pages#home"'
+      )
+
+      expect(text).to include(
+        "root_path"
+      )
+
+      expect(text).to include(
+        "If the application already has a root route"
+      )
+
+      expect(text).to include(
         "Hero section"
       )
 
@@ -313,11 +345,23 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
-        "\"\#{id} \#{title}\".parameterize"
+        "bin/rails generate b4um:readable MODEL ATTRIBUTE"
       )
 
       expect(text).to include(
-        "/articles/17-my-first-article"
+        "bin/rails generate b4um:readable Product name"
+      )
+
+      expect(text).to include(
+        "\"\#{id} \#{name}\".parameterize"
+      )
+
+      expect(text).to include(
+        "/products/17-macbook-air"
+      )
+
+      expect(text).to include(
+        "Existing to_param methods are not overwritten."
       )
     end
 

@@ -32,6 +32,7 @@ module B4um
 
             - bcrypt for password support
             - Active Storage for image attachments
+            - Home page with root route
             - Hero section
             - Footer
             - Footer sitemap
@@ -44,6 +45,38 @@ module B4um
 
           If Active Storage is selected and is not already installed,
           b4um installs Active Storage and runs the database migration.
+
+
+          HOME PAGE
+
+          The installer can optionally create a home page.
+
+          During installation, b4um asks:
+
+            Create a home page? (y/n)
+
+          When selected, the controller and action can be configured:
+
+            Home controller [Pages]:
+            Home action [home]:
+
+          Press Enter to use the defaults.
+
+          With the default configuration, b4um creates:
+
+            app/controllers/pages_controller.rb
+            app/views/pages/home.html.erb
+
+          and adds:
+
+            root "pages#home"
+
+          A Home link using root_path is also added to the
+          b4um navigation.
+
+          If the application already has a root route, b4um keeps
+          the existing root route and does not add a new Home
+          navigation link.
 
 
           HERO
@@ -357,10 +390,10 @@ module B4um
 
           READABLE URL PARAMETERS
 
-          b4um scaffolds can generate readable URLs while keeping
+          b4um can generate readable URLs while keeping
           the database ID in the URL.
 
-          Use:
+          When creating a new scaffold, use:
 
             --param=ATTRIBUTE
 
@@ -368,21 +401,40 @@ module B4um
 
             bin/rails generate b4um:scaffold Article title:string body:text --param=title
 
-          This generates:
+          For an existing model, readable URLs can also be
+          added later with:
+
+            bin/rails generate b4um:readable MODEL ATTRIBUTE
+
+          Example:
+
+            bin/rails generate b4um:readable Product name
+
+          Both variants add a to_param method to the model.
+
+          Example:
 
             def to_param
-              "\#{id} \#{title}".parameterize
+              "\#{id} \#{name}".parameterize
             end
 
           Example URL:
 
-            /articles/17-my-first-article
+            /products/17-macbook-air
 
           The ID remains part of the URL, so the standard Rails
           resource lookup can still be used.
 
           The readable part of the URL is updated automatically
           when the selected attribute changes.
+
+          The b4um:readable generator requires:
+
+            - An existing model
+            - An existing model attribute
+            - No existing custom to_param method
+
+          Existing to_param methods are not overwritten.
 
 
           PASSWORDS
