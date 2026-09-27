@@ -6,7 +6,7 @@ b4um Generators is a collection of reusable Rails generators, templates, compone
 Rails projects.
 
 The gem provides a consistent starting point for Rails applications and includes generators for scaffolds, controllers,
-Bento layouts, tables, pagination, infinite scrolling, search, comments and rich-text editing.
+Bento layouts, tables, pagination, infinite scrolling, search, comments, authentication and rich-text editing.
 
 Generated components share the same b4um styling and are designed to work together.
 
@@ -22,7 +22,7 @@ b4um Generators is currently used as a local gem during development.
 Add the gem to the Rails application's `Gemfile`:
 
 ```ruby
-gem "b4um_generators", "~> 0.1.0", path: "/path/to/b4um_generators"
+gem "b4um_generators", "~> 0.2.0", path: "/path/to/b4um_generators"
 ```
 
 Then run:
@@ -78,6 +78,7 @@ b4um:pagination
 b4um:infinite_scroll
 b4um:search
 b4um:comments
+b4um:authentication
 b4um:trix
 b4um:help
 ```
@@ -352,6 +353,110 @@ bin/rails generate b4um:install
 ```
 
 If necessary, b4um adds bcrypt to the application's `Gemfile` and installs it.
+
+## Authentication
+
+Add session-based authentication for an existing model:
+
+```bash
+bin/rails generate b4um:authentication MODEL
+```
+
+Example:
+
+```bash
+bin/rails generate b4um:authentication User
+```
+
+The authentication model can have any name, for example:
+
+```text
+User
+Admin
+Member
+```
+
+The selected model must:
+
+- Already exist
+- Use `has_secure_password`
+- Have a `password_digest` column
+- Use bcrypt
+
+Authentication uses an `email` attribute for login.
+
+A complete example:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+bin/rails generate b4um:authentication User
+```
+
+The authentication generator adds:
+
+- Sessions controller
+- Login form
+- Login and logout routes
+- Session-based current account helper
+- `logged_in?` helper
+- `require_login` helper
+- Login and logout navigation controls
+
+The generated helper name follows the selected model.
+
+For `User`:
+
+```ruby
+current_user
+```
+
+For `Admin`:
+
+```ruby
+current_admin
+```
+
+### Protecting Controllers
+
+Existing controllers can optionally be protected when authentication is installed.
+
+Use `--protect` with the controller name:
+
+```bash
+bin/rails generate b4um:authentication User --protect=Products
+```
+
+The generator adds the following authentication requirement to the selected controller:
+
+```ruby
+before_action :require_login, except: [:index, :show]
+```
+
+This keeps `index` and `show` publicly accessible while requiring authentication for actions such as `new`, `create`,
+`edit`, `update` and `destroy`.
+
+Multiple controllers can be protected at the same time by separating their names with commas:
+
+```bash
+bin/rails generate b4um:authentication User --protect=Products,Articles
+```
+
+Additional controllers can also be protected later by running the authentication generator again:
+
+```bash
+bin/rails generate b4um:authentication User --protect=Comments
+```
+
+Existing authentication setup is reused. Authentication helpers, routes, navigation controls and controller protection
+are not duplicated.
+
+The generator validates protected controllers before changing the application. If a requested controller does not exist,
+the generator stops with an error before making changes.
+
+The generator also validates its authentication requirements before changing the application. If required authentication
+setup is missing, the generator stops with a helpful error message and a suggested b4um scaffold command.
+
+Repeated generator runs do not duplicate authentication helpers, routes, navigation controls or controller protection.
 
 ## Active Storage and Images
 
@@ -800,7 +905,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.1.0`
+Current version: `0.2.0`
 
 ## Author
 

@@ -6,7 +6,7 @@ b4um Generators ist eine Sammlung wiederverwendbarer Rails-Generatoren, Template
 für b4um-Rails-Projekte.
 
 Das Gem bietet eine einheitliche Grundlage für Rails-Anwendungen und enthält Generatoren für Scaffolds, Controller,
-Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare und Rich-Text-Bearbeitung.
+Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare, Authentifizierung und Rich-Text-Bearbeitung.
 
 Die generierten Komponenten verwenden ein gemeinsames b4um-Styling und sind darauf ausgelegt, miteinander zu
 funktionieren.
@@ -23,7 +23,7 @@ b4um Generators wird während der Entwicklung derzeit als lokales Gem verwendet.
 Füge das Gem zur `Gemfile` der Rails-Anwendung hinzu:
 
 ```ruby
-gem "b4um_generators", "~> 0.1.0", path: "/pfad/zu/b4um_generators"
+gem "b4um_generators", "~> 0.2.0", path: "/pfad/zu/b4um_generators"
 ```
 
 Führe anschließend aus:
@@ -80,6 +80,7 @@ b4um:pagination
 b4um:infinite_scroll
 b4um:search
 b4um:comments
+b4um:authentication
 b4um:trix
 b4um:help
 ```
@@ -355,6 +356,112 @@ bin/rails generate b4um:install
 ```
 
 Falls erforderlich, fügt b4um bcrypt zur `Gemfile` der Anwendung hinzu und installiert es.
+
+## Authentifizierung
+
+Füge einem bestehenden Modell eine sitzungsbasierte Authentifizierung hinzu:
+
+```bash
+bin/rails generate b4um:authentication MODEL
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:authentication User
+```
+
+Das Authentifizierungsmodell kann einen beliebigen Namen haben, zum Beispiel:
+
+```text
+User
+Admin
+Member
+```
+
+Das ausgewählte Modell muss:
+
+- Bereits vorhanden sein
+- `has_secure_password` verwenden
+- Eine `password_digest`-Spalte besitzen
+- bcrypt verwenden
+
+Für die Anmeldung verwendet die Authentifizierung ein `email`-Attribut.
+
+Ein vollständiges Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+bin/rails generate b4um:authentication User
+```
+
+Der Authentifizierungs-Generator fügt Folgendes hinzu:
+
+- Sessions-Controller
+- Anmeldeformular
+- Login- und Logout-Routen
+- Sitzungsbasierten Helper für das aktuell angemeldete Konto
+- `logged_in?`-Helper
+- `require_login`-Helper
+- Login- und Logout-Elemente in der Navigation
+
+Der Name des generierten Helpers richtet sich nach dem ausgewählten Modell.
+
+Für `User`:
+
+```ruby
+current_user
+```
+
+Für `Admin`:
+
+```ruby
+current_admin
+```
+
+### Controller schützen
+
+Bestehende Controller können bei der Einrichtung der Authentifizierung optional geschützt werden.
+
+Verwende `--protect` mit dem Namen des Controllers:
+
+```bash
+bin/rails generate b4um:authentication User --protect=Products
+```
+
+Der Generator fügt dem ausgewählten Controller folgende Authentifizierungsanforderung hinzu:
+
+```ruby
+before_action :require_login, except: [:index, :show]
+```
+
+Dadurch bleiben `index` und `show` öffentlich erreichbar. Für Aktionen wie `new`, `create`, `edit`, `update` und
+`destroy` ist dagegen eine Anmeldung erforderlich.
+
+Mehrere Controller können gleichzeitig geschützt werden, indem ihre Namen durch Kommas getrennt werden:
+
+```bash
+bin/rails generate b4um:authentication User --protect=Products,Articles
+```
+
+Weitere Controller können auch später geschützt werden, indem der Authentifizierungs-Generator erneut ausgeführt wird:
+
+```bash
+bin/rails generate b4um:authentication User --protect=Comments
+```
+
+Die bereits vorhandene Authentifizierung wird dabei weiterverwendet. Authentifizierungs-Helper, Routen,
+Navigationselemente und Controller-Schutz werden nicht dupliziert.
+
+Der Generator prüft die angegebenen Controller, bevor Änderungen an der Anwendung vorgenommen werden. Existiert ein
+angeforderter Controller nicht, bricht der Generator mit einer Fehlermeldung ab, bevor Dateien verändert werden.
+
+Der Generator prüft außerdem seine Authentifizierungsvoraussetzungen, bevor Änderungen an der Anwendung vorgenommen
+werden. Fehlt eine erforderliche Voraussetzung, bricht der Generator mit einer hilfreichen Fehlermeldung und einem
+passenden Vorschlag für einen b4um-Scaffold-Befehl ab.
+
+Bei wiederholter Ausführung werden Authentifizierungs-Helper, Routen, Navigationselemente und Controller-Schutz nicht
+dupliziert.
 
 ## Active Storage und Bilder
 
@@ -806,7 +913,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.1.0`
+Aktuelle Version: `0.2.0`
 
 ## Autor
 

@@ -408,6 +408,96 @@ module B4um
           the selected Gem automatically.
 
 
+          AUTHENTICATION
+
+            bin/rails generate b4um:authentication MODEL
+
+          Adds session-based authentication for an existing model.
+
+          Example:
+
+            bin/rails generate b4um:authentication User
+
+          The authentication model can have any name, for example:
+
+            User
+            Admin
+            Member
+
+          The selected model must:
+
+            - Already exist
+            - Use has_secure_password
+            - Have a password_digest column
+            - Use bcrypt
+
+          Authentication uses an email attribute for login.
+
+          Example:
+
+            bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+            bin/rails generate b4um:authentication User
+
+          The authentication generator adds:
+
+            - Sessions controller
+            - Login form
+            - Login and logout routes
+            - Session-based current account helper
+            - logged_in? helper
+            - require_login helper
+            - Login and logout navigation controls
+
+          The generated helper name follows the selected model.
+
+          For User:
+
+            current_user
+
+          For Admin:
+
+            current_admin
+
+          Existing controllers can optionally be protected with --protect.
+
+          Example:
+
+            bin/rails generate b4um:authentication User --protect=Products
+
+          Multiple controllers can be protected in one run:
+
+            bin/rails generate b4um:authentication User --protect=Products,Articles,Comments
+
+          Protected controllers receive:
+
+            before_action :require_login, except: [:index, :show]
+
+          This keeps index and show publicly accessible while requiring
+          authentication for actions such as new, create, edit, update
+          and destroy.
+
+          Additional controllers can be protected later by running the
+          authentication generator again.
+
+          Example:
+
+            bin/rails generate b4um:authentication User --protect=Comments
+
+          Existing authentication helpers, routes and navigation controls
+          are not duplicated on repeated runs.
+
+          All controllers passed to --protect must already exist.
+          If a protected controller cannot be found, the generator stops
+          before changing the application.
+
+          The generator validates its requirements before changing
+          the application and reports missing authentication setup
+          with a suggested b4um scaffold command.
+
+          Repeated generator runs do not duplicate the authentication
+          helpers, routes or navigation controls.
+
+
           ACTIVE STORAGE / IMAGES
 
           Image attachments require Active Storage.

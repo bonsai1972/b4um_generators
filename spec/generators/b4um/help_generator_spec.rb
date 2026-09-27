@@ -671,4 +671,84 @@ RSpec.describe B4um::Generators::HelpGenerator do
 
     generator.show_help
   end
+
+  it "documents b4um authentication" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "AUTHENTICATION"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:authentication MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:authentication User"
+      )
+
+      expect(text).to include(
+        "has_secure_password"
+      )
+
+      expect(text).to include(
+        "password_digest"
+      )
+
+      expect(text).to include(
+        "bcrypt"
+      )
+
+      expect(text).to include(
+        "Sessions controller"
+      )
+
+      expect(text).to include(
+        "Login and logout routes"
+      )
+
+      expect(text).to include(
+        "current_user"
+      )
+
+      expect(text).to include(
+        "current_admin"
+      )
+
+      expect(text).to include(
+        "Authentication uses an email attribute for login."
+      )
+
+      expect(text).to include(
+        "Repeated generator runs do not duplicate"
+      )
+
+      expect(text).to include(
+        "--protect=Products"
+      )
+
+      expect(text).to include(
+        "--protect=Products,Articles,Comments"
+      )
+
+      expect(text).to include(
+        "before_action :require_login, except: [:index, :show]"
+      )
+
+      expect(text).to include(
+        "Additional controllers can be protected later"
+      )
+
+      expect(text).to include(
+        "All controllers passed to --protect must already exist."
+      )
+
+      expect(text).to include(
+        "before changing the application"
+      )
+    end
+
+    generator.show_help
+  end
 end

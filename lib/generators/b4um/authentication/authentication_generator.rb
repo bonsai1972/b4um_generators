@@ -14,6 +14,11 @@ module B4um
                required: true,
                banner: "MODEL"
 
+      class_option :protect,
+                   type: :string,
+                   required: false,
+                   desc: "Comma-separated controllers to protect"
+
       def validate_authentication_model
         model_path = File.join(
           destination_root,
@@ -43,6 +48,26 @@ module B4um
               "Create the model with: " \
               "bin/rails generate b4um:scaffold " \
               "#{authentication_class_name} email:string password_digest:string"
+      end
+
+      def validate_protected_controllers
+        protected_controller_names.each do |controller_name|
+          controller_path = File.join(
+            "app/controllers",
+            "#{controller_name.underscore}_controller.rb"
+          )
+
+          full_controller_path = File.join(
+            destination_root,
+            controller_path
+          )
+
+          next if File.exist?(full_controller_path)
+
+          raise Thor::Error,
+                "Protected controller #{controller_name.camelize}Controller " \
+                "was not found: #{controller_path}"
+        end
       end
 
       def validate_bcrypt
@@ -185,7 +210,42 @@ module B4um
         )
       end
 
+      def protect_controllers
+        protected_controller_names.each do |controller_name|
+          controller_path = File.join(
+            "app/controllers",
+            "#{controller_name.underscore}_controller.rb"
+          )
+
+          full_controller_path = File.join(
+            destination_root,
+            controller_path
+          )
+
+          controller = File.read(full_controller_path)
+
+          next if controller.include?(
+            "before_action :require_login, except: [:index, :show]"
+          )
+
+          inject_into_file(
+            controller_path,
+            after: /^class .*Controller < ApplicationController\s*$/
+          ) do
+            "\n  before_action :require_login, except: [:index, :show]"
+          end
+        end
+      end
+
       private
+
+      def protected_controller_names
+        options[:protect]
+          .to_s
+          .split(",")
+          .map(&:strip)
+          .reject(&:empty?)
+      end
 
       def authentication_class_name
         authentication_model.to_s.classify

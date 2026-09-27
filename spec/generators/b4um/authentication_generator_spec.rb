@@ -593,6 +593,168 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
+  it "protects selected controllers while keeping index and show public" do
+    products_controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    articles_controller_path = File.join(
+      @destination_root,
+      "app/controllers/articles_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(products_controller_path))
+
+    File.write(
+      products_controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+
+          def new
+          end
+        end
+      RUBY
+    )
+
+    File.write(
+      articles_controller_path,
+      <<~RUBY
+        class ArticlesController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+
+          def edit
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      { protect: "Products,Articles" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    products_controller = File.read(products_controller_path)
+    articles_controller = File.read(articles_controller_path)
+
+    expect(products_controller).to include(
+      "before_action :require_login, except: [:index, :show]"
+    )
+
+    expect(articles_controller).to include(
+      "before_action :require_login, except: [:index, :show]"
+    )
+  end
+
+  it "can protect another controller on a later run without duplicating authentication setup" do
+    products_controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    comments_controller_path = File.join(
+      @destination_root,
+      "app/controllers/comments_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(products_controller_path))
+
+    File.write(
+      products_controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+        end
+      RUBY
+    )
+
+    File.write(
+      comments_controller_path,
+      <<~RUBY
+        class CommentsController < ApplicationController
+          def create
+          end
+
+          def destroy
+          end
+        end
+      RUBY
+    )
+
+    first_generator = described_class.new(
+      ["User"],
+      { protect: "Products" },
+      destination_root: @destination_root
+    )
+
+    first_generator.invoke_all
+
+    second_generator = described_class.new(
+      ["User"],
+      { protect: "Comments" },
+      destination_root: @destination_root
+    )
+
+    second_generator.invoke_all
+
+    application_controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/application_controller.rb"
+      )
+    )
+
+    routes = File.read(
+      File.join(@destination_root, "config/routes.rb")
+    )
+
+    navigation = File.read(
+      File.join(
+        @destination_root,
+        "app/views/shared/_navigation.html.erb"
+      )
+    )
+
+    products_controller = File.read(products_controller_path)
+    comments_controller = File.read(comments_controller_path)
+
+    expect(application_controller.scan(
+      "helper_method :current_user, :logged_in?"
+    ).length).to eq(1)
+
+    expect(routes.scan(
+      'get "login", to: "sessions#new", as: :login'
+    ).length).to eq(1)
+
+    expect(navigation.scan(
+      'navigation_button_to "Logout", logout_path, method: :delete'
+    ).length).to eq(1)
+
+    expect(products_controller.scan(
+      "before_action :require_login, except: [:index, :show]"
+    ).length).to eq(1)
+
+    expect(comments_controller.scan(
+      "before_action :require_login, except: [:index, :show]"
+    ).length).to eq(1)
+  end
+
   it "does not accept commented bcrypt" do
     File.write(
       File.join(@destination_root, "Gemfile"),
@@ -615,5 +777,54 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
       Thor::Error,
       /bcrypt is required for authentication/
     )
+  end
+
+  it "raises a helpful error before changing files when a protected controller does not exist" do
+    sessions_controller_path = File.join(
+      @destination_root,
+      "app/controllers/sessions_controller.rb"
+    )
+
+    login_view_path = File.join(
+      @destination_root,
+      "app/views/sessions/new.html.erb"
+    )
+
+    application_controller_path = File.join(
+      @destination_root,
+      "app/controllers/application_controller.rb"
+    )
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    application_controller_before = File.read(application_controller_path)
+    routes_before = File.read(routes_path)
+
+    generator = described_class.new(
+      ["User"],
+      { protect: "Products" },
+      destination_root: @destination_root
+    )
+
+    expect do
+      generator.invoke_all
+    end.to raise_error(
+      Thor::Error,
+      /Protected controller ProductsController was not found/
+    )
+
+    expect(File).not_to exist(sessions_controller_path)
+    expect(File).not_to exist(login_view_path)
+
+    expect(
+      File.read(application_controller_path)
+    ).to eq(application_controller_before)
+
+    expect(
+      File.read(routes_path)
+    ).to eq(routes_before)
   end
 end
