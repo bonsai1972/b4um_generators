@@ -311,19 +311,25 @@ module B4um
 
         return if navigation.include?("root_path")
 
-        home_link = <<~ERB
+        indented_marker = "      #{marker}"
+
+        home_link = <<~ERB.chomp
           <%= navigation_link_to "#{action_name.humanize}",
                                  root_path,
                                  controller: :#{controller_name},
                                  action: :#{action_name} %>
 
-            #{marker}
+          #{marker}
         ERB
+
+        indented_home_link = home_link.lines.map do |line|
+          line.strip.empty? ? line : "      #{line}"
+        end.join
 
         gsub_file(
           navigation_path,
-          marker,
-          home_link.chomp
+          indented_marker,
+          indented_home_link
         )
       end
 

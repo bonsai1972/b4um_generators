@@ -178,6 +178,26 @@ RSpec.describe B4um::Generators::InstallGenerator do
     expect(navigation).to include(
       "action: :home"
     )
+
+    expect(navigation).to include(
+      %(      <%= navigation_link_to "Home",)
+    )
+
+    expect(navigation).to include(
+      %(                             root_path,)
+    )
+
+    expect(navigation).to include(
+      %(                             controller: :pages,)
+    )
+
+    expect(navigation).to include(
+      %(                             action: :home %>)
+    )
+
+    expect(navigation).to include(
+      %(      <%# B4UM_NAVIGATION_LINKS %>)
+    )
   end
 
   it "can skip creating a home page" do
