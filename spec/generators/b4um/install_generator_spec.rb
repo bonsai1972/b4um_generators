@@ -45,8 +45,27 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
   end
 
+  def create_routes
+    config_directory = File.join(
+      @destination_root,
+      "config"
+    )
+
+    FileUtils.mkdir_p(config_directory)
+
+    File.write(
+      File.join(config_directory, "routes.rb"),
+      <<~RUBY
+        Rails.application.routes.draw do
+        end
+      RUBY
+    )
+  end
+
   def build_generator(
     *answers,
+    home_controller: nil,
+    home_action: nil,
     sitemap_column_count: nil,
     sitemap_titles: nil
   )
@@ -59,6 +78,11 @@ RSpec.describe B4um::Generators::InstallGenerator do
     allow(generator).to receive(:yes?).and_return(*answers)
 
     ask_answers = []
+
+    if home_controller || home_action
+      ask_answers << (home_controller || "")
+      ask_answers << (home_action || "")
+    end
 
     ask_answers << if sitemap_column_count
                      sitemap_column_count.to_s
@@ -81,6 +105,188 @@ RSpec.describe B4um::Generators::InstallGenerator do
     expect(described_class).to be < Rails::Generators::Base
   end
 
+  it "can create a home page with a root route" do
+    create_application_layout
+    create_gemfile
+    create_routes
+
+    generator = build_generator(
+      false, # bcrypt
+      false, # Active Storage
+      true,  # home page
+      false, # hero
+      false, # footer
+      false, # cookie consent
+      home_controller: "Pages",
+      home_action: "home"
+    )
+
+    generator.invoke_all
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/pages_controller.rb"
+    )
+
+    view_path = File.join(
+      @destination_root,
+      "app/views/pages/home.html.erb"
+    )
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    navigation_path = File.join(
+      @destination_root,
+      "app/views/shared/_navigation.html.erb"
+    )
+
+    expect(File).to exist(controller_path)
+    expect(File).to exist(view_path)
+
+    controller = File.read(controller_path)
+    view = File.read(view_path)
+    routes = File.read(routes_path)
+    navigation = File.read(navigation_path)
+
+    expect(controller).to include(
+      "class PagesController < ApplicationController"
+    )
+
+    expect(controller).to include(
+      "def home"
+    )
+
+    expect(view).to include(
+      "<h1>Home</h1>"
+    )
+
+    expect(routes).to include(
+      'root "pages#home"'
+    )
+
+    expect(navigation).to include(
+      "root_path"
+    )
+
+    expect(navigation).to include(
+      "controller: :pages"
+    )
+
+    expect(navigation).to include(
+      "action: :home"
+    )
+  end
+
+  it "can skip creating a home page" do
+    create_application_layout
+    create_gemfile
+    create_routes
+
+    generator = build_generator(
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      false, # footer
+      false  # cookie consent
+    )
+
+    generator.invoke_all
+
+    expect(
+      File.exist?(
+        File.join(
+          @destination_root,
+          "app/controllers/pages_controller.rb"
+        )
+      )
+    ).to be(false)
+
+    expect(
+      File.exist?(
+        File.join(
+          @destination_root,
+          "app/views/pages/home.html.erb"
+        )
+      )
+    ).to be(false)
+
+    routes = File.read(
+      File.join(@destination_root, "config/routes.rb")
+    )
+
+    expect(routes).not_to match(/^\s*root\b/)
+  end
+
+  it "keeps an existing root route when creating a home page" do
+    create_application_layout
+    create_gemfile
+    create_routes
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          root "dashboard#index"
+        end
+      RUBY
+    )
+
+    generator = build_generator(
+      false, # bcrypt
+      false, # Active Storage
+      true,  # home page
+      false, # hero
+      false, # footer
+      false, # cookie consent
+      home_controller: "Pages",
+      home_action: "home"
+    )
+
+    generator.invoke_all
+
+    routes = File.read(routes_path)
+
+    navigation = File.read(
+      File.join(
+        @destination_root,
+        "app/views/shared/_navigation.html.erb"
+      )
+    )
+
+    expect(routes).to include(
+      'root "dashboard#index"'
+    )
+
+    expect(routes).not_to include(
+      'root "pages#home"'
+    )
+
+    expect(
+      routes.scan(/^\s*root\b/).count
+    ).to eq(1)
+
+    expect(navigation).not_to include(
+      "root_path"
+    )
+
+    expect(navigation).not_to include(
+      "controller: :pages"
+    )
+
+    expect(navigation).not_to include(
+      "action: :home"
+    )
+  end
+
   it "activates bcrypt when Rails provides it as a commented Gemfile entry" do
     create_application_layout
 
@@ -95,11 +301,12 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     generator = build_generator(
-      true,
-      false,
-      false,
-      false,
-      false
+      true,  # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      false, # footer
+      false  # cookie consent
     )
 
     generator.invoke_all
@@ -122,12 +329,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      true,
-      true,
-      true,
-      false
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      true,  # hero
+      true,  # footer
+      true,  # sitemap
+      false  # cookie consent
     )
 
     generator.invoke_all
@@ -878,12 +1086,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
       create_gemfile
 
       generator = build_generator(
-        false,
-        false,
-        false,
-        true,
-        true,
-        false,
+        false, # bcrypt
+        false, # Active Storage
+        false, # home page
+        false, # hero
+        true,  # footer
+        true,  # sitemap
+        false, # cookie consent
         sitemap_column_count: column_count,
         sitemap_titles: titles
       )
@@ -918,12 +1127,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      true,  # footer
+      true,  # sitemap
+      false, # cookie consent
       sitemap_titles: %w[
         Unternehmen
         Produkte
@@ -979,12 +1189,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      false,
-      true,
-      false,
-      false
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      true,  # footer
+      false, # sitemap
+      false  # cookie consent
     )
 
     generator.invoke_all
@@ -1023,11 +1234,12 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      true,
-      false,
-      false
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      true,  # hero
+      false, # footer
+      false  # cookie consent
     )
 
     generator.invoke_all
@@ -1066,12 +1278,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     first_generator = build_generator(
-      false,
-      false,
-      true,
-      true,
-      false,
-      false
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      true,  # hero
+      true,  # footer
+      false, # sitemap
+      false  # cookie consent
     )
 
     first_generator.invoke_all
@@ -1096,12 +1309,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     second_generator = build_generator(
-      false,
-      false,
-      true,
-      true,
-      false,
-      false
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      true,  # hero
+      true,  # footer
+      false, # sitemap
+      false  # cookie consent
     )
 
     second_generator.invoke_all
@@ -1157,11 +1371,12 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      false,
-      false,
-      true
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      false, # footer
+      true   # cookie consent
     )
 
     generator.invoke_all
@@ -1235,11 +1450,12 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      false,
-      false,
-      true
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      false, # footer
+      true   # cookie consent
     )
 
     generator.invoke_all
@@ -1284,12 +1500,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      false,
-      true,
-      false,
-      true
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      true,  # footer
+      false, # sitemap
+      true   # cookie consent
     )
 
     generator.invoke_all
@@ -1325,12 +1542,13 @@ RSpec.describe B4um::Generators::InstallGenerator do
     create_gemfile
 
     generator = build_generator(
-      false,
-      false,
-      false,
-      true,
-      false,
-      true
+      false, # bcrypt
+      false, # Active Storage
+      false, # home page
+      false, # hero
+      true,  # footer
+      false, # sitemap
+      true   # cookie consent
     )
 
     generator.invoke_all

@@ -71,6 +71,104 @@ module B4um
         say "  Active Storage database tables created."
       end
 
+      def install_home_page
+        unless yes?("Create a home page? (y/n)")
+          say "  Home page skipped."
+          return
+        end
+
+        @home_controller = ask(
+          "Home controller [Pages]:"
+        ).presence || "Pages"
+
+        @home_action = ask(
+          "Home action [home]:"
+        ).presence || "home"
+
+        controller_name = @home_controller.underscore
+        action_name = @home_action.underscore
+
+        controller_path = File.join(
+          "app/controllers",
+          "#{controller_name}_controller.rb"
+        )
+
+        view_path = File.join(
+          "app/views",
+          controller_name,
+          "#{action_name}.html.erb"
+        )
+
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        full_view_path = File.join(
+          destination_root,
+          view_path
+        )
+
+        unless File.exist?(full_controller_path)
+          create_file(
+            controller_path,
+            <<~RUBY
+              class #{@home_controller.camelize}Controller < ApplicationController
+                def #{action_name}
+                end
+              end
+            RUBY
+          )
+        end
+
+        unless File.exist?(full_view_path)
+          create_file(
+            view_path,
+            <<~ERB
+              <% content_for :title, "#{action_name.humanize}" %>
+
+              <div class="page-header">
+                <h1>#{action_name.humanize}</h1>
+              </div>
+
+              <div class="b4um-grid">
+                <section class="b4um-card b4um-card--full">
+                  <h2 class="b4um-card__title">
+                    #{action_name.humanize}
+                  </h2>
+
+                  <p class="b4um-card__text">
+                    Add your content here.
+                  </p>
+                </section>
+              </div>
+            ERB
+          )
+        end
+
+        routes_path = File.join(
+          destination_root,
+          "config/routes.rb"
+        )
+
+        routes = File.read(routes_path)
+
+        if routes.match?(/^\s*root\b/)
+          say "  Root route already exists; keeping existing root route."
+          @home_navigation_enabled = false
+        else
+          route(
+            %(root "#{controller_name}##{action_name}")
+          )
+
+          @home_navigation_enabled = true
+        end
+
+        @home_page_installed = true
+
+        say "  Home page installed."
+      end
+
       def create_stylesheet
         copy_file "b4um.css", "app/assets/stylesheets/b4um.css"
 
@@ -190,8 +288,43 @@ module B4um
       end
 
       def copy_navigation
+        navigation_path = "app/views/shared/_navigation.html.erb"
+
         copy_file "_navigation.html.erb",
-                  "app/views/shared/_navigation.html.erb"
+                  navigation_path
+
+        return unless @home_page_installed
+        return unless @home_navigation_enabled
+
+        full_navigation_path = File.join(
+          destination_root,
+          navigation_path
+        )
+
+        navigation = File.read(full_navigation_path)
+        marker = "<%# B4UM_NAVIGATION_LINKS %>"
+
+        return unless navigation.include?(marker)
+
+        controller_name = @home_controller.underscore
+        action_name = @home_action.underscore
+
+        return if navigation.include?("root_path")
+
+        home_link = <<~ERB
+          <%= navigation_link_to "#{action_name.humanize}",
+                                 root_path,
+                                 controller: :#{controller_name},
+                                 action: :#{action_name} %>
+
+            #{marker}
+        ERB
+
+        gsub_file(
+          navigation_path,
+          marker,
+          home_link.chomp
+        )
       end
 
       def copy_navigation_controller
