@@ -182,18 +182,32 @@ module B4um
 
         navigation = File.read(full_navigation_path)
 
-        return if navigation.include?(
+        if navigation.include?(
           'navigation_button_to "Logout", logout_path, method: :delete'
         )
+          add_register_navigation_link(
+            navigation_path,
+            navigation
+          )
+          return
+        end
 
         marker = "<%# B4UM_NAVIGATION_LINKS %>"
 
         return unless navigation.include?(marker)
 
+        controller_name = authentication_model_name.pluralize
+        new_resource_path =
+          "new_#{authentication_model_name}_path"
+
         authentication_links = <<~ERB
           <% if logged_in? %>
             <%= navigation_button_to "Logout", logout_path, method: :delete %>
           <% else %>
+            <%= navigation_link_to "Register",
+                                   #{new_resource_path},
+                                   controller: :#{controller_name},
+                                   action: :new %>
             <%= navigation_link_to "Login",
                                    login_path,
                                    controller: :sessions,
@@ -207,6 +221,106 @@ module B4um
           navigation_path,
           marker,
           authentication_links.chomp
+        )
+      end
+
+      def protect_authentication_resource
+        controller_path = authentication_resource_controller_path
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        return unless File.exist?(full_controller_path)
+
+        add_authentication_resource_callbacks(controller_path)
+        add_authentication_resource_authorization(controller_path)
+        redirect_destroyed_authentication_resource_to_root(controller_path)
+      end
+
+      def sign_in_after_registration
+        controller_path = authentication_resource_controller_path
+
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        return unless File.exist?(full_controller_path)
+
+        controller = File.read(full_controller_path)
+
+        session_assignment =
+          "session[:#{authentication_model_name}_id] = " \
+          "@#{authentication_model_name}.id"
+
+        return if controller.include?(session_assignment)
+
+        save_pattern =
+          /^(\s*)if @#{Regexp.escape(authentication_model_name)}\.save\s*$/
+
+        return unless controller.match?(save_pattern)
+
+        inject_into_file(
+          controller_path,
+          after: save_pattern
+        ) do
+          "\n\\1  #{session_assignment}"
+        end
+      end
+
+      def add_profile_navigation
+        navigation_path = "app/views/shared/_navigation.html.erb"
+
+        full_navigation_path = File.join(
+          destination_root,
+          navigation_path
+        )
+
+        return unless File.exist?(full_navigation_path)
+
+        navigation = File.read(full_navigation_path)
+
+        resource_name = authentication_class_name.pluralize
+        controller_name = authentication_model_name.pluralize
+
+        resource_pattern = /
+          ^[ \t]*<%=\s*navigation_link_to\s+"#{Regexp.escape(resource_name)}",
+          .*?
+          controller:\s*:#{Regexp.escape(controller_name)}
+          \s*%>\s*
+        /mx
+
+        if navigation.match?(resource_pattern)
+          gsub_file(
+            navigation_path,
+            resource_pattern,
+            ""
+          )
+        end
+
+        navigation = File.read(full_navigation_path)
+
+        return if navigation.include?(
+          'navigation_link_to "Profile"'
+        )
+
+        login_marker = "<% if logged_in? %>"
+
+        return unless navigation.include?(login_marker)
+
+        profile_link = <<~ERB
+          <% if logged_in? %>
+            <%= navigation_link_to "Profile",
+                                   #{current_authentication_method},
+                                   controller: :#{controller_name},
+                                   action: :show %>
+        ERB
+
+        gsub_file(
+          navigation_path,
+          login_marker,
+          profile_link.chomp
         )
       end
 
@@ -250,6 +364,247 @@ module B4um
       end
 
       private
+
+      def add_register_navigation_link(navigation_path, navigation)
+        return if navigation.include?(
+          'navigation_link_to "Register",'
+        )
+
+        controller_name = authentication_model_name.pluralize
+        new_resource_path =
+          "new_#{authentication_model_name}_path"
+
+        login_pattern = /
+          ^([ \t]*)<%=\s*navigation_link_to\s+"Login",
+        /x
+
+        return unless navigation.match?(login_pattern)
+
+        register_link = <<~ERB
+          <%= navigation_link_to "Register",
+                                 #{new_resource_path},
+                                 controller: :#{controller_name},
+                                 action: :new %>
+        ERB
+
+        gsub_file(
+          navigation_path,
+          login_pattern
+        ) do |match|
+          indentation = match[/\A[ \t]*/]
+
+          indented_register = register_link.lines.map do |line|
+            "#{indentation}#{line}"
+          end.join
+
+          "#{indented_register}#{match}"
+        end
+      end
+
+      def authentication_resource_controller_path
+        File.join(
+          "app/controllers",
+          "#{authentication_model_name.pluralize}_controller.rb"
+        )
+      end
+
+      def redirect_destroyed_authentication_resource_to_root(controller_path)
+        resource_path =
+          "#{authentication_model_name.pluralize}_path"
+
+        redirect =
+          "redirect_to #{resource_path}, status: :see_other"
+
+        return unless controller_contains?(controller_path, redirect)
+
+        gsub_file(
+          controller_path,
+          redirect,
+          "redirect_to root_path, status: :see_other"
+        )
+      end
+
+      def add_authentication_resource_callbacks(controller_path)
+        add_require_login_callback(controller_path)
+        add_prevent_authentication_index_callback(controller_path)
+        add_require_current_authentication_callback(controller_path)
+        add_clear_authentication_session_callback(controller_path)
+      end
+
+      def add_require_login_callback(controller_path)
+        callback = "before_action :require_login, except: %i[ new create ]"
+
+        return if controller_contains?(controller_path, callback)
+
+        inject_into_file(
+          controller_path,
+          after: /^class .*Controller < ApplicationController\s*$/
+        ) do
+          "\n  #{callback}"
+        end
+      end
+
+      def add_prevent_authentication_index_callback(controller_path)
+        callback =
+          "before_action :prevent_authentication_index, only: :index"
+
+        return if controller_contains?(controller_path, callback)
+
+        inject_into_file(
+          controller_path,
+          after: /^\s*before_action :require_login, except: %i\[ new create \]\s*$/
+        ) do
+          "\n  #{callback}"
+        end
+      end
+
+      def add_require_current_authentication_callback(controller_path)
+        callback =
+          "before_action :require_current_#{authentication_model_name}, " \
+          "only: %i[ show edit update destroy ]"
+
+        return if controller_contains?(controller_path, callback)
+
+        set_callback =
+          /^\s*before_action :set_#{authentication_model_name}, only: %i\[ show edit update destroy \]\s*$/
+
+        if controller_matches?(controller_path, set_callback)
+          inject_into_file(
+            controller_path,
+            after: set_callback
+          ) do
+            "\n  #{callback}"
+          end
+        else
+          inject_into_file(
+            controller_path,
+            after: /^class .*Controller < ApplicationController\s*$/
+          ) do
+            "\n  #{callback}"
+          end
+        end
+      end
+
+      def add_clear_authentication_session_callback(controller_path)
+        callback =
+          "after_action :clear_authentication_session, only: :destroy"
+
+        return if controller_contains?(controller_path, callback)
+
+        current_user_callback =
+          /^\s*before_action :require_current_#{authentication_model_name}, only: %i\[ show edit update destroy \]\s*$/
+
+        inject_into_file(
+          controller_path,
+          after: current_user_callback
+        ) do
+          "\n  #{callback}"
+        end
+      end
+
+      def add_authentication_resource_authorization(controller_path)
+        add_prevent_authentication_index_method(controller_path)
+        add_require_current_authentication_method(controller_path)
+        add_clear_authentication_session_method(controller_path)
+      end
+
+      def add_prevent_authentication_index_method(controller_path)
+        method_name = "def prevent_authentication_index"
+
+        return if controller_contains?(controller_path, method_name)
+
+        inject_private_method(
+          controller_path,
+          <<~RUBY
+            def prevent_authentication_index
+              redirect_to #{current_authentication_method}
+            end
+          RUBY
+        )
+      end
+
+      def add_require_current_authentication_method(controller_path)
+        method_name =
+          "def require_current_#{authentication_model_name}"
+
+        return if controller_contains?(controller_path, method_name)
+
+        inject_private_method(
+          controller_path,
+          <<~RUBY
+            def require_current_#{authentication_model_name}
+              return if @#{authentication_model_name} == #{current_authentication_method}
+
+              redirect_to root_path, alert: "Access denied."
+            end
+          RUBY
+        )
+      end
+
+      def add_clear_authentication_session_method(controller_path)
+        method_name = "def clear_authentication_session"
+
+        return if controller_contains?(controller_path, method_name)
+
+        inject_private_method(
+          controller_path,
+          <<~RUBY
+            def clear_authentication_session
+              session.delete(:#{authentication_model_name}_id)
+            end
+          RUBY
+        )
+      end
+
+      def inject_private_method(controller_path, method_body)
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        content = File.read(full_controller_path)
+
+        class_end_position = content.rindex(/^end\s*$/)
+
+        unless class_end_position
+          raise Thor::Error,
+                "Could not find the closing class end in #{controller_path}"
+        end
+
+        indented_body = method_body.lines.map do |line|
+          line.strip.empty? ? "\n" : "  #{line}"
+        end.join
+
+        updated_content = content.dup
+
+        updated_content.insert(
+          class_end_position,
+          "\n#{indented_body}"
+        )
+
+        File.write(
+          full_controller_path,
+          updated_content
+        )
+      end
+
+      def controller_contains?(controller_path, content)
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        File.read(full_controller_path).include?(content)
+      end
+
+      def controller_matches?(controller_path, pattern)
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        File.read(full_controller_path).match?(pattern)
+      end
 
       def protect_index_actions_for(controller_name)
         index_path = File.join(

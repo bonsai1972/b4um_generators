@@ -1052,4 +1052,738 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
       File.read(routes_path)
     ).to eq(routes_before)
   end
+
+  it "turns the authentication resource into a private profile" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          def index
+            @users = User.all
+          end
+
+          def show
+          end
+
+          def new
+            @user = User.new
+          end
+
+          def edit
+          end
+
+          def create
+          end
+
+          def update
+          end
+
+          def destroy
+          end
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(users_controller_path)
+
+    expect(controller).to include(
+      "before_action :require_login, except: %i[ new create ]"
+    )
+
+    expect(controller).to include(
+      "before_action :require_current_user, only: %i[ show edit update destroy ]"
+    )
+
+    expect(controller).to include(
+      "def require_current_user"
+    )
+
+    expect(controller).to include(
+      "return if @user == current_user"
+    )
+
+    expect(controller).to include(
+      'redirect_to root_path, alert: "Access denied."'
+    )
+  end
+
+  it "replaces the authentication resource navigation with Profile" do
+    navigation_path = File.join(
+      @destination_root,
+      "app/views/shared/_navigation.html.erb"
+    )
+
+    File.write(
+      navigation_path,
+      <<~ERB
+        <nav>
+          <div class="navigation__menu">
+            <%= navigation_link_to "Users",
+                                   users_path,
+                                   controller: :users %>
+
+            <%# B4UM_NAVIGATION_LINKS %>
+          </div>
+        </nav>
+      ERB
+    )
+
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    navigation = File.read(navigation_path)
+
+    expect(navigation).not_to include(
+      'navigation_link_to "Users"'
+    )
+
+    expect(navigation).to include(
+      'navigation_link_to "Profile"'
+    )
+
+    expect(navigation).to include(
+      "current_user"
+    )
+
+    expect(navigation).to include(
+      "controller: :users"
+    )
+
+    expect(navigation).to include(
+      "action: :show"
+    )
+  end
+
+  it "does not duplicate profile protection when authentication is run twice" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          def index
+          end
+
+          def show
+          end
+
+          def new
+          end
+
+          def create
+          end
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    2.times do
+      generator = described_class.new(
+        ["User"],
+        {},
+        destination_root: @destination_root
+      )
+
+      generator.invoke_all
+    end
+
+    controller = File.read(users_controller_path)
+
+    expect(
+      controller.scan(
+        "before_action :require_login, except: %i[ new create ]"
+      ).length
+    ).to eq(1)
+
+    expect(
+      controller.scan(
+        "before_action :require_current_user, only: %i[ show edit update destroy ]"
+      ).length
+    ).to eq(1)
+
+    expect(
+      controller.scan("def require_current_user").length
+    ).to eq(1)
+  end
+
+  it "prevents normal users from accessing the authentication resource index" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          def index
+            @users = User.all
+          end
+
+          def show
+          end
+
+          def new
+          end
+
+          def create
+          end
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(users_controller_path)
+
+    expect(controller).to include(
+      "before_action :prevent_authentication_index, only: :index"
+    )
+
+    expect(controller).to include(
+      "def prevent_authentication_index"
+    )
+
+    expect(controller).to include(
+      "redirect_to current_user"
+    )
+  end
+
+  it "clears the authentication session when the current user is destroyed" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          def index
+          end
+
+          def show
+          end
+
+          def new
+          end
+
+          def create
+          end
+
+          def destroy
+            @user.destroy!
+
+            redirect_to root_path
+          end
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(users_controller_path)
+
+    expect(controller).to include(
+      "session.delete(:user_id)"
+    )
+  end
+
+  it "adds profile authorization methods outside a real B4UM scaffold destroy action" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          # GET /users or /users.json
+          def index
+            @users = User.all
+          end
+
+          # GET /users/1 or /users/1.json
+          def show
+          end
+
+          # GET /users/new
+          def new
+            @user = User.new
+          end
+
+          # GET /users/1/edit
+          def edit
+          end
+
+          # POST /users or /users.json
+          def create
+            @user = User.new(user_params)
+
+            respond_to do |format|
+              if @user.save
+                format.html { redirect_to @user, notice: "User was successfully created." }
+                format.json { render :show, status: :created, location: @user }
+              else
+                format.html { render :new, status: :unprocessable_content }
+                format.json { render json: @user.errors, status: :unprocessable_content }
+              end
+            end
+          end
+
+          # PATCH/PUT /users/1 or /users/1.json
+          def update
+            respond_to do |format|
+              if @user.update(user_params)
+                format.html { redirect_to @user, notice: "User was successfully updated.", status: :see_other }
+                format.json { render :show, status: :ok, location: @user }
+              else
+                format.html { render :edit, status: :unprocessable_content }
+                format.json { render json: @user.errors, status: :unprocessable_content }
+              end
+            end
+          end
+
+          # DELETE /users/1 or /users/1.json
+          def destroy
+            @user.destroy!
+
+            respond_to do |format|
+              format.html do
+          flash[:deleted] = "User was successfully destroyed."
+          redirect_to users_path, status: :see_other
+        end
+              format.json { head :no_content }
+            end
+          end
+
+          private
+            # Use callbacks to share common setup or constraints between actions.
+            def set_user
+              @user = User.find(params.expect(:id))
+            end
+
+            # Only allow a list of trusted parameters through.
+            def user_params
+              params.expect(user: [ :name, :email, :password, :password_confirmation ])
+            end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(users_controller_path)
+
+    expect(controller).to include(
+      "def prevent_authentication_index"
+    )
+
+    expect(controller).to include(
+      "def require_current_user"
+    )
+
+    expect(controller).to include(
+      "def clear_authentication_session"
+    )
+
+    expect(controller.scan(
+      "def prevent_authentication_index"
+    ).length).to eq(1)
+
+    expect(controller.scan(
+      "def require_current_user"
+    ).length).to eq(1)
+
+    expect(controller.scan(
+      "def clear_authentication_session"
+    ).length).to eq(1)
+
+    expect(controller).to match(
+      /
+        private
+        .*def\ set_user
+        .*def\ user_params
+        .*def\ prevent_authentication_index
+        .*def\ require_current_user
+        .*def\ clear_authentication_session
+      /mx
+    )
+
+    destroy_section = controller[
+      /def destroy.*?\n\s*private/m
+    ]
+
+    expect(destroy_section).not_to include(
+      "def prevent_authentication_index"
+    )
+
+    expect(destroy_section).not_to include(
+      "def require_current_user"
+    )
+
+    expect(destroy_section).not_to include(
+      "def clear_authentication_session"
+    )
+  end
+
+  it "signs in the authentication user after registration" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          def create
+            @user = User.new(user_params)
+
+            respond_to do |format|
+              if @user.save
+                format.html { redirect_to @user, notice: "User was successfully created." }
+                format.json { render :show, status: :created, location: @user }
+              else
+                format.html { render :new, status: :unprocessable_content }
+                format.json { render json: @user.errors, status: :unprocessable_content }
+              end
+            end
+          end
+
+          private
+
+          def user_params
+            params.expect(user: [ :email, :password, :password_confirmation ])
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(users_controller_path)
+
+    expect(controller).to include(
+      "session[:user_id] = @user.id"
+    )
+
+    expect(controller.index(
+             "session[:user_id] = @user.id"
+           )).to be < controller.index(
+             'format.html { redirect_to @user, notice: "User was successfully created." }'
+           )
+  end
+
+  it "adds Register to the logged-out navigation" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          def new
+            @user = User.new
+          end
+
+          def create
+            @user = User.new
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    navigation = File.read(
+      File.join(
+        @destination_root,
+        "app/views/shared/_navigation.html.erb"
+      )
+    )
+
+    expect(navigation).to include(
+      'navigation_link_to "Register",'
+    )
+
+    expect(navigation).to include(
+      "new_user_path,"
+    )
+
+    expect(navigation).to include(
+      "controller: :users,"
+    )
+
+    expect(navigation).to include(
+      "action: :new"
+    )
+
+    register_position = navigation.index(
+      'navigation_link_to "Register",'
+    )
+
+    login_position = navigation.index(
+      'navigation_link_to "Login",'
+    )
+
+    expect(register_position).to be < login_position
+  end
+
+  it "adds Register when authentication navigation already exists" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          def new
+            @user = User.new
+          end
+
+          def create
+            @user = User.new
+          end
+        end
+      RUBY
+    )
+
+    navigation_path = File.join(
+      @destination_root,
+      "app/views/shared/_navigation.html.erb"
+    )
+
+    File.write(
+      navigation_path,
+      <<~ERB
+        <nav>
+          <div class="navigation__menu">
+            <% if logged_in? %>
+              <%= navigation_link_to "Profile",
+                                     current_user,
+                                     controller: :users,
+                                     action: :show %>
+              <%= navigation_button_to "Logout", logout_path, method: :delete %>
+            <% else %>
+              <%= navigation_link_to "Login",
+                                     login_path,
+                                     controller: :sessions,
+                                     action: :new %>
+            <% end %>
+
+            <%# B4UM_NAVIGATION_LINKS %>
+          </div>
+        </nav>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    navigation = File.read(navigation_path)
+
+    expect(navigation).to include(
+      'navigation_link_to "Register",'
+    )
+
+    expect(navigation).to include(
+      "new_user_path,"
+    )
+
+    expect(
+      navigation.scan(
+        'navigation_link_to "Login",'
+      ).length
+    ).to eq(1)
+
+    expect(
+      navigation.scan(
+        'navigation_button_to "Logout", logout_path, method: :delete'
+      ).length
+    ).to eq(1)
+
+    expect(
+      navigation.scan(
+        'navigation_link_to "Profile",'
+      ).length
+    ).to eq(1)
+
+    expect(
+      navigation.scan(
+        'navigation_link_to "Register",'
+      ).length
+    ).to eq(1)
+  end
+
+  it "redirects to root after destroying the authentication user" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          def destroy
+            @user.destroy!
+
+            respond_to do |format|
+              format.html do
+                flash[:deleted] = "User was successfully destroyed."
+                redirect_to users_path, status: :see_other
+              end
+
+              format.json { head :no_content }
+            end
+          end
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(users_controller_path)
+
+    expect(controller).to include(
+      'flash[:deleted] = "User was successfully destroyed."'
+    )
+
+    expect(controller).to include(
+      "redirect_to root_path, status: :see_other"
+    )
+
+    expect(controller).not_to include(
+      "redirect_to users_path, status: :see_other"
+    )
+  end
 end
