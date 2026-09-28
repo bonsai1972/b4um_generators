@@ -237,7 +237,102 @@ module B4um
         end
       end
 
+      def protect_show_actions
+        protected_controller_names.each do |controller_name|
+          protect_show_actions_for(controller_name)
+        end
+      end
+
+      def protect_index_actions
+        protected_controller_names.each do |controller_name|
+          protect_index_actions_for(controller_name)
+        end
+      end
+
       private
+
+      def protect_index_actions_for(controller_name)
+        index_path = File.join(
+          "app/views",
+          controller_name.underscore,
+          "index.html.erb"
+        )
+
+        full_index_path = File.join(
+          destination_root,
+          index_path
+        )
+
+        return unless File.exist?(full_index_path)
+
+        content = File.read(full_index_path)
+
+        return if content.include?("<% if logged_in? %>")
+
+        pattern = /
+          ^[ \t]*<%=\s*link_to\s+"New\s+[^"]+",.*?%>
+        /mx
+
+        return unless content.match?(pattern)
+
+        wrap_protected_action(index_path, pattern)
+      end
+
+      def protect_show_actions_for(controller_name)
+        show_path = File.join(
+          "app/views",
+          controller_name.underscore,
+          "show.html.erb"
+        )
+
+        full_show_path = File.join(destination_root, show_path)
+
+        return unless File.exist?(full_show_path)
+
+        content = File.read(full_show_path)
+
+        return if content.include?("<% if logged_in? %>")
+
+        protect_show_edit_action(show_path, content)
+        protect_show_destroy_action(show_path, content)
+      end
+
+      def protect_show_edit_action(show_path, content)
+        pattern = /
+          ^[ \t]*<%=\s*link_to\s+"Edit",.*?%>
+        /mx
+
+        return unless content.match?(pattern)
+
+        wrap_protected_action(show_path, pattern)
+      end
+
+      def protect_show_destroy_action(show_path, content)
+        pattern = /
+          ^[ \t]*<%=\s*button_to\s+"Destroy",.*?%>
+        /mx
+
+        return unless content.match?(pattern)
+
+        wrap_protected_action(show_path, pattern)
+      end
+
+      def wrap_protected_action(view_path, pattern)
+        gsub_file(view_path, pattern) do |match|
+          lines = match.lines
+          indentation = lines.first[/\A\s*/]
+
+          indented_match = lines.map do |line|
+            "#{indentation}  #{line.delete_prefix(indentation)}"
+          end.join
+
+          [
+            "#{indentation}<% if logged_in? %>",
+            indented_match.chomp,
+            "#{indentation}<% end %>"
+          ].join("\n")
+        end
+      end
 
       def protected_controller_names
         options[:protect]

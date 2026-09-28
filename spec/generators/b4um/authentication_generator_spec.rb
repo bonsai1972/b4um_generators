@@ -658,6 +658,82 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
+  it "hides protected show actions from logged-out visitors" do
+    products_controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    show_path = File.join(
+      @destination_root,
+      "app/views/products/show.html.erb"
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(products_controller_path)
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(show_path)
+    )
+
+    File.write(
+      products_controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+
+          def edit
+          end
+        end
+      RUBY
+    )
+
+    File.write(
+      show_path,
+      <<~ERB
+        <div class="b4um-card__actions">
+          <%= link_to "Edit",
+                      edit_product_path(@product),
+                      class: "button button--secondary" %>
+
+          <%= link_to "Back",
+                      products_path,
+                      class: "button button--secondary" %>
+
+          <%= button_to "Destroy",
+                        @product,
+                        method: :delete,
+                        class: "button button--danger" %>
+        </div>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["User"],
+      { protect: "Products" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    show = File.read(show_path)
+
+    expect(show).to match(
+      /^  <% if logged_in\? %>\n    <%= link_to "Edit",/
+    )
+
+    expect(show).to match(
+      /^  <% if logged_in\? %>\n    <%= button_to "Destroy",/
+    )
+
+    expect(show).to include('link_to "Back"')
+  end
+
   it "can protect another controller on a later run without duplicating authentication setup" do
     products_controller_path = File.join(
       @destination_root,
@@ -753,6 +829,69 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     expect(comments_controller.scan(
       "before_action :require_login, except: [:index, :show]"
     ).length).to eq(1)
+  end
+
+  it "hides the protected new action from logged-out visitors" do
+    products_controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    index_path = File.join(
+      @destination_root,
+      "app/views/products/index.html.erb"
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(products_controller_path)
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(index_path)
+    )
+
+    File.write(
+      products_controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+
+          def new
+          end
+        end
+      RUBY
+    )
+
+    File.write(
+      index_path,
+      <<~ERB
+        <div class="page-header">
+          <h1>Products</h1>
+
+          <%= link_to "New product",
+                      new_product_path,
+                      class: "button button--primary" %>
+        </div>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["User"],
+      { protect: "Products" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    index = File.read(index_path)
+
+    expect(index).to match(
+      /^  <% if logged_in\? %>\n    <%= link_to "New product",/
+    )
   end
 
   it "does not accept commented bcrypt" do
