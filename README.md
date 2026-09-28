@@ -970,7 +970,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.2.6`
+Current version: `0.2.7`
 
 ## Author
 
