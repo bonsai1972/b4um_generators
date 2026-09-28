@@ -1066,6 +1066,10 @@
   }
 }
 
+.form-field--rich-text trix-toolbar .trix-button--icon {
+  height: 1.98em;
+}
+
 .form-field--rich-text trix-toolbar .trix-button-group--container-tools .trix-button {
   height: 2.6em;
   display: inline-flex;
