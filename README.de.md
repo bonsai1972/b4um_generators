@@ -978,7 +978,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.2.5`
+Aktuelle Version: `0.2.6`
 
 ## Autor
 
