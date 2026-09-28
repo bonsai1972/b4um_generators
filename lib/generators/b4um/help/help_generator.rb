@@ -595,6 +595,52 @@ module B4um
 
             bin/rails generate b4um:scaffold Gallery title:string images:attachments
 
+          Attachments can also be added later to an existing
+          b4um resource.
+
+          Single attachment:
+
+            bin/rails generate b4um:attachment MODEL ATTACHMENT
+
+          Example:
+
+            bin/rails generate b4um:attachment Admin avatar
+
+          This adds:
+
+            has_one_attached :avatar
+
+          Multiple attachments:
+
+            bin/rails generate b4um:attachment MODEL ATTACHMENT --multiple
+
+          Example:
+
+            bin/rails generate b4um:attachment Product images --multiple
+
+          This adds:
+
+            has_many_attached :images
+
+          When the corresponding b4um files exist, the attachment
+          generator also updates:
+
+            - The existing model
+            - The existing b4um form
+            - The controller parameters
+            - The existing b4um resource partial
+
+          Multiple attachments additionally support:
+
+            - Adding new images without replacing existing images
+            - Removing individual existing images
+            - Multiple image preview
+            - Image gallery with lightbox navigation
+
+          Repeated generator runs do not duplicate existing
+          attachment setup.
+
+
           Image features:
 
             - Active Storage integration

@@ -420,6 +420,42 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the b4um attachment generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "bin/rails generate b4um:attachment MODEL ATTACHMENT"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:attachment Admin avatar"
+      )
+
+      expect(text).to include(
+        "has_one_attached :avatar"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:attachment MODEL ATTACHMENT --multiple"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:attachment Product images --multiple"
+      )
+
+      expect(text).to include(
+        "has_many_attached :images"
+      )
+
+      expect(text).to include(
+        "Repeated generator runs do not duplicate existing"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the b4um Bento generator" do
     generator = described_class.new
 

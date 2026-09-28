@@ -6,7 +6,8 @@ b4um Generators ist eine Sammlung wiederverwendbarer Rails-Generatoren, Template
 für b4um-Rails-Projekte.
 
 Das Gem bietet eine einheitliche Grundlage für Rails-Anwendungen und enthält Generatoren für Scaffolds, Controller,
-Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare, Authentifizierung und Rich-Text-Bearbeitung.
+Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare, Authentifizierung, Attachments und
+Rich-Text-Bearbeitung.
 
 Die generierten Komponenten verwenden ein gemeinsames b4um-Styling und sind darauf ausgelegt, miteinander zu
 funktionieren.
@@ -73,6 +74,7 @@ Das Gem stellt derzeit folgende Generatoren bereit:
 ```text
 b4um:install
 b4um:scaffold
+b4um:attachment
 b4um:bento
 b4um:table
 b4um:controller
@@ -82,6 +84,7 @@ b4um:search
 b4um:comments
 b4um:authentication
 b4um:trix
+b4um:readable
 b4um:help
 ```
 
@@ -164,6 +167,12 @@ Die ID bleibt Bestandteil der URL, sodass die normale Rails-Ressourcensuche weit
 
 Der lesbare Teil wird aus dem ausgewählten Attribut erzeugt und ändert sich automatisch, wenn sich dieses Attribut
 ändert.
+
+Lesbare URLs können auch später zu einem bestehenden Modell hinzugefügt werden:
+
+```bash
+bin/rails generate b4um:readable Product name
+```
 
 ## Bento und Karten
 
@@ -475,7 +484,7 @@ bin/rails generate b4um:install
 
 Wenn Active Storage noch nicht installiert ist, installiert b4um es und führt die erforderliche Migration aus.
 
-### Einzelnes Bild
+### Einzelnes Bild in einem neuen Scaffold
 
 Verwende:
 
@@ -489,7 +498,7 @@ Beispiel:
 bin/rails generate b4um:scaffold Article title:string image:attachment
 ```
 
-### Mehrere Bilder
+### Mehrere Bilder in einem neuen Scaffold
 
 Verwende:
 
@@ -502,6 +511,62 @@ Beispiel:
 ```bash
 bin/rails generate b4um:scaffold Gallery title:string images:attachments
 ```
+
+### Attachment-Generator
+
+Attachments können auch später zu einer bestehenden b4um-Ressource hinzugefügt werden.
+
+Für ein einzelnes Attachment:
+
+```bash
+bin/rails generate b4um:attachment MODEL ATTACHMENT
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:attachment Admin avatar
+```
+
+Dadurch wird hinzugefügt:
+
+```ruby
+has_one_attached :avatar
+```
+
+Für mehrere Attachments verwende `--multiple`:
+
+```bash
+bin/rails generate b4um:attachment MODEL ATTACHMENT --multiple
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:attachment Product images --multiple
+```
+
+Dadurch wird hinzugefügt:
+
+```ruby
+has_many_attached :images
+```
+
+Wenn die entsprechenden b4um-Dateien vorhanden sind, aktualisiert der Attachment-Generator außerdem:
+
+- Das bestehende Modell
+- Das bestehende b4um-Formular
+- Die Controller-Parameter
+- Das bestehende b4um-Ressourcen-Partial
+
+Mehrere Attachments unterstützen zusätzlich:
+
+- Hinzufügen neuer Bilder, ohne bestehende Bilder zu ersetzen
+- Entfernen einzelner bestehender Bilder
+- Vorschau mehrerer Bilder
+- Bildergalerie mit Lightbox-Navigation
+
+Bei wiederholter Ausführung wird eine bestehende Attachment-Konfiguration nicht dupliziert.
 
 Die Bildunterstützung umfasst:
 
@@ -913,7 +978,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.2.0`
+Aktuelle Version: `0.2.5`
 
 ## Autor
 
