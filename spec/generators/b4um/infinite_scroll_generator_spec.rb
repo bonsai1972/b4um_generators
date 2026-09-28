@@ -264,6 +264,29 @@ RSpec.describe B4um::Generators::InfiniteScrollGenerator do
     )
   end
 
+  it "does not load when the next page URL is empty" do
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    path = File.join(
+      @destination_root,
+      "app/javascript/controllers/infinite_scroll_controller.js"
+    )
+
+    content = File.read(path)
+
+    expect(
+      content.scan(
+        "if (!this.hasNextUrlValue || !this.nextUrlValue || this.loading) return"
+      ).count
+    ).to eq(2)
+  end
+
   it "adds server-side pagination to the resource controller" do
     generator = described_class.new(
       ["Product"],
