@@ -137,6 +137,64 @@ module B4um
         )
       end
 
+      def update_empty_state
+        view_file = File.join(
+          destination_root,
+          index_view_path
+        )
+
+        view_content = File.read(view_file)
+
+        return if view_content.include?(
+          "<% if params[:q].present? %>"
+        )
+
+        title = file_name.pluralize.humanize.downcase
+        singular = file_name.humanize.downcase
+
+        empty_state_pattern = %r{
+          (?<indent>[ \t]*)
+          <section\ class="b4um-empty-state">\s*
+          <h2\ class="b4um-empty-state__title">\s*
+          No\ #{Regexp.escape(title)}\ yet\.\s*
+          </h2>\s*
+          <p\ class="b4um-empty-state__text">\s*
+          Create\ your\ first\ #{Regexp.escape(singular)}\ to\ get\ started\.\s*
+          </p>\s*
+          </section>
+        }x
+
+        return unless view_content.match?(empty_state_pattern)
+
+        new_empty_state = <<~ERB.chomp
+          <section class="b4um-empty-state">
+            <% if params[:q].present? %>
+              <h2 class="b4um-empty-state__title">
+                No #{title} found.
+              </h2>
+
+              <p class="b4um-empty-state__text">
+                Try a different search term.
+              </p>
+            <% else %>
+              <h2 class="b4um-empty-state__title">
+                No #{title} yet.
+              </h2>
+
+              <p class="b4um-empty-state__text">
+                Create your first #{singular} to get started.
+              </p>
+            <% end %>
+          </section>
+        ERB
+
+        gsub_file(
+          index_view_path,
+          empty_state_pattern,
+          new_empty_state
+        )
+      end
+
       private
 
       def model_path

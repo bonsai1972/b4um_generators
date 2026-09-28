@@ -414,6 +414,10 @@ RSpec.describe B4um::Generators::SearchGenerator do
       expect(
         view.scan('class="b4um-search"').count
       ).to eq(1)
+
+      expect(
+        view.scan("<% if params[:q].present? %>").count
+      ).to be <= 1
     end
   end
 
@@ -478,6 +482,160 @@ RSpec.describe B4um::Generators::SearchGenerator do
       expect(view).to include(
         'class: "form-label"'
       )
+    end
+  end
+
+  it "updates the scaffold empty state for search results" do
+    Dir.mktmpdir("b4um_search_generator_test") do |directory|
+      FileUtils.mkdir_p(File.join(directory, "app/models"))
+      FileUtils.mkdir_p(File.join(directory, "app/controllers"))
+      FileUtils.mkdir_p(File.join(directory, "app/views/products"))
+
+      File.write(
+        File.join(directory, "app/models/product.rb"),
+        "class Product < ApplicationRecord\nend\n"
+      )
+
+      File.write(
+        File.join(directory, "app/controllers/products_controller.rb"),
+        <<~RUBY
+          class ProductsController < ApplicationController
+            def index
+              @products = Product.all
+            end
+          end
+        RUBY
+      )
+
+      File.write(
+        File.join(directory, "app/views/products/index.html.erb"),
+        <<~ERB
+          <% if @products.any? %>
+            <%= render "bento", products: @products %>
+          <% else %>
+            <section class="b4um-empty-state">
+              <h2 class="b4um-empty-state__title">
+                No products yet.
+              </h2>
+
+              <p class="b4um-empty-state__text">
+                Create your first product to get started.
+              </p>
+            </section>
+          <% end %>
+        ERB
+      )
+
+      generator = described_class.new(
+        ["Product"],
+        {},
+        destination_root: directory
+      )
+
+      generator.invoke_all
+
+      view = File.read(
+        File.join(
+          directory,
+          "app/views/products/index.html.erb"
+        )
+      )
+
+      expect(view).to include(
+        "<% if params[:q].present? %>"
+      )
+
+      expect(view).to include(
+        "No products found."
+      )
+
+      expect(view).to include(
+        "Try a different search term."
+      )
+
+      expect(view).to include(
+        "No products yet."
+      )
+
+      expect(view).to include(
+        "Create your first product to get started."
+      )
+    end
+  end
+
+  it "does not duplicate the search empty state when run twice" do
+    Dir.mktmpdir("b4um_search_generator_test") do |directory|
+      FileUtils.mkdir_p(File.join(directory, "app/models"))
+      FileUtils.mkdir_p(File.join(directory, "app/controllers"))
+      FileUtils.mkdir_p(File.join(directory, "app/views/products"))
+
+      File.write(
+        File.join(directory, "app/models/product.rb"),
+        "class Product < ApplicationRecord\nend\n"
+      )
+
+      File.write(
+        File.join(directory, "app/controllers/products_controller.rb"),
+        <<~RUBY
+          class ProductsController < ApplicationController
+            def index
+              @products = Product.all
+            end
+          end
+        RUBY
+      )
+
+      File.write(
+        File.join(directory, "app/views/products/index.html.erb"),
+        <<~ERB
+          <% if @products.any? %>
+            <%= render "bento", products: @products %>
+          <% else %>
+            <section class="b4um-empty-state">
+              <h2 class="b4um-empty-state__title">
+                No products yet.
+              </h2>
+
+              <p class="b4um-empty-state__text">
+                Create your first product to get started.
+              </p>
+            </section>
+          <% end %>
+        ERB
+      )
+
+      2.times do
+        generator = described_class.new(
+          ["Product"],
+          {},
+          destination_root: directory
+        )
+
+        generator.invoke_all
+      end
+
+      view = File.read(
+        File.join(
+          directory,
+          "app/views/products/index.html.erb"
+        )
+      )
+
+      expect(
+        view.scan("<% if params[:q].present? %>").count
+      ).to eq(1)
+
+      expect(
+        view.scan("No products found.").count
+      ).to eq(1)
+
+      expect(
+        view.scan("Try a different search term.").count
+      ).to eq(1)
+
+      expect(
+        view.scan("No products yet.").count
+      ).to eq(1)
     end
   end
 
