@@ -781,6 +781,30 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
+        "For protected b4um resources, authentication also updates"
+      )
+
+      expect(text).to include(
+        "- New is hidden"
+      )
+
+      expect(text).to include(
+        "- Edit is hidden"
+      )
+
+      expect(text).to include(
+        "- Destroy is hidden"
+      )
+
+      expect(text).to include(
+        "- Back remains visible"
+      )
+
+      expect(text).to include(
+        "The controller protection remains the security boundary"
+      )
+
+      expect(text).to include(
         "Additional controllers can be protected later"
       )
 

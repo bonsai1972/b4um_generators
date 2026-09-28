@@ -528,6 +528,23 @@ module B4um
           authentication for actions such as new, create, edit, update
           and destroy.
 
+          For protected b4um resources, authentication also updates
+          the generated interface for logged-out visitors.
+
+          On index pages:
+
+            - New is hidden
+
+          On show pages:
+
+            - Edit is hidden
+            - Destroy is hidden
+            - Back remains visible
+
+          These controls remain available to logged-in users.
+          The controller protection remains the security boundary;
+          hiding the controls only keeps the public interface consistent.
+
           Additional controllers can be protected later by running the
           authentication generator again.
 
