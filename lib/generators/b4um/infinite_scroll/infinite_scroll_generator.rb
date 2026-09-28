@@ -121,6 +121,37 @@ module B4um
         )
       end
 
+      def update_table_partial
+        index_content = File.read(
+          File.join(destination_root, index_view_path)
+        )
+
+        return unless index_content.match?(
+          /render\s+["']table["']/
+        )
+
+        path = File.join(
+          "app/views",
+          file_name.pluralize,
+          "_table.html.erb"
+        )
+
+        full_path = File.join(destination_root, path)
+
+        return unless File.exist?(full_path)
+
+        content = File.read(full_path)
+
+        return if content.include?(%(<tbody id="#{plural_table_name}">))
+        return unless content.include?("<tbody>")
+
+        gsub_file(
+          path,
+          "<tbody>",
+          %(<tbody id="#{plural_table_name}">)
+        )
+      end
+
       private
 
       def paginated_collection

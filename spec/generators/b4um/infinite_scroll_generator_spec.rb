@@ -354,6 +354,108 @@ RSpec.describe B4um::Generators::InfiniteScrollGenerator do
     )
   end
 
+  it "adds a resource container id to a B4UM table" do
+    table_path = File.join(
+      @destination_root,
+      "app/views/products/_table.html.erb"
+    )
+
+    File.write(
+      table_path,
+      <<~ERB
+        <div class="b4um-table-wrapper">
+          <table class="b4um-table">
+            <tbody>
+              <% products.each do |product| %>
+                <tr>
+                  <td><%= product.name %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      ERB
+    )
+
+    index_path = File.join(
+      @destination_root,
+      "app/views/products/index.html.erb"
+    )
+
+    File.write(
+      index_path,
+      <<~ERB
+        <h1>Products</h1>
+
+        <%= render "table", products: @products %>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    content = File.read(table_path)
+
+    expect(content).to include(
+      '<tbody id="products">'
+    )
+  end
+
+  it "does not modify an unused B4UM table when the index renders Bento" do
+    table_path = File.join(
+      @destination_root,
+      "app/views/products/_table.html.erb"
+    )
+
+    File.write(
+      table_path,
+      <<~ERB
+        <div class="b4um-table-wrapper">
+          <table class="b4um-table">
+            <tbody>
+              <% products.each do |product| %>
+                <tr>
+                  <td><%= product.name %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    table = File.read(table_path)
+
+    expect(table).to include("<tbody>")
+    expect(table).not_to include(
+      '<tbody id="products">'
+    )
+
+    bento = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_bento.html.erb"
+      )
+    )
+
+    expect(bento).to include(
+      '<div id="products" class="b4um-grid">'
+    )
+  end
+
   it "raises an error when the model does not exist" do
     generator = described_class.new(
       ["Unknown"],
