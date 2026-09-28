@@ -894,6 +894,92 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
+  it "does not duplicate protected view actions when run twice" do
+    products_controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    index_path = File.join(
+      @destination_root,
+      "app/views/products/index.html.erb"
+    )
+
+    show_path = File.join(
+      @destination_root,
+      "app/views/products/show.html.erb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(products_controller_path))
+    FileUtils.mkdir_p(File.dirname(index_path))
+
+    File.write(
+      products_controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+
+          def new
+          end
+
+          def edit
+          end
+        end
+      RUBY
+    )
+
+    File.write(
+      index_path,
+      <<~ERB
+        <div class="page-header">
+          <%= link_to "New product",
+                      new_product_path,
+                      class: "button button--primary" %>
+        </div>
+      ERB
+    )
+
+    File.write(
+      show_path,
+      <<~ERB
+        <div class="b4um-card__actions">
+          <%= link_to "Edit",
+                      edit_product_path(@product),
+                      class: "button button--secondary" %>
+
+          <%= button_to "Destroy",
+                        @product,
+                        method: :delete,
+                        class: "button button--danger" %>
+        </div>
+      ERB
+    )
+
+    2.times do
+      generator = described_class.new(
+        ["User"],
+        { protect: "Products" },
+        destination_root: @destination_root
+      )
+
+      generator.invoke_all
+    end
+
+    index = File.read(index_path)
+    show = File.read(show_path)
+
+    expect(index.scan("<% if logged_in? %>").length).to eq(1)
+    expect(index.scan('link_to "New product"').length).to eq(1)
+
+    expect(show.scan("<% if logged_in? %>").length).to eq(2)
+    expect(show.scan('link_to "Edit"').length).to eq(1)
+    expect(show.scan('button_to "Destroy"').length).to eq(1)
+  end
+
   it "does not accept commented bcrypt" do
     File.write(
       File.join(@destination_root, "Gemfile"),
