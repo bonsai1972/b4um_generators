@@ -243,7 +243,7 @@ module B4um
         unless partial.include?("blob.video?")
           gsub_file(
             action_text_blob_partial_path,
-            /<% if blob\.representable\? %>\s*(<%= image_tag .+? %>)\s*<% end %>/m,
+            /<% if blob\.representable\? %>\s*<%= image_tag .+? %>\s*<% end %>/m,
             <<~ERB.chomp
               <% if blob.video? %>
                 <%= video_tag rails_blob_path(blob, disposition: "inline"),
@@ -251,8 +251,8 @@ module B4um
                       playsinline: true,
                       preload: "metadata",
                       class: "b4um-rich-text-video" %>
-              <% elsif blob.representable? %>
-                \\1
+              <% elsif blob.image? %>
+                <%= image_tag rails_blob_path(blob, disposition: "inline") %>
               <% end %>
             ERB
           )

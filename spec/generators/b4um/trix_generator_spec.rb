@@ -703,7 +703,19 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(blob_partial).to include(
-      "<% elsif blob.representable? %>"
+      "<% elsif blob.image? %>"
+    )
+
+    expect(blob_partial).to include(
+      'image_tag rails_blob_path(blob, disposition: "inline")'
+    )
+
+    expect(blob_partial).not_to include(
+      "blob.representation"
+    )
+
+    expect(blob_partial).not_to include(
+      "resize_to_limit"
     )
   end
 
@@ -1297,7 +1309,7 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(trix_javascript).to include(
-      "Trix.config.blockAttributes.b4umDiv"
+      "Trix.config.blockAttributes.div"
     )
 
     expect(trix_javascript).to include(
@@ -1309,7 +1321,7 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(trix_javascript).to include(
-      'data-trix-attribute="b4umDiv"'
+      'data-trix-attribute="div"'
     )
 
     expect(trix_javascript).to include(
