@@ -20,6 +20,13 @@
             </span>
 <% elsif attribute.type == :text -%>
             <%%= truncate(<%= singular_table_name %>.<%= attribute.name %>, length: 100) %>
+<% elsif attribute.type == :decimal -%>
+            <%%= number_with_precision(
+                  <%= singular_table_name %>.<%= attribute.name %>,
+                  precision: 2,
+                  delimiter: ".",
+                  separator: ","
+                ) %>
 <% else -%>
             <%%= <%= singular_table_name %>.<%= attribute.name %> %>
 <% end -%>

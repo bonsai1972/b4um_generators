@@ -136,6 +136,15 @@
         <%%= <%= singular_table_name %>.<%= attribute.name %> %>
       <%% end %>
     </span>
+<% elsif attribute.type == :decimal -%>
+    <span class="resource-value">
+      <%%= number_with_precision(
+            <%= singular_table_name %>.<%= attribute.name %>,
+            precision: 2,
+            delimiter: ".",
+            separator: ","
+          ) %>
+    </span>
 <% else -%>
     <span class="resource-value"><%%= <%= singular_table_name %>.<%= attribute.name %> %></span>
 <% end -%>

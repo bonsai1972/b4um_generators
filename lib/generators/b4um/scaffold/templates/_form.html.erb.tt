@@ -76,11 +76,21 @@
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
   </div>
 
-<% elsif [:integer, :float, :decimal].include?(attribute.type) -%>
+<% elsif attribute.type == :integer -%>
   <div class="form-field">
     <%%= form.number_field :<%= attribute.name %>,
           class: "form-input",
-          placeholder: " " %>
+          placeholder: " ",
+          step: 1 %>
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+  </div>
+
+<% elsif [:float, :decimal].include?(attribute.type) -%>
+  <div class="form-field">
+    <%%= form.number_field :<%= attribute.name %>,
+          class: "form-input",
+          placeholder: " ",
+          step: "any" %>
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
   </div>
 

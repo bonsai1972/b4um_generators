@@ -217,6 +217,13 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
+    resource = File.read(
+      File.join(
+        @destination_root,
+        "app/views/contacts/_contact.html.erb"
+      )
+    )
+
     expect(form).to include("form.email_field :email")
     expect(form).to include("form.telephone_field :phone")
     expect(form).to include("form.url_field :website")
@@ -227,8 +234,34 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(form).to include("form.time_field :alarm_at")
-    expect(form).to include("form.number_field :age")
-    expect(form).to include("form.number_field :price")
+
+    expect(form).to match(
+      /form\.number_field :age,.*?step: 1/m
+    )
+
+    expect(form).to match(
+      /form\.number_field :price,.*?step: "any"/m
+    )
+
+    expect(resource).to include(
+      "number_with_precision("
+    )
+
+    expect(resource).to include(
+      "contact.price"
+    )
+
+    expect(resource).to include(
+      "precision: 2"
+    )
+
+    expect(resource).to include(
+      'delimiter: "."'
+    )
+
+    expect(resource).to include(
+      'separator: ","'
+    )
   end
 
   it "generates B4UM page actions and card layouts" do
@@ -438,7 +471,25 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       "truncate(product.description, length: 100)"
     )
 
-    expect(table).to include("product.price")
+    expect(table).to include(
+      "number_with_precision("
+    )
+
+    expect(table).to include(
+      "product.price"
+    )
+
+    expect(table).to include(
+      "precision: 2"
+    )
+
+    expect(table).to include(
+      'delimiter: "."'
+    )
+
+    expect(table).to include(
+      'separator: ","'
+    )
 
     expect(table).to include(
       'class="b4um-badge"'
