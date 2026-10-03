@@ -96,7 +96,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(resource).to include(
-      "truncate(post.body, length: 160)"
+      "length: local_assigns.fetch(:preview_length, 160)"
     )
   end
 
@@ -363,7 +363,27 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(bento).to include(
-      "render article, compact: true"
+      "card_class, preview_length"
+    )
+
+    expect(bento).to include(
+      '["b4um-card b4um-card--wide", 240]'
+    )
+
+    expect(bento).to include(
+      '["b4um-card b4um-card--soft", 160]'
+    )
+
+    expect(bento).to include(
+      '["b4um-card b4um-card--large", 480]'
+    )
+
+    expect(bento).to include(
+      '["b4um-card", 160]'
+    )
+
+    expect(bento).to include(
+      "preview_length: preview_length"
     )
 
     expect(bento).to include(

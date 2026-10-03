@@ -412,6 +412,70 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
   end
 
+  it "preserves the variable preview length for compact resources" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <%= form.text_area :content %>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_article.html.erb"),
+      <<~ERB
+        <span class="resource-value">
+          <% if local_assigns[:compact] %>
+            <%= truncate(
+                  article.content,
+                  length: local_assigns.fetch(:preview_length, 160)
+                ) %>
+          <% else %>
+            <%= article.content %>
+          <% end %>
+        </span>
+      ERB
+    )
+
+    generator = build_generator
+
+    generator.invoke_all
+
+    partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_article.html.erb"
+      )
+    )
+
+    expect(partial).to include(
+      "b4um_rich_text_preview(" \
+      "article.content, " \
+      "length: local_assigns.fetch(:preview_length, 160))"
+    )
+
+    expect(partial).not_to include(
+      "truncate("
+    )
+  end
+
   it "upgrades an existing plain text rich text preview" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/models")

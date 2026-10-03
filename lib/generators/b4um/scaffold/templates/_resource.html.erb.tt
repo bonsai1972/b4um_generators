@@ -131,7 +131,10 @@
 <% elsif attribute.type == :text -%>
     <span class="resource-value">
       <%% if local_assigns[:compact] %>
-        <%%= truncate(<%= singular_table_name %>.<%= attribute.name %>, length: 160) %>
+        <%%= truncate(
+              <%= singular_table_name %>.<%= attribute.name %>,
+              length: local_assigns.fetch(:preview_length, 160)
+            ) %>
       <%% else %>
         <%%= <%= singular_table_name %>.<%= attribute.name %> %>
       <%% end %>

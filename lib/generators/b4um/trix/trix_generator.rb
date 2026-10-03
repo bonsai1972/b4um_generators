@@ -151,16 +151,49 @@ module B4um
 
         resource_name = name.underscore
 
+        preview_length =
+          'local_assigns\.fetch\(:preview_length,\s*160\)'
+
+        resource_attribute =
+          "#{Regexp.escape(resource_name)}\\.#{Regexp.escape(attribute)}"
+
+        rich_text_pattern =
+          /truncate\(\s*#{resource_attribute},\s*length:\s*#{preview_length}\s*\)/m
+
+        plain_text_pattern =
+          /truncate\(\s*#{resource_attribute}\.to_plain_text,\s*length:\s*#{preview_length}\s*\)/m
+
+        replacement =
+          "b4um_rich_text_preview(" \
+          "#{resource_name}.#{attribute}, " \
+          "length: local_assigns.fetch(:preview_length, 160))"
+
+        legacy_replacement =
+          "b4um_rich_text_preview(" \
+          "#{resource_name}.#{attribute}, length: 160)"
+
+        gsub_file(
+          resource_partial_path,
+          rich_text_pattern,
+          replacement
+        )
+
+        gsub_file(
+          resource_partial_path,
+          plain_text_pattern,
+          replacement
+        )
+
         gsub_file(
           resource_partial_path,
           "truncate(#{resource_name}.#{attribute}, length: 160)",
-          "b4um_rich_text_preview(#{resource_name}.#{attribute}, length: 160)"
+          legacy_replacement
         )
 
         gsub_file(
           resource_partial_path,
           "truncate(#{resource_name}.#{attribute}.to_plain_text, length: 160)",
-          "b4um_rich_text_preview(#{resource_name}.#{attribute}, length: 160)"
+          legacy_replacement
         )
 
         partial = File.read(resource_partial_path)
