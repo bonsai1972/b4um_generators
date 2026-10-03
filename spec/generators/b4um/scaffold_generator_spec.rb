@@ -375,7 +375,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(bento).to include(
-      '["b4um-card b4um-card--large", 480]'
+      '["b4um-card b4um-card--large", 888]'
     )
 
     expect(bento).to include(

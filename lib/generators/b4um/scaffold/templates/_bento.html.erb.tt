@@ -7,7 +7,7 @@
         when 1
           ["b4um-card b4um-card--soft", 160]
         when 3
-          ["b4um-card b4um-card--large", 480]
+          ["b4um-card b4um-card--large", 888]
         else
           ["b4um-card", 160]
         end
