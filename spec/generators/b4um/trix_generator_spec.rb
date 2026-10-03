@@ -1119,6 +1119,14 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(helper).to include(
+      'document.css("action-text-attachment").remove'
+    )
+
+    expect(helper).to include(
+      "plain_text = document.text.strip"
+    )
+
+    expect(helper).to include(
       "B4UM_RICH_TEXT_CONTAINERS = %w[div section article].freeze"
     )
 

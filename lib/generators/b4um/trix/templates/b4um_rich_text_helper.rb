@@ -10,7 +10,8 @@ module B4umRichTextHelper
     first_element = document.element_children.first
     heading = b4um_preview_heading(first_element)
 
-    plain_text = rich_text.to_plain_text.strip
+    document.css("action-text-attachment").remove
+    plain_text = document.text.strip
 
     if heading
       heading_text = heading.text.strip
