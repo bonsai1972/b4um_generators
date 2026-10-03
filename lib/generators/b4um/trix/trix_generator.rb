@@ -266,13 +266,14 @@ module B4um
           action_text_blob_partial_path,
           /<%= image_tag (.+?) %>/,
           <<~ERB.chomp
-            <%= image_tag \\1,
+            <%= image_tag rails_blob_path(blob, disposition: "inline"),
                   data: {
                     image_lightbox_target: "item",
                     image_lightbox_url: rails_blob_path(blob, only_path: true),
                     image_lightbox_alt: blob.filename.to_s,
                     action: "click->image-lightbox#open"
-                  } %>
+                  },
+                  class: "lupe" %>
           ERB
         )
       end

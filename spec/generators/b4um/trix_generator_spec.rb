@@ -616,11 +616,15 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
 
     expect(blob_partial).to include(
+      'class: "lupe"'
+    )
+
+    expect(blob_partial).to include(
       "image_lightbox_url:"
     )
 
     expect(blob_partial).to include(
-      "rails_blob_path(blob"
+      'image_tag rails_blob_path(blob, disposition: "inline")'
     )
   end
 

@@ -1,7 +1,9 @@
 /* -------------------------------------------------------
    Image lightbox
 ------------------------------------------------------- */
-
+.lupe {
+  cursor: zoom-in;
+}
 .resource-image__button,
 .resource-images__button {
   display: block;
