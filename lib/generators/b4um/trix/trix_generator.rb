@@ -259,6 +259,8 @@ module B4um
                         data-action="click->image-lightbox#next">
                   &#8250;
                 </button>
+                <div class="image-lightbox__thumbnails"
+                     data-image-lightbox-target="thumbnails"></div>
 
                 <div class="image-lightbox__caption"
                      data-image-lightbox-target="caption"></div>

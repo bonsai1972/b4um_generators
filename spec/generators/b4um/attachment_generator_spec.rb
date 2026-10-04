@@ -367,6 +367,10 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     )
 
     expect(resource).to include(
+      'data-image-lightbox-target="thumbnails"'
+    )
+
+    expect(resource).to include(
       "admin.avatar.attached?"
     )
 
@@ -552,6 +556,18 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
 
     expect(resource).to include(
       'data-image-lightbox-target="item"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="previousButton"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="nextButton"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="thumbnails"'
     )
 
     expect(resource).to include(

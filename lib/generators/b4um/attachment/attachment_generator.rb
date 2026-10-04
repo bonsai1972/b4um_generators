@@ -299,6 +299,9 @@ module B4um
                          alt="">
                   </div>
 
+                  <div class="image-lightbox__thumbnails"
+                       data-image-lightbox-target="thumbnails"></div>
+
                   <div class="image-lightbox__caption"
                        data-image-lightbox-target="caption"></div>
                 </div>
@@ -354,8 +357,9 @@ module B4um
                   </button>
 
                   <button type="button"
-                          class="image-lightbox__previous"
+                          class="image-lightbox__navigation image-lightbox__navigation--previous"
                           aria-label="Previous image"
+                          data-image-lightbox-target="previousButton"
                           data-action="click->image-lightbox#previous">
                     &#8249;
                   </button>
@@ -369,11 +373,15 @@ module B4um
                   </div>
 
                   <button type="button"
-                          class="image-lightbox__next"
+                          class="image-lightbox__navigation image-lightbox__navigation--next"
                           aria-label="Next image"
+                          data-image-lightbox-target="nextButton"
                           data-action="click->image-lightbox#next">
                     &#8250;
                   </button>
+
+                  <div class="image-lightbox__thumbnails"
+                       data-image-lightbox-target="thumbnails"></div>
 
                   <div class="image-lightbox__caption"
                        data-image-lightbox-target="caption"></div>

@@ -607,6 +607,10 @@ RSpec.describe B4um::Generators::TrixGenerator do
       'data-image-lightbox-target="nextButton"'
     )
 
+    expect(partial).to include(
+      'data-image-lightbox-target="thumbnails"'
+    )
+
     expect(
       partial.scan('data-controller="image-lightbox"').count
     ).to eq(1)
