@@ -5,11 +5,11 @@
         when 0
           ["b4um-card b4um-card--wide", 240]
         when 1
-          ["b4um-card b4um-card--soft", 160]
+          ["b4um-card b4um-card--soft", 58]
         when 3
-          ["b4um-card b4um-card--large", 888]
+          ["b4um-card b4um-card--large", 1600]
         else
-          ["b4um-card", 160]
+          ["b4um-card", 58]
         end
       %>
 
