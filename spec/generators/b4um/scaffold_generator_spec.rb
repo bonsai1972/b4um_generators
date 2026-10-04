@@ -100,6 +100,134 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
   end
 
+  it "generates image lightbox markup for attachments" do
+    generator = described_class.new(
+      [
+        "Gallery",
+        [
+          "title:string",
+          "cover:attachment",
+          "images:attachments"
+        ]
+      ],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    resource = File.read(
+      File.join(
+        @destination_root,
+        "app/views/galleries/_gallery.html.erb"
+      )
+    )
+
+    expect(resource).to include(
+      'data-controller="image-lightbox"'
+    )
+
+    expect(resource).to include(
+      'data-action="keydown->image-lightbox#keydown"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="item"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-url="<%= url_for(gallery.cover) %>"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-alt="<%= gallery.cover.filename.to_s %>"'
+    )
+
+    expect(resource).to include(
+      'data-action="click->image-lightbox#open"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="overlay"'
+    )
+
+    expect(resource).to include(
+      'data-action="click->image-lightbox#closeOnBackground"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="stage"'
+    )
+
+    expect(resource).to include(
+      "pointerdown->image-lightbox#pointerDown"
+    )
+
+    expect(resource).to include(
+      "pointermove->image-lightbox#pointerMove"
+    )
+
+    expect(resource).to include(
+      "pointerup->image-lightbox#pointerUp"
+    )
+
+    expect(resource).to include(
+      "pointercancel->image-lightbox#pointerCancel"
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="counter"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="thumbnails"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="caption"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="previousButton"'
+    )
+
+    expect(resource).to include(
+      'data-action="click->image-lightbox#previous"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-target="nextButton"'
+    )
+
+    expect(resource).to include(
+      'data-action="click->image-lightbox#next"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-url="<%= url_for(image) %>"'
+    )
+
+    expect(resource).to include(
+      'data-image-lightbox-alt="<%= image.filename.to_s %>"'
+    )
+
+    expect(resource).to include(
+      'class: "resource-image__image"'
+    )
+
+    expect(resource).to include(
+      'class: "resource-images__image"'
+    )
+
+    expect(resource).to include(
+      "No image"
+    )
+
+    expect(resource).to include(
+      "No images"
+    )
+  end
+
   it "generates password fields for password_digest" do
     generator = described_class.new(
       [

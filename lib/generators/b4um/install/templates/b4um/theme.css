@@ -62,6 +62,10 @@
   --b4um-primary-shadow: rgba(46, 71, 210, 0.22);
   --b4um-primary-shadow-soft: rgba(46, 71, 210, 0.12);
   --b4um-danger-shadow: rgba(204, 0, 0, 0.18);
+
+  --b4um-hero-teaser-background: rgba(255, 255, 255, 0.55);
+  --b4um-hero-teaser-text: rgba(20, 20, 20, 0.9);
+  --b4um-hero-teaser-border: rgba(255, 255, 255, 0.3);
 }
 
 /* -------------------------------------------------------
@@ -127,6 +131,10 @@
   --b4um-primary-shadow: rgba(142, 162, 255, 0.24);
   --b4um-primary-shadow-soft: rgba(142, 162, 255, 0.14);
   --b4um-danger-shadow: rgba(255, 133, 133, 0.18);
+
+  --b4um-hero-teaser-background: rgba(20, 20, 20, 0.55);
+  --b4um-hero-teaser-text: rgba(255, 255, 255, 0.85);
+  --b4um-hero-teaser-border: rgba(255, 255, 255, 0.18);
 
   color-scheme: dark;
 }

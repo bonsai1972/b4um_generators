@@ -432,6 +432,89 @@ RSpec.describe B4um::Generators::InstallGenerator do
       )
     end
 
+    lightbox_path = File.join(
+      @destination_root,
+      "app/assets/stylesheets/b4um/lightbox.css"
+    )
+
+    expect(File).to exist(lightbox_path)
+
+    lightbox = File.read(
+      lightbox_path
+    )
+
+    expect(lightbox).to include(
+      ".lupe"
+    )
+
+    expect(lightbox).to include(
+      ".resource-image__button"
+    )
+
+    expect(lightbox).to include(
+      ".resource-images__button"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__stage"
+    )
+
+    expect(lightbox).to include(
+      "touch-action: pan-y"
+    )
+
+    expect(lightbox).to include(
+      "cursor: grab"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__image--dragging"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__image--sliding"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__image--waiting-right"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__image--waiting-left"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__image--exit-left"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__image--exit-right"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__navigation--previous"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__navigation--next"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__thumbnails"
+    )
+
+    expect(lightbox).to include(
+      ".image-lightbox__thumbnail.is-active"
+    )
+
+    expect(lightbox).to include(
+      "@media (prefers-reduced-motion: reduce)"
+    )
+
+    expect(lightbox).to include(
+      "@media (max-width: 768px)"
+    )
+
     theme = File.read(
       File.join(component_directory, "theme.css")
     )
@@ -865,6 +948,103 @@ RSpec.describe B4um::Generators::InstallGenerator do
         @destination_root,
         "app/javascript/controllers/image_lightbox_controller.js"
       )
+    )
+
+    image_lightbox_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/image_lightbox_controller.js"
+    )
+
+    image_lightbox_controller = File.read(
+      image_lightbox_controller_path
+    )
+
+    expect(image_lightbox_controller).to include(
+      "'thumbnails'"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "buildThumbnails()"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "updateThumbnails(activeIndex = this.currentIndex)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "thumbnail.classList.toggle('is-active', active)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "thumbnail.setAttribute('aria-current', active ? 'true' : 'false')"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "scrollIntoView"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "pointerDown(event)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "pointerMove(event)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "pointerUp(event)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "pointerCancel(event)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "setPointerCapture(event.pointerId)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "releasePointerCapture(event.pointerId)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "createDragImage(index, direction)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "slideTo(index, direction)"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "prefersReducedMotion()"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "'(prefers-reduced-motion: reduce)'"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "case 'ArrowLeft':"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "case 'ArrowRight':"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "case 'Escape':"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "this.counterTarget.textContent = `${this.currentIndex + 1} von ${this.itemTargets.length}`"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "this.previousButtonTarget.hidden = !hasMultipleImages"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "this.nextButtonTarget.hidden = !hasMultipleImages"
     )
 
     expect(
