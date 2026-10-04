@@ -208,8 +208,190 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     controller = File.read(controller_path)
 
     expect(controller).to include(
-      "params.expect(admin: [:name, :email, :avatar])"
+      "params.expect(admin: [:name, :email, :avatar, :remove_avatar])"
     )
+  end
+
+  it "adds single attachment removal to the form and controller" do
+    create_model(
+      "admin",
+      <<~RUBY
+        class Admin < ApplicationRecord
+        end
+      RUBY
+    )
+
+    form_path = File.join(
+      @destination_root,
+      "app/views/admins/_form.html.erb"
+    )
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/admins_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(form_path))
+    FileUtils.mkdir_p(File.dirname(controller_path))
+
+    File.write(
+      form_path,
+      <<~ERB
+        <%= form_with(model: admin, class: "form") do |form| %>
+          <div class="form-actions">
+            <%= form.submit class: "form-submit" %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class AdminsController < ApplicationController
+          def update
+            respond_to do |format|
+              if @admin.update(admin_params)
+                format.html { redirect_to @admin }
+              end
+            end
+          end
+
+          private
+
+          def admin_params
+            params.expect(admin: [:name, :email])
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Admin avatar],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    form = File.read(form_path)
+    controller = File.read(controller_path)
+
+    expect(form).to include(
+      '"admin[remove_avatar]"'
+    )
+
+    expect(form).to include(
+      'data-image-preview-target="existingItem"'
+    )
+
+    expect(form).to include(
+      'image_preview_target: "removeCheckbox"'
+    )
+
+    expect(form).to include(
+      "Will be removed"
+    )
+
+    expect(controller).to include(
+      ":avatar, :remove_avatar"
+    )
+
+    expect(controller).to include(
+      'remove_avatar = update_params.delete("remove_avatar")'
+    )
+
+    expect(controller).to include(
+      "@admin.update(update_params)"
+    )
+
+    expect(controller).to include(
+      '@admin.avatar.purge if remove_avatar == "1"'
+    )
+  end
+
+  it "adds a single attachment after multiple attachment setup" do
+    create_model(
+      "product",
+      <<~RUBY
+        class Product < ApplicationRecord
+          has_many_attached :gallery
+        end
+      RUBY
+    )
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(controller_path))
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def update
+            update_params = product_params
+            new_gallery = update_params.delete("gallery")
+            remove_gallery_ids = update_params.delete("remove_gallery_ids")
+
+            respond_to do |format|
+              if @product.update(update_params)
+                @product.gallery.attach(new_gallery) if new_gallery.present?
+
+                if remove_gallery_ids.present?
+                  @product.gallery.attachments
+                    .where(id: remove_gallery_ids)
+                    .find_each(&:purge)
+                end
+
+                format.html { redirect_to @product }
+              end
+            end
+          end
+
+          private
+
+          def product_params
+            params.expect(product: [:name, gallery: [], remove_gallery_ids: []])
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Product cover],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      ":cover, :remove_cover"
+    )
+
+    expect(controller).to include(
+      'remove_cover = update_params.delete("remove_cover")'
+    )
+
+    expect(controller).to include(
+      '@product.cover.purge if remove_cover == "1"'
+    )
+
+    expect(controller).to include(
+      'new_gallery = update_params.delete("gallery")'
+    )
+
+    expect(controller).to include(
+      "@product.gallery.attach(new_gallery)"
+    )
+    expect do
+      RubyVM::InstructionSequence.compile(controller)
+    end.not_to raise_error
   end
 
   it "does not duplicate attachment setup when run twice" do
@@ -255,6 +437,14 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
       controller_path,
       <<~RUBY
         class AdminsController < ApplicationController
+          def update
+            respond_to do |format|
+              if @admin.update(admin_params)
+                format.html { redirect_to @admin }
+              end
+            end
+          end
+
           private
 
           def admin_params
@@ -312,7 +502,23 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     ).to eq(1)
 
     expect(
-      controller.scan(":avatar").count
+      controller.scan(":avatar, :remove_avatar").count
+    ).to eq(1)
+
+    expect(
+      controller.scan(
+        'remove_avatar = update_params.delete("remove_avatar")'
+      ).count
+    ).to eq(1)
+
+    expect(
+      controller.scan(
+        '@admin.avatar.purge if remove_avatar == "1"'
+      ).count
+    ).to eq(1)
+
+    expect(
+      form.scan('"admin[remove_avatar]"').count
     ).to eq(1)
 
     expect(

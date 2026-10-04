@@ -110,13 +110,18 @@ module B4um
       def update_single_attachment_params
         content = File.read(controller_path)
 
-        return if attachment_permitted?(content)
+        update_single_permitted_params(content)
+        update_single_attachment_action
+      end
+
+      def update_single_permitted_params(content)
+        return if single_attachment_permitted?(content)
 
         pattern = /
           params\.expect\(
           #{Regexp.escape(file_name)}:\s*
           \[
-          (?<attributes>[^\]]*)
+          (?<attributes>.*?)
           \]
           \)
         /mx
@@ -124,9 +129,83 @@ module B4um
         return unless content.match?(pattern)
 
         gsub_file(controller_path, pattern) do |match|
+          match_data = pattern.match(match)
+          attributes = match_data[:attributes]
+
+          insertion = ":#{attachment}, :remove_#{attachment}"
+
+          updated_attributes =
+            if attributes.match?(/\w+:\s*\[/)
+              attributes.sub(
+                /(?=\w+:\s*\[)/,
+                "#{insertion}, "
+              )
+            else
+              "#{attributes}, #{insertion}"
+            end
+
           match.sub(
-            /\]\)$/,
-            ", :#{attachment}])"
+            attributes,
+            updated_attributes
+          )
+        end
+      end
+
+      def single_attachment_permitted?(content)
+        content.include?(
+          ":#{attachment}, :remove_#{attachment}"
+        )
+      end
+
+      def update_single_attachment_action
+        content = File.read(controller_path)
+
+        return if content.include?(
+          "remove_#{attachment} = update_params.delete(\"remove_#{attachment}\")"
+        )
+
+        if content.include?("    update_params = #{file_name}_params\n")
+          insert_into_file(
+            controller_path,
+            "    remove_#{attachment} = update_params.delete(\"remove_#{attachment}\")\n",
+            after: "    update_params = #{file_name}_params\n"
+          )
+        else
+          setup = [
+            "  def update",
+            "    update_params = #{file_name}_params",
+            "    remove_#{attachment} = update_params.delete(\"remove_#{attachment}\")",
+            "",
+            "    respond_to do |format|",
+            ""
+          ].join("\n")
+
+          gsub_file(
+            controller_path,
+            "  def update\n    respond_to do |format|\n",
+            setup
+          )
+        end
+
+        content = File.read(controller_path)
+
+        if content.include?("      if @#{file_name}.update(update_params)\n")
+          insert_into_file(
+            controller_path,
+            "        @#{file_name}.#{attachment}.purge if remove_#{attachment} == \"1\"\n",
+            after: "      if @#{file_name}.update(update_params)\n"
+          )
+        else
+          attachment_handling = [
+            "      if @#{file_name}.update(update_params)",
+            "        @#{file_name}.#{attachment}.purge if remove_#{attachment} == \"1\"",
+            ""
+          ].join("\n")
+
+          gsub_file(
+            controller_path,
+            "      if @#{file_name}.update(#{file_name}_params)\n",
+            attachment_handling
           )
         end
       end
@@ -439,12 +518,34 @@ module B4um
                  <%= "hidden" unless #{file_name}.#{attachment}.attached? %>>
 
               <% if #{file_name}.#{attachment}.attached? %>
-                <%= image_tag #{file_name}.#{attachment},
-                              class: "form-image-preview__image",
-                              alt: #{file_name}.#{attachment}.filename.to_s,
-                              data: {
-                                image_preview_target: "image"
-                              } %>
+                <div class="form-image-preview__item"
+                     role="button"
+                     tabindex="0"
+                     aria-pressed="false"
+                     data-image-preview-target="existingItem"
+                     data-action="click->image-preview#toggleRemoval keydown->image-preview#toggleRemovalWithKeyboard">
+
+                  <%= image_tag #{file_name}.#{attachment},
+                                class: "form-image-preview__image",
+                                alt: #{file_name}.#{attachment}.filename.to_s,
+                                data: {
+                                  image_preview_target: "image"
+                                } %>
+
+                  <%= check_box_tag(
+                        "#{file_name}[remove_#{attachment}]",
+                        "1",
+                        false,
+                        class: "form-image-preview__remove-checkbox",
+                        data: {
+                          image_preview_target: "removeCheckbox"
+                        }
+                      ) %>
+
+                  <div class="form-image-preview__remove-status">
+                    Will be removed
+                  </div>
+                </div>
               <% else %>
                 <img class="form-image-preview__image"
                      data-image-preview-target="image"
