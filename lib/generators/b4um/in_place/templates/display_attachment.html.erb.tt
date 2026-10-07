@@ -1,0 +1,154 @@
+<%%= turbo_frame_tag dom_id(<%= singular_table_name %>, :<%= @field %>) do %>
+  <%% if <%= singular_table_name %>.<%= @field %>.attached? %>
+    <div
+      class="in-place-image-container"
+      data-controller="image-lightbox"
+      data-action="keydown->image-lightbox#keydown"
+    >
+      <button
+        type="button"
+        class="in-place-attachment__button"
+        data-image-lightbox-target="item"
+        data-image-lightbox-url="<%%= url_for(<%= singular_table_name %>.<%= @field %>) %>"
+        data-image-lightbox-alt="<%%= <%= singular_table_name %>.<%= @field %>.filename.to_s %>"
+        data-action="click->image-lightbox#open"
+      >
+        <%%= image_tag <%= singular_table_name %>.<%= @field %>,
+              class: "in-place-attachment__image",
+              alt: <%= singular_table_name %>.<%= @field %>.filename.to_s %>
+      </button>
+
+      <div
+        class="image-lightbox"
+        data-image-lightbox-target="overlay"
+        data-action="click->image-lightbox#closeOnBackground"
+        tabindex="-1"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image preview"
+        hidden
+      >
+        <div
+          class="image-lightbox__counter"
+          data-image-lightbox-target="counter"
+        ></div>
+
+        <button
+          type="button"
+          class="image-lightbox__close"
+          aria-label="Close image"
+          data-action="click->image-lightbox#close"
+        >
+          &times;
+        </button>
+
+        <div
+          class="image-lightbox__stage"
+          data-image-lightbox-target="stage"
+          data-action="
+            pointerdown->image-lightbox#pointerDown
+            pointermove->image-lightbox#pointerMove
+            pointerup->image-lightbox#pointerUp
+            pointercancel->image-lightbox#pointerCancel
+          "
+        >
+          <img
+            class="image-lightbox__image"
+            data-image-lightbox-target="image"
+            alt=""
+          >
+        </div>
+
+        <div
+          class="image-lightbox__thumbnails"
+          data-image-lightbox-target="thumbnails"
+        ></div>
+
+        <div
+          class="image-lightbox__caption"
+          data-image-lightbox-target="caption"
+        ></div>
+      </div>
+
+      <%% if b4um_in_place_editing_allowed? %>
+        <div
+          class="in-place-image-action"
+          data-controller="in-place"
+          data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
+        >
+          <button
+            type="button"
+            class="in-place-edit-button"
+            data-action="click->in-place#edit"
+            title="Edit image"
+            aria-label="Edit image"
+          >
+            <svg
+              class="in-place-edit-button__icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 20h9"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M16.5 3.5a2.121 2.121 0 0 1 3 3L8 18l-4 1 1-4Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      <%% end %>
+    </div>
+  <%% else %>
+    <div class="in-place-image-container">
+      <span class="in-place-attachment__empty">No image</span>
+
+      <%% if b4um_in_place_editing_allowed? %>
+        <div
+          class="in-place-image-action"
+          data-controller="in-place"
+          data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
+        >
+          <button
+            type="button"
+            class="in-place-edit-button"
+            data-action="click->in-place#edit"
+            title="Add image"
+            aria-label="Add image"
+          >
+            <svg
+              class="in-place-edit-button__icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 20h9"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M16.5 3.5a2.121 2.121 0 0 1 3 3L8 18l-4 1 1-4Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      <%% end %>
+    </div>
+  <%% end %>
+<%% end %>

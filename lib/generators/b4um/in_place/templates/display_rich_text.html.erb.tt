@@ -1,0 +1,123 @@
+<%%= turbo_frame_tag dom_id(<%= singular_table_name %>, :<%= @field %>) do %>
+  <div class="resource-field in-place-rich-text">
+    <strong class="resource-label"><%= @field.humanize %>:</strong>
+
+    <div
+      class="in-place-rich-text__content"
+      data-controller="image-lightbox rich-text"
+      data-action="keydown->image-lightbox#keydown"
+    >
+      <%%= <%= singular_table_name %>.<%= @field %> %>
+
+      <div
+        class="image-lightbox"
+        data-image-lightbox-target="overlay"
+        data-action="click->image-lightbox#closeOnBackground"
+        tabindex="-1"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image gallery"
+        hidden
+      >
+        <div
+          class="image-lightbox__counter"
+          data-image-lightbox-target="counter"
+        ></div>
+
+        <button
+          type="button"
+          class="image-lightbox__close"
+          aria-label="Close image"
+          data-action="click->image-lightbox#close"
+        >
+          &times;
+        </button>
+
+        <button
+          type="button"
+          class="image-lightbox__navigation image-lightbox__navigation--previous"
+          aria-label="Previous image"
+          data-image-lightbox-target="previousButton"
+          data-action="click->image-lightbox#previous"
+        >
+          &#8249;
+        </button>
+
+        <div
+          class="image-lightbox__stage"
+          data-image-lightbox-target="stage"
+          data-action="
+            pointerdown->image-lightbox#pointerDown
+            pointermove->image-lightbox#pointerMove
+            pointerup->image-lightbox#pointerUp
+            pointercancel->image-lightbox#pointerCancel
+          "
+        >
+          <img
+            class="image-lightbox__image"
+            data-image-lightbox-target="image"
+            alt=""
+          >
+        </div>
+
+        <button
+          type="button"
+          class="image-lightbox__navigation image-lightbox__navigation--next"
+          aria-label="Next image"
+          data-image-lightbox-target="nextButton"
+          data-action="click->image-lightbox#next"
+        >
+          &#8250;
+        </button>
+
+        <div
+          class="image-lightbox__thumbnails"
+          data-image-lightbox-target="thumbnails"
+        ></div>
+
+        <div
+          class="image-lightbox__caption"
+          data-image-lightbox-target="caption"
+        ></div>
+      </div>
+    </div>
+
+    <%% if b4um_in_place_editing_allowed? %>
+      <div
+        class="in-place-rich-text__action"
+        data-controller="in-place"
+        data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
+      >
+        <button
+          type="button"
+          class="in-place-edit-button"
+          data-action="click->in-place#edit"
+          title="Edit <%= @field.humanize.downcase %>"
+          aria-label="Edit <%= @field.humanize.downcase %>"
+        >
+          <svg
+            class="in-place-edit-button__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 20h9"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M16.5 3.5a2.121 2.121 0 0 1 3 3L8 18l-4 1 1-4Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+    <%% end %>
+  </div>
+<%% end %>

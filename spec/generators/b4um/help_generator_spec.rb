@@ -712,6 +712,66 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the b4um in-place generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "IN-PLACE EDITING"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:in_place MODEL FIELD [FIELD ...]"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:in_place Product name price status"
+      )
+
+      expect(text).to include(
+        "String and text fields"
+      )
+
+      expect(text).to include(
+        "Action Text rich text fields"
+      )
+
+      expect(text).to include(
+        "Active Storage single image attachments"
+      )
+
+      expect(text).to include(
+        "Active Storage multiple image attachments"
+      )
+
+      expect(text).to include(
+        "--select='status:Active=Aktiv,Inactive=Inaktiv'"
+      )
+
+      expect(text).to include(
+        "--radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'"
+      )
+
+      expect(text).to include(
+        "Turbo Frame based editing without an additional in-place gem"
+      )
+
+      expect(text).to include(
+        "Validation errors remain visible inside the editor"
+      )
+
+      expect(text).to include(
+        "Additional fields can be added in later generator runs"
+      )
+
+      expect(text).to include(
+        "Authentication can be installed before or after in-place editing."
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the b4um Trix generator" do
     generator = described_class.new
 

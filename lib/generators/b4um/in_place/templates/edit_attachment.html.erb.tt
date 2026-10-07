@@ -1,0 +1,83 @@
+<%%= turbo_frame_tag dom_id(@<%= singular_table_name %>, :<%= @field %>) do %>
+  <div
+    class="in-place-image-editor"
+    data-controller="in-place"
+    data-in-place-outside-save-value="false"
+    data-in-place-cancel-url-value="<%%= <%= singular_table_name %>_path(@<%= singular_table_name %>) %>"
+  >
+    <div class="in-place-image-editor__preview">
+      <%% if @<%= singular_table_name %>.<%= @field %>.attached? %>
+        <%%= image_tag @<%= singular_table_name %>.<%= @field %>,
+              class: "in-place-image-editor__image",
+              alt: @<%= singular_table_name %>.<%= @field %>.filename.to_s %>
+
+        <%%= form_with model: @<%= singular_table_name %>,
+              class: "in-place-image-remove-form" do |form| %>
+
+          <%%= hidden_field_tag :in_place_field, "<%= @field %>" %>
+          <%%= hidden_field_tag(
+                "<%= singular_table_name %>[remove_<%= @field %>]",
+                "1"
+              ) %>
+
+          <button
+            type="submit"
+            class="in-place-image-remove"
+            title="Remove image"
+            aria-label="Remove image"
+          >
+            <span class="in-place-image-remove__icon" aria-hidden="true">
+              &times;
+            </span>
+          </button>
+        <%% end %>
+      <%% else %>
+        <div class="in-place-image-editor__empty">
+          No image
+        </div>
+      <%% end %>
+    </div>
+
+    <div class="in-place-image-editor__controls">
+      <%%= form_with model: @<%= singular_table_name %>,
+            class: "in-place-image-form",
+            multipart: true do |form| %>
+
+        <%%= hidden_field_tag :in_place_field, "<%= @field %>" %>
+
+        <%% if @<%= singular_table_name %>.errors[:<%= @field %>].any? %>
+          <div class="in-place-error">
+            <%%= @<%= singular_table_name %>.errors.full_messages_for(:<%= @field %>).to_sentence %>
+          </div>
+        <%% end %>
+
+        <%%= form.file_field :<%= @field %>,
+              accept: "image/*",
+              class: "in-place-file-input",
+              data: { action: "change->in-place#save" } %>
+
+        <%% if @<%= singular_table_name %>.<%= @field %>.attached? %>
+          <label
+            for="<%= singular_table_name %>_<%= @field %>"
+            class="in-place-file-button in-place-file-button--replace"
+          >
+            <span class="in-place-file-button__icon" aria-hidden="true">
+              &#128247;
+            </span>
+            Replace image
+          </label>
+        <%% else %>
+          <label
+            for="<%= singular_table_name %>_<%= @field %>"
+            class="in-place-file-button in-place-file-button--choose"
+          >
+            <span class="in-place-file-button__icon" aria-hidden="true">
+              +
+            </span>
+            Choose image
+          </label>
+        <%% end %>
+      <%% end %>
+    </div>
+  </div>
+<%% end %>

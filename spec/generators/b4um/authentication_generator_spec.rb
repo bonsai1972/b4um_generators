@@ -260,6 +260,196 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
       "stale_when_importmap_changes"
     )
   end
+
+  it "updates an existing in-place helper to require login" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/helpers")
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/helpers/b4um_in_place_helper.rb"
+      ),
+      <<~RUBY
+        # frozen_string_literal: true
+
+        module B4umInPlaceHelper
+          def b4um_in_place_editing_allowed?
+            true
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    helper = File.read(
+      File.join(
+        @destination_root,
+        "app/helpers/b4um_in_place_helper.rb"
+      )
+    )
+
+    expect(helper).to include(
+      "def b4um_in_place_editing_allowed?\n    logged_in?"
+    )
+
+    expect(helper).not_to include(
+      "def b4um_in_place_editing_allowed?\n    true"
+    )
+  end
+
+  it "protects an existing in-place controller" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/controllers")
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      ),
+      <<~RUBY
+        class ProductsController < ApplicationController
+          IN_PLACE_FIELDS = %w[
+            name
+          ].freeze
+
+          before_action :set_product, only: %i[ show edit edit_name update destroy ]
+
+          def show
+          end
+
+          def edit_name
+          end
+
+          def update
+          end
+
+          private
+
+          def set_product
+            @product = Product.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    expect(controller).to include(
+      "before_action :require_login, except: [:index, :show]"
+    )
+  end
+
+  it "does not duplicate in-place authentication integration when run twice" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/helpers")
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/helpers/b4um_in_place_helper.rb"
+      ),
+      <<~RUBY
+        # frozen_string_literal: true
+
+        module B4umInPlaceHelper
+          def b4um_in_place_editing_allowed?
+            true
+          end
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      ),
+      <<~RUBY
+        class ProductsController < ApplicationController
+          IN_PLACE_FIELDS = %w[
+            name
+          ].freeze
+
+          before_action :set_product, only: %i[ show edit edit_name update destroy ]
+
+          def show
+          end
+
+          def edit_name
+          end
+
+          def update
+          end
+
+          private
+
+          def set_product
+            @product = Product.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+    generator.invoke_all
+
+    helper = File.read(
+      File.join(
+        @destination_root,
+        "app/helpers/b4um_in_place_helper.rb"
+      )
+    )
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    expect(
+      helper.scan(
+        "def b4um_in_place_editing_allowed?\n    logged_in?"
+      ).count
+    ).to eq(1)
+
+    expect(
+      controller.scan(
+        "before_action :require_login, except: [:index, :show]"
+      ).count
+    ).to eq(1)
+  end
+
   it "does not duplicate authentication setup when run twice" do
     generator = described_class.new(
       ["User"],

@@ -905,6 +905,67 @@ module B4um
           the generator to stop with an error.
 
 
+          IN-PLACE EDITING
+
+            bin/rails generate b4um:in_place MODEL FIELD [FIELD ...]
+
+          Adds in-place editing to fields of an existing b4um resource.
+
+          Examples:
+
+            bin/rails generate b4um:in_place Product name
+            bin/rails generate b4um:in_place Product name price status
+
+          The model, controller and resource routes must already exist.
+
+          The generator detects the field type automatically and creates
+          the appropriate in-place editor.
+
+          Supported fields include:
+
+            - String and text fields
+            - Numeric and decimal fields
+            - Boolean fields
+            - Action Text rich text fields
+            - Active Storage single image attachments
+            - Active Storage multiple image attachments
+
+          Select fields can be configured with --select:
+
+            bin/rails generate b4um:in_place Product status --select='status:Active=Aktiv,Inactive=Inaktiv'
+
+          Radio buttons can be configured with --radio:
+
+            bin/rails generate b4um:in_place Product condition --radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'
+
+          The value before "=" is stored in the database.
+          The optional value after "=" is used as the displayed label.
+
+          In-place editing features:
+
+            - Turbo Frame based editing without an additional in-place gem
+            - Click a displayed field to edit it in place
+            - Text and rich text fields save when clicking outside
+            - Select, radio, and boolean fields save immediately
+            - Single and multiple image attachment editing
+            - Existing attachments can be removed
+            - Validation errors remain visible inside the editor
+            - Successful updates can refresh the flash message immediately
+            - Existing resource layout remains in place while editing
+            - Multiple fields can be added in one generator run
+            - Additional fields can be added in later generator runs
+            - Safe repeated generator runs
+
+          In-place editing also integrates with b4um authentication.
+
+          Without authentication, generated in-place fields are editable.
+          When b4um authentication is installed, editing is restricted to
+          logged-in users and the affected controller actions are protected.
+
+          Authentication can be installed before or after in-place editing.
+          The generators update the integration automatically in either order.
+
+
           TRIX / RICH TEXT
 
             bin/rails generate b4um:trix MODEL ATTRIBUTE

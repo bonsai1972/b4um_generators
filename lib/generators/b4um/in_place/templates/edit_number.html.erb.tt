@@ -1,0 +1,26 @@
+<%%= turbo_frame_tag dom_id(@<%= singular_table_name %>, :<%= @field %>) do %>
+  <div class="resource-field in-place-field">
+    <strong class="resource-label"><%= @field.humanize %>:</strong>
+
+    <span class="resource-value">
+      <div
+        data-controller="in-place"
+        data-in-place-cancel-url-value="<%%= <%= singular_table_name %>_path(@<%= singular_table_name %>) %>"
+      >
+        <%%= form_with model: @<%= singular_table_name %>, class: "form in-place-form" do |form| %>
+          <%%= hidden_field_tag :in_place_field, "<%= @field %>" %>
+
+          <%% if @<%= singular_table_name %>.errors[:<%= @field %>].any? %>
+            <div class="in-place-error">
+              <%%= @<%= singular_table_name %>.errors.full_messages_for(:<%= @field %>).to_sentence %>
+            </div>
+          <%% end %>
+
+          <%%= form.number_field :<%= @field %>,
+                step: "any",
+                class: "in-place-number" %>
+        <%% end %>
+      </div>
+    </span>
+  </div>
+<%% end %>

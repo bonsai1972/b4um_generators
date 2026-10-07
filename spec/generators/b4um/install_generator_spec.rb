@@ -1047,6 +1047,64 @@ RSpec.describe B4um::Generators::InstallGenerator do
       "this.nextButtonTarget.hidden = !hasMultipleImages"
     )
 
+    expect(image_lightbox_controller).to include(
+      "prepareActionTextImages()"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "'keydown.enter->image-lightbox#open'"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "'keydown.space->image-lightbox#open'"
+    )
+
+    rich_text_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/rich_text_controller.js"
+    )
+
+    expect(File).to exist(rich_text_controller_path)
+
+    rich_text_controller = File.read(
+      rich_text_controller_path
+    )
+
+    expect(rich_text_controller).to include(
+      "link.setAttribute('target', '_blank')"
+    )
+
+    expect(rich_text_controller).to include(
+      "rel.add('noopener')"
+    )
+
+    expect(rich_text_controller).to include(
+      "rel.add('noreferrer')"
+    )
+
+    expect(rich_text_controller).to include(
+      "link.setAttribute('rel', Array.from(rel).join(' '))"
+    )
+
+    scroll_to_top_controller_path = File.join(
+      @destination_root,
+      "app/javascript/controllers/scroll_to_top_controller.js"
+    )
+
+    expect(File).to exist(scroll_to_top_controller_path)
+
+    scroll_to_top_controller = File.read(
+      scroll_to_top_controller_path
+    )
+
+    expect(scroll_to_top_controller).to include(
+      "scrollTo"
+    )
+
+    expect(scroll_to_top_controller).to include(
+      "behavior: 'smooth'"
+    )
+
     expect(
       File
     ).to exist(
@@ -1170,6 +1228,18 @@ RSpec.describe B4um::Generators::InstallGenerator do
 
     expect(hero).to include(
       'class="b4um-hero__title"'
+    )
+
+    expect(footer).to include(
+      'href="#b4um-page-top"'
+    )
+
+    expect(footer).to include(
+      'data-controller="scroll-to-top"'
+    )
+
+    expect(footer).to include(
+      'data-action="click->scroll-to-top#scroll"'
     )
 
     expect(footer).to include(

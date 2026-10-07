@@ -149,6 +149,62 @@ module B4um
         end
       end
 
+      def update_in_place_helper
+        helper_path = "app/helpers/b4um_in_place_helper.rb"
+
+        full_helper_path = File.join(
+          destination_root,
+          helper_path
+        )
+
+        return unless File.exist?(full_helper_path)
+
+        helper = File.read(full_helper_path)
+
+        return if helper.include?(
+          "def b4um_in_place_editing_allowed?\n    logged_in?"
+        )
+
+        gsub_file(
+          helper_path,
+          "def b4um_in_place_editing_allowed?\n    true",
+          "def b4um_in_place_editing_allowed?\n    logged_in?"
+        )
+      end
+
+      def protect_in_place_controllers
+        controllers_path = File.join(
+          destination_root,
+          "app/controllers"
+        )
+
+        return unless Dir.exist?(controllers_path)
+
+        Dir.glob(
+          File.join(controllers_path, "*_controller.rb")
+        ).each do |full_controller_path|
+          controller = File.read(full_controller_path)
+
+          next unless controller.include?("IN_PLACE_FIELDS")
+
+          callback =
+            "before_action :require_login, except: [:index, :show]"
+
+          next if controller.include?(callback)
+
+          controller_path = full_controller_path.delete_prefix(
+            "#{destination_root}/"
+          )
+
+          inject_into_file(
+            controller_path,
+            after: /^class .*Controller < ApplicationController\s*$/
+          ) do
+            "\n  #{callback}"
+          end
+        end
+      end
+
       def add_session_routes
         routes_path = "config/routes.rb"
         full_routes_path = File.join(destination_root, routes_path)

@@ -1,0 +1,65 @@
+<%%= turbo_frame_tag dom_id(@<%= singular_table_name %>, :<%= @field %>) do %>
+  <div class="resource-field in-place-field">
+    <strong class="resource-label"><%= @field.humanize %>:</strong>
+
+    <span class="resource-value">
+      <div
+        data-controller="in-place"
+        data-in-place-outside-save-value="false"
+        data-in-place-cancel-url-value="<%%= <%= singular_table_name %>_path(@<%= singular_table_name %>) %>"
+      >
+        <%%= form_with model: @<%= singular_table_name %>,
+              class: "form in-place-gallery-form",
+              multipart: true do |form| %>
+
+          <%%= hidden_field_tag :in_place_field, "<%= @field %>" %>
+
+          <%% if @<%= singular_table_name %>.errors[:<%= @field %>].any? %>
+            <div class="in-place-error">
+              <%%= @<%= singular_table_name %>.errors.full_messages_for(:<%= @field %>).to_sentence %>
+            </div>
+          <%% end %>
+
+          <div class="in-place-gallery">
+            <%% @<%= singular_table_name %>.<%= @field %>.each do |attachment| %>
+              <div class="in-place-gallery__item">
+                <%%= image_tag attachment,
+                      class: "in-place-gallery__image",
+                      alt: attachment.filename.to_s %>
+
+                <%%= check_box_tag "<%= singular_table_name %>[remove_<%= @field %>_ids][]",
+                      attachment.id,
+                      false,
+                      id: "remove_<%= @field %>_#{attachment.id}",
+                      class: "in-place-gallery__remove",
+                      data: { action: "change->in-place#save" } %>
+
+                <%%= label_tag "remove_<%= @field %>_#{attachment.id}",
+                    "&times;".html_safe,
+                    class: "in-place-gallery__remove-button",
+                    title: "Remove image",
+                    aria: { label: "Remove image" } %>
+              </div>
+            <%% end %>
+
+            <div class="in-place-gallery__add">
+              <%%= form.file_field :<%= @field %>,
+                    multiple: true,
+                    accept: "image/*",
+                    class: "in-place-gallery__file",
+                    data: { action: "change->in-place#save" } %>
+
+              <label
+                for="<%= singular_table_name %>_<%= @field %>"
+                class="in-place-gallery__add-button"
+              >
+                <span class="in-place-gallery__add-icon">+</span>
+                <span>Add image</span>
+              </label>
+            </div>
+          </div>
+        <%% end %>
+      </div>
+    </span>
+  </div>
+<%% end %>

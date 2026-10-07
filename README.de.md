@@ -82,6 +82,7 @@ b4um:pagination
 b4um:infinite_scroll
 b4um:search
 b4um:comments
+b4um:in_place
 b4um:authentication
 b4um:trix
 b4um:readable
@@ -690,6 +691,90 @@ Bestehende b4um-Comments-Controller werden automatisch erweitert.
 Unbekannte benutzerdefinierte Comments-Controller bleiben unverändert und führen dazu, dass der Generator abbricht,
 anstatt eigenen Code zu überschreiben.
 
+## In-place Editing
+
+Füge Feldern einer bestehenden b4um-Ressource eine direkte Bearbeitung hinzu:
+
+```bash
+bin/rails generate b4um:in_place MODEL FIELD [FIELD ...]
+```
+
+Beispiel für ein einzelnes Feld:
+
+```bash
+bin/rails generate b4um:in_place Product name
+```
+
+Mehrere Felder können in einem Durchlauf hinzugefügt werden:
+
+```bash
+bin/rails generate b4um:in_place Product name price status
+```
+
+Modell, Controller und Resource-Routen müssen bereits vorhanden sein.
+
+Der Generator erkennt die vorhandenen Feldtypen automatisch und erstellt die passenden Editoren.
+
+Unterstützte Felder sind:
+
+- String- und Text-Felder
+- Numerische und Decimal-Felder
+- Boolean-Felder
+- Action-Text-Rich-Text-Felder
+- Einzelne Active-Storage-Bild-Attachments
+- Mehrere Active-Storage-Bild-Attachments
+
+### Select-Felder
+
+Ein Feld kann mit `--select` als Auswahlliste dargestellt werden:
+
+```bash
+bin/rails generate b4um:in_place Product status --select='status:Active=Aktiv,Inactive=Inaktiv'
+```
+
+Der Wert vor `=` wird in der Datenbank gespeichert. Der optionale Wert nach `=` wird als sichtbare Beschriftung
+verwendet.
+
+Zum Beispiel speichert `Active=Aktiv` den Wert `Active`, während `Aktiv` angezeigt wird.
+
+### Radio-Felder
+
+Ein Feld kann mit `--radio` als Gruppe von Radio-Buttons dargestellt werden:
+
+```bash
+bin/rails generate b4um:in_place Product condition --radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'
+```
+
+Für Radio-Felder gilt dieselbe Wert- und Beschriftungssyntax wie für `--select`.
+
+### Verhalten der In-place-Bearbeitung
+
+Die generierte In-place-Bearbeitung bietet:
+
+- Bearbeitung mit Turbo Frames ohne zusätzliches In-place-Editing-Gem
+- Direkte Bearbeitung innerhalb des bestehenden Ressourcen-Layouts
+- Speichern von Text- und Rich-Text-Feldern beim Klick außerhalb des Editors
+- Sofortiges Speichern von Select-, Radio- und Boolean-Feldern
+- Bearbeitung einzelner und mehrerer Bild-Attachments
+- Entfernen vorhandener Bild-Attachments
+- Validierungsfehler direkt im Editor
+- Sofortige Aktualisierung der Flash-Meldung nach erfolgreicher Änderung
+- Mehrere Felder in einem Generator-Durchlauf
+- Nachträgliches Hinzufügen weiterer Felder
+- Sichere wiederholte Ausführung des Generators
+
+### Authentifizierung
+
+Die In-place-Bearbeitung integriert sich automatisch in die b4um-Authentifizierung.
+
+Ohne Authentifizierung können die generierten In-place-Felder bearbeitet werden.
+
+Wenn die b4um-Authentifizierung installiert ist, wird die In-place-Bearbeitung auf angemeldete Benutzer beschränkt und
+die zugehörigen Controller-Actions werden mit `require_login` geschützt.
+
+Die Authentifizierung kann vor oder nach der In-place-Bearbeitung installiert werden. Die Generatoren aktualisieren die
+Integration in beiden Installationsreihenfolgen automatisch.
+
 ## Trix und Rich Text
 
 Füge einer bestehenden b4um-Ressource Rails Action Text mit Trix hinzu:
@@ -978,7 +1063,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.2.6`
+Aktuelle Version: `0.2.12`
 
 ## Autor
 

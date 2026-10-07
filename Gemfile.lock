@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    b4um_generators (0.2.11)
+    b4um_generators (0.2.12)
       railties (>= 8.0, < 9.0)
 
 GEM
@@ -156,6 +156,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-24
+  arm64-darwin-25
 
 DEPENDENCIES
   b4um_generators!

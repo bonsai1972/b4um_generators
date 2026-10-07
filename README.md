@@ -80,6 +80,7 @@ b4um:pagination
 b4um:infinite_scroll
 b4um:search
 b4um:comments
+b4um:in_place
 b4um:authentication
 b4um:trix
 b4um:readable
@@ -685,6 +686,89 @@ Existing b4um comments controllers are extended automatically.
 Unknown custom comments controllers are left unchanged and cause the generator to stop instead of overwriting custom
 code.
 
+## In-place Editing
+
+Add in-place editing to fields of an existing b4um resource:
+
+```bash
+bin/rails generate b4um:in_place MODEL FIELD [FIELD ...]
+```
+
+Example for a single field:
+
+```bash
+bin/rails generate b4um:in_place Product name
+```
+
+Multiple fields can be added in one run:
+
+```bash
+bin/rails generate b4um:in_place Product name price status
+```
+
+The model, controller and resource routes must already exist.
+
+The generator detects the existing field types and creates the appropriate editors.
+
+Supported fields include:
+
+- String and text fields
+- Numeric and decimal fields
+- Boolean fields
+- Action Text rich-text fields
+- Active Storage single image attachments
+- Active Storage multiple image attachments
+
+### Select Fields
+
+A field can be rendered as a select list with `--select`:
+
+```bash
+bin/rails generate b4um:in_place Product status --select='status:Active=Aktiv,Inactive=Inaktiv'
+```
+
+The value before `=` is stored in the database. The optional value after `=` is used as the displayed label.
+
+For example, `Active=Aktiv` stores `Active` while displaying `Aktiv`.
+
+### Radio Fields
+
+A field can be rendered as radio buttons with `--radio`:
+
+```bash
+bin/rails generate b4um:in_place Product condition --radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'
+```
+
+The same value and label syntax used by `--select` applies to radio fields.
+
+### In-place Editing Behavior
+
+Generated in-place editing provides:
+
+- Turbo Frame based editing without an additional in-place editing gem
+- Editing directly inside the existing resource layout
+- Outside-click saving for text and rich-text fields
+- Immediate saving for select, radio and boolean fields
+- Single and multiple image attachment editing
+- Removal of existing image attachments
+- Inline validation errors
+- Immediate flash-message updates after successful changes
+- Multiple fields in one generator run
+- Additional fields in later generator runs
+- Safe repeated generator runs
+
+### Authentication
+
+In-place editing integrates automatically with b4um authentication.
+
+Without authentication, generated in-place fields are editable.
+
+When b4um authentication is installed, in-place editing is restricted to logged-in users and the corresponding
+controller actions are protected with `require_login`.
+
+Authentication can be installed either before or after in-place editing. The generators update the integration
+automatically in both installation orders.
+
 ## Trix and Rich Text
 
 Add Rails Action Text with Trix to an existing b4um resource:
@@ -970,7 +1054,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.2.7`
+Current version: `0.2.12`
 
 ## Author
 

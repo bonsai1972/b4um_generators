@@ -385,6 +385,16 @@ module B4um
                   "app/javascript/controllers/image_lightbox_controller.js"
       end
 
+      def copy_scroll_to_top_controller
+        copy_file "scroll_to_top_controller.js",
+                  "app/javascript/controllers/scroll_to_top_controller.js"
+      end
+
+      def copy_rich_text_controller
+        copy_file "rich_text_controller.js",
+                  "app/javascript/controllers/rich_text_controller.js"
+      end
+
       def copy_dismissible_controller
         copy_file "dismissible_controller.js",
                   "app/javascript/controllers/dismissible_controller.js"
