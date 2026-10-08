@@ -333,6 +333,13 @@ module B4um
         )
       end
 
+      def copy_flash
+        copy_file(
+          "_flash.html.erb",
+          "app/views/shared/_flash.html.erb"
+        )
+      end
+
       def copy_navigation_controller
         copy_file "navigation_controller.js",
                   "app/javascript/controllers/navigation_controller.js"
@@ -480,19 +487,7 @@ module B4um
             <%= render "shared/navigation" %>
 
             <main class="container">
-              <% flash.each do |type, message| %>
-                <div class="flash <%= "flash--" + type.to_s %>"
-                    data-controller="dismissible">
-                  <%= message %>
-
-                  <button type="button"
-                          class="flash__close"
-                          data-action="dismissible#dismiss"
-                          aria-label="Close">
-                    &times;
-                  </button>
-                </div>
-              <% end %>
+              <%= render "shared/flash" %>
           ERB
         )
 

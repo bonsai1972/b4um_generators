@@ -362,12 +362,42 @@ module B4um
             - b4um index, show, new and edit views
             - Bento index layout by default
             - Optional table index layout
+            - Select fields with custom labels
+            - Radio fields with custom labels
             - Automatic navigation entry
             - Active navigation state
             - Form validation errors
             - Flash messages
             - Password field support
             - Optional readable URL parameters
+
+          Select fields can be generated with:
+
+            --select='FIELD:VALUE=LABEL,VALUE=LABEL'
+
+          Example:
+
+            bin/rails generate b4um:scaffold Product name:string status:string --select='status:Active=Aktiv,Inactive=Inaktiv'
+
+          Radio fields use the same value and label syntax:
+
+            --radio='FIELD:VALUE=LABEL,VALUE=LABEL'
+
+          Example:
+
+            bin/rails generate b4um:scaffold Product name:string condition:string --radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'
+
+          The configured values are stored in the database. The labels
+          are displayed in forms, resource views and table layouts.
+
+          Select and radio options can be used together for different
+          fields.
+
+          Example:
+
+            bin/rails generate b4um:scaffold Product name:string status:string condition:string --select='status:Active=Aktiv,Inactive=Inaktiv' --radio='condition:new=Neu,used=Gebraucht'
+
+          The same field cannot use both --select and --radio.
 
           The default index uses the b4um Bento card layout.
 
@@ -976,21 +1006,27 @@ module B4um
 
             bin/rails generate b4um:trix Article content
 
-          The model and form must already exist.
+          The model and b4um form must already exist. The selected
+          attribute does not need to be present in the form yet.
 
           The generator adds:
 
             has_rich_text :content
 
-          and replaces the selected form field with a rich text editor:
+          and adds or replaces the selected form field with a rich
+          text editor:
 
             form.rich_text_area :content
+
+          The corresponding b4um resource field is also added when
+          it does not already exist.
 
           Trix / Rich Text features:
 
             - Installs Action Text automatically when necessary
             - Adds the rich text association to the model
-            - Replaces only the selected form field
+            - Adds or replaces the selected form field
+            - Adds the rich text field to the b4um resource when necessary
             - Preserves compact Bento text using plain text
             - Image lightbox for images inside rich text
             - Previous / next image navigation

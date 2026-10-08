@@ -805,7 +805,19 @@ RSpec.describe B4um::Generators::HelpGenerator do
       )
 
       expect(text).to include(
-        "The model and form must already exist."
+        "The model and b4um form must already exist."
+      )
+
+      expect(text).to include(
+        "attribute does not need to be present in the form yet."
+      )
+
+      expect(text).to include(
+        "Adds or replaces the selected form field"
+      )
+
+      expect(text).to include(
+        "Adds the rich text field to the b4um resource when necessary"
       )
     end
 

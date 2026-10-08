@@ -1303,18 +1303,37 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(layout).to include(
+      '<%= render "shared/flash" %>'
+    )
+
+    expect(layout).not_to include(
       "flash.each"
     )
 
-    expect(layout).to include(
+    flash_partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/shared/_flash.html.erb"
+      )
+    )
+
+    expect(flash_partial).to include(
+      'id="flash-messages"'
+    )
+
+    expect(flash_partial).to include(
+      "flash.each"
+    )
+
+    expect(flash_partial).to include(
       'data-controller="dismissible"'
     )
 
-    expect(layout).to include(
+    expect(flash_partial).to include(
       'class="flash__close"'
     )
 
-    expect(layout).to include(
+    expect(flash_partial).to include(
       'data-action="dismissible#dismiss"'
     )
 
@@ -1610,8 +1629,12 @@ RSpec.describe B4um::Generators::InstallGenerator do
     ).to eq(1)
 
     expect(
-      layout.scan("flash.each").count
+      layout.scan('<%= render "shared/flash" %>').count
     ).to eq(1)
+
+    expect(
+      layout.scan("flash.each").count
+    ).to eq(0)
 
     expect(
       layout.scan("</main>").count

@@ -14,7 +14,38 @@
         <tr>
 <% attributes.each do |attribute| -%>
           <td>
+<% if select_field?(attribute.name) -%>
 <% if attribute.name == "status" -%>
+            <span class="b4um-badge">
+              <%%=
+                <%= select_configuration[:values].inspect %>.to_h {
+                  |choice| [choice[:value], choice[:label]]
+                }.fetch(
+                  <%= singular_table_name %>.<%= attribute.name %>,
+                  <%= singular_table_name %>.<%= attribute.name %>
+                )
+              %>
+            </span>
+<% else -%>
+            <%%=
+              <%= select_configuration[:values].inspect %>.to_h {
+                |choice| [choice[:value], choice[:label]]
+              }.fetch(
+                <%= singular_table_name %>.<%= attribute.name %>,
+                <%= singular_table_name %>.<%= attribute.name %>
+              )
+            %>
+<% end -%>
+<% elsif radio_field?(attribute.name) -%>
+            <%%=
+              <%= radio_configuration[:values].inspect %>.to_h {
+                |choice| [choice[:value], choice[:label]]
+              }.fetch(
+                <%= singular_table_name %>.<%= attribute.name %>,
+                <%= singular_table_name %>.<%= attribute.name %>
+              )
+            %>
+<% elsif attribute.name == "status" -%>
             <span class="b4um-badge">
               <%%= <%= singular_table_name %>.<%= attribute.name %> %>
             </span>

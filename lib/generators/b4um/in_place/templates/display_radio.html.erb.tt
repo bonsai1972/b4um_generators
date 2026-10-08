@@ -4,24 +4,20 @@
        choice[:value].to_s == <%= singular_table_name %>.<%= @field %>.to_s
      end %>
 
-  <div class="resource-field">
+  <div
+    class="resource-field in-place-edit"
+    <%% if b4um_in_place_editing_allowed? %>
+      data-controller="in-place"
+      data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
+      data-action="click->in-place#edit keydown.enter->in-place#edit keydown.space->in-place#edit"
+      role="button"
+      tabindex="0"
+    <%% end %>
+  >
     <strong class="resource-label"><%= @field.humanize %>:</strong>
 
     <span class="resource-value">
-      <%% if b4um_in_place_editing_allowed? %>
-        <span
-          class="in-place-edit"
-          data-controller="in-place"
-          data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
-          data-action="click->in-place#edit keydown.enter->in-place#edit keydown.space->in-place#edit"
-          role="button"
-          tabindex="0"
-        >
-          <%%= current_choice ? current_choice[:label] : (<%= singular_table_name %>.<%= @field %>.presence || "-") %>
-        </span>
-      <%% else %>
-        <%%= current_choice ? current_choice[:label] : (<%= singular_table_name %>.<%= @field %>.presence || "-") %>
-      <%% end %>
+      <%%= current_choice ? current_choice[:label] : (<%= singular_table_name %>.<%= @field %>.presence || "-") %>
     </span>
   </div>
 <%% end %>

@@ -130,6 +130,41 @@
         <span class="resource-value resource-value--empty">No images</span>
       <%% end %>
     </div>
+<% elsif select_field?(attribute.name) -%>
+<% if attribute.name == "status" -%>
+    <span class="b4um-badge">
+      <%%=
+        <%= select_configuration[:values].inspect %>.to_h {
+          |choice| [choice[:value], choice[:label]]
+        }.fetch(
+          <%= singular_table_name %>.<%= attribute.name %>,
+          <%= singular_table_name %>.<%= attribute.name %>
+        )
+      %>
+    </span>
+<% else -%>
+    <span class="resource-value">
+      <%%=
+        <%= select_configuration[:values].inspect %>.to_h {
+          |choice| [choice[:value], choice[:label]]
+        }.fetch(
+          <%= singular_table_name %>.<%= attribute.name %>,
+          <%= singular_table_name %>.<%= attribute.name %>
+        )
+      %>
+    </span>
+<% end -%>
+<% elsif radio_field?(attribute.name) -%>
+    <span class="resource-value">
+      <%%=
+        <%= radio_configuration[:values].inspect %>.to_h {
+          |choice| [choice[:value], choice[:label]]
+        }.fetch(
+          <%= singular_table_name %>.<%= attribute.name %>,
+          <%= singular_table_name %>.<%= attribute.name %>
+        )
+      %>
+    </span>
 <% elsif attribute.name == "status" -%>
     <span class="b4um-badge"><%%= <%= singular_table_name %>.<%= attribute.name %> %></span>
 <% elsif attribute.type == :text -%>

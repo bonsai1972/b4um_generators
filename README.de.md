@@ -115,12 +115,53 @@ Der Scaffold-Generator bietet:
 - Index-, Show-, New- und Edit-Views
 - Standardmäßig ein Bento-Index-Layout
 - Optionales Tabellen-Index-Layout
+- Select-Felder mit eigenen Anzeigebezeichnungen
+- Radio-Felder mit eigenen Anzeigebezeichnungen
 - Automatischen Navigationseintrag
 - Aktiven Navigationszustand
 - Anzeige von Formular-Validierungsfehlern
 - Flash-Meldungen
 - Unterstützung für Passwortfelder
 - Optionale lesbare URL-Parameter
+
+### Select- und Radio-Felder
+
+Der Scaffold-Generator kann String-Attribute als Select- oder Radio-Felder mit eigenen Anzeigebezeichnungen erzeugen.
+
+Für ein Select-Feld verwende:
+
+```text
+--select='FIELD:VALUE=LABEL,VALUE=LABEL'
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string status:string --select='status:Active=Aktiv,Inactive=Inaktiv'
+```
+
+Für Radio-Buttons verwende:
+
+```text
+--radio='FIELD:VALUE=LABEL,VALUE=LABEL'
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string condition:string --radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'
+```
+
+Beide Optionen können für unterschiedliche Felder miteinander kombiniert werden:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string status:string condition:string --select='status:Active=Aktiv,Inactive=Inaktiv' --radio='condition:new=Neu,used=Gebraucht'
+```
+
+Die konfigurierten Werte werden in der Datenbank gespeichert. In Formularen, Ressourcen-Views und Tabellen-Layouts
+werden dagegen die zugehörigen Anzeigebezeichnungen dargestellt.
+
+Dasselbe Feld kann nicht gleichzeitig `--select` und `--radio` verwenden.
 
 ### Bento-Index
 
@@ -1063,7 +1104,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.2.12`
+Aktuelle Version: `0.2.13`
 
 ## Autor
 

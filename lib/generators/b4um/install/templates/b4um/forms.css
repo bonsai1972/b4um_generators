@@ -276,6 +276,133 @@
 }
 
 /* -------------------------------------------------------
+   Selects
+------------------------------------------------------- */
+
+.form-field--select .form-label {
+  top: 0;
+
+  color: var(--b4um-primary);
+
+  transform: translateY(-50%) scale(0.82);
+}
+
+.form-select {
+  width: 100%;
+  margin: 0;
+  padding: 1rem 3rem 1rem 1.15rem;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--b4um-border);
+  border-radius: 8px;
+
+  background-color: var(--b4um-surface);
+  color: var(--b4um-text);
+
+  font: inherit;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.form-select:hover {
+  border-color: var(--b4um-border-hover);
+}
+
+.form-select:focus {
+  outline: none;
+
+  border-color: var(--b4um-primary);
+  box-shadow: 0 0 0 3px var(--b4um-primary-soft);
+}
+
+/* -------------------------------------------------------
+   Radio buttons
+------------------------------------------------------- */
+
+.form-field--radio {
+  padding: 0.75rem 0;
+}
+
+.form-field--radio > .form-label {
+  position: static;
+
+  display: block;
+
+  margin-bottom: 0.75rem;
+  padding: 0;
+
+  background: none;
+  color: var(--b4um-text-secondary);
+
+  transform: none;
+}
+
+.form-radio-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.form-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  color: var(--b4um-text);
+
+  cursor: pointer;
+}
+
+.form-radio {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 18px;
+  height: 18px;
+  margin: 0;
+
+  flex: 0 0 18px;
+
+  border: 1px solid var(--b4um-border-checkbox);
+  border-radius: 50%;
+
+  background-color: var(--b4um-surface);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
+}
+
+.form-radio:hover {
+  border-color: var(--b4um-primary);
+}
+
+.form-radio:checked {
+  border: 5px solid var(--b4um-primary);
+}
+
+.form-radio:focus-visible {
+  outline: none;
+
+  border-color: var(--b4um-primary);
+  box-shadow: 0 0 0 3px var(--b4um-primary-soft);
+}
+
+.form-radio:active {
+  transform: scale(0.94);
+}
+
+/* -------------------------------------------------------
    Checkboxes
 ------------------------------------------------------- */
 

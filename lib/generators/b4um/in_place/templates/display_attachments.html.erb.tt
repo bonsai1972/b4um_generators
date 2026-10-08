@@ -3,7 +3,7 @@
     <div class="resource-field">
       <strong class="resource-label"><%= @field.humanize %>:</strong>
 
-      <div class="in-place-gallery-display">
+      <div class="in-place-gallery-display <%%= local_assigns[:compact] ? "in-place-gallery-display--compact" : "in-place-gallery-display--full" %>">
         <div
           class="resource-images"
           data-controller="image-lightbox"

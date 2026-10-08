@@ -392,6 +392,226 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
   end
 
+  it "generates configured select and radio fields" do
+    generator = described_class.new(
+      [
+        "Article",
+        [
+          "title:string",
+          "status:string",
+          "condition:string",
+          "featured:boolean"
+        ]
+      ],
+      {
+        select: "status:Active=Aktiv,Inactive=Inaktiv",
+        radio: "condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt"
+      },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    form = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_form.html.erb"
+      )
+    )
+
+    resource = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_article.html.erb"
+      )
+    )
+
+    expect(form).to include(
+      "form.select :status"
+    )
+
+    expect(form).to include(
+      'class: "form-select"'
+    )
+
+    expect(form).to include(
+      '{value: "Active", label: "Aktiv"}'
+    )
+
+    expect(form).to include(
+      '{value: "Inactive", label: "Inaktiv"}'
+    )
+
+    expect(form).to include(
+      "form.radio_button :condition"
+    )
+
+    expect(form).to include(
+      'class: "form-radio"'
+    )
+
+    expect(form).to include(
+      '{value: "new", label: "Neu"}'
+    )
+
+    expect(form).to include(
+      '{value: "used", label: "Gebraucht"}'
+    )
+
+    expect(form).to include(
+      '{value: "refurbished", label: "Generalüberholt"}'
+    )
+
+    expect(form).to include(
+      'class: "form-checkbox"'
+    )
+
+    expect(form).not_to include(
+      "form.text_field :status"
+    )
+
+    expect(form).not_to include(
+      "form.text_field :condition"
+    )
+
+    expect(resource).to include(
+      '{value: "Active", label: "Aktiv"}'
+    )
+
+    expect(resource).to include(
+      '{value: "Inactive", label: "Inaktiv"}'
+    )
+
+    expect(resource).to include(
+      '{value: "new", label: "Neu"}'
+    )
+
+    expect(resource).to include(
+      '{value: "used", label: "Gebraucht"}'
+    )
+
+    expect(resource).to include(
+      '{value: "refurbished", label: "Generalüberholt"}'
+    )
+
+    expect(resource).to include(
+      ".fetch("
+    )
+
+    expect(resource).to include(
+      "article.status"
+    )
+
+    expect(resource).to include(
+      "article.condition"
+    )
+
+    expect(resource).to include(
+      'class="b4um-badge"'
+    )
+  end
+
+  it "rejects a select configuration for an unknown field" do
+    generator = described_class.new(
+      [
+        "Article",
+        ["title:string", "status:string"]
+      ],
+      {
+        select: "category:Active=Aktiv,Inactive=Inaktiv"
+      },
+      destination_root: @destination_root
+    )
+
+    expect do
+      generator.invoke_all
+    end.to raise_error(
+      Thor::Error,
+      "--select field category must be one of the generated fields: title, status"
+    )
+  end
+
+  it "rejects a select configuration without values" do
+    generator = described_class.new(
+      [
+        "Article",
+        ["title:string", "status:string"]
+      ],
+      {
+        select: "status:"
+      },
+      destination_root: @destination_root
+    )
+
+    expect do
+      generator.invoke_all
+    end.to raise_error(
+      Thor::Error,
+      "Invalid --select configuration. Expected FIELD:VALUE[,VALUE...]"
+    )
+  end
+
+  it "rejects a radio configuration for an unknown field" do
+    generator = described_class.new(
+      [
+        "Article",
+        ["title:string", "condition:string"]
+      ],
+      {
+        radio: "category:new=Neu,used=Gebraucht"
+      },
+      destination_root: @destination_root
+    )
+
+    expect do
+      generator.invoke_all
+    end.to raise_error(
+      Thor::Error,
+      "--radio field category must be one of the generated fields: title, condition"
+    )
+  end
+
+  it "rejects a radio configuration without values" do
+    generator = described_class.new(
+      [
+        "Article",
+        ["title:string", "condition:string"]
+      ],
+      {
+        radio: "condition:,,"
+      },
+      destination_root: @destination_root
+    )
+
+    expect do
+      generator.invoke_all
+    end.to raise_error(
+      Thor::Error,
+      "Invalid --radio configuration. Expected FIELD:VALUE[,VALUE...]"
+    )
+  end
+
+  it "rejects using select and radio for the same field" do
+    generator = described_class.new(
+      [
+        "Article",
+        ["title:string", "status:string"]
+      ],
+      {
+        select: "status:Active=Aktiv,Inactive=Inaktiv",
+        radio: "status:Active=Aktiv,Inactive=Inaktiv"
+      },
+      destination_root: @destination_root
+    )
+
+    expect do
+      generator.invoke_all
+    end.to raise_error(
+      Thor::Error,
+      "Field status cannot use both --select and --radio"
+    )
+  end
+
   it "generates B4UM page actions and card layouts" do
     generator = described_class.new(
       [
@@ -559,10 +779,18 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     generator = described_class.new(
       [
         "Product",
-        ["name:string", "description:text", "price:decimal", "status:string"]
+        [
+          "name:string",
+          "description:text",
+          "price:decimal",
+          "status:string",
+          "condition:string"
+        ]
       ],
       {
-        layout: "table"
+        layout: "table",
+        select: "status:Active=Aktiv,Inactive=Inaktiv",
+        radio: "condition:new=Neu,used=Gebraucht"
       },
       destination_root: @destination_root
     )
@@ -607,6 +835,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     expect(table).to include("<th>Description</th>")
     expect(table).to include("<th>Price</th>")
     expect(table).to include("<th>Status</th>")
+    expect(table).to include("<th>Condition</th>")
     expect(table).to include("<th>Actions</th>")
 
     expect(table).to include(
@@ -644,6 +873,30 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     expect(table).to include("product.status")
+
+    expect(table).to include(
+      '{value: "Active", label: "Aktiv"}'
+    )
+
+    expect(table).to include(
+      '{value: "Inactive", label: "Inaktiv"}'
+    )
+
+    expect(table).to include(
+      '{value: "new", label: "Neu"}'
+    )
+
+    expect(table).to include(
+      '{value: "used", label: "Gebraucht"}'
+    )
+
+    expect(table).to include(
+      "product.condition"
+    )
+
+    expect(table).to include(
+      ".fetch("
+    )
 
     expect(table).to include(
       'class="b4um-table__actions"'

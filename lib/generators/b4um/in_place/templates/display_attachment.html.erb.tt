@@ -109,7 +109,7 @@
       <%% end %>
     </div>
   <%% else %>
-    <div class="in-place-image-container">
+    <div class="in-place-image-container in-place-image-container--empty">
       <span class="in-place-attachment__empty">No image</span>
 
       <%% if b4um_in_place_editing_allowed? %>

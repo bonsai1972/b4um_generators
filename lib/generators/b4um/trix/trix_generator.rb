@@ -133,16 +133,36 @@ module B4um
       end
 
       def update_form
-        gsub_file(
-          form_path,
-          "form.text_area :#{attribute}",
-          "form.rich_text_area :#{attribute}"
-        )
+        form = File.read(form_path)
 
-        gsub_file(
+        return if form.include?("form.rich_text_area :#{attribute}")
+
+        if form.include?("form.text_area :#{attribute}")
+          gsub_file(
+            form_path,
+            "form.text_area :#{attribute}",
+            "form.rich_text_area :#{attribute}"
+          )
+
+          gsub_file(
+            form_path,
+            /<div class="form-field form-field--textarea">(?=\s*<%= form\.rich_text_area :#{Regexp.escape(attribute)})/,
+            '<div class="form-field form-field--rich-text">'
+          )
+
+          return
+        end
+
+        insert_into_file(
           form_path,
-          /<div class="form-field form-field--textarea">(?=\s*<%= form\.rich_text_area :#{Regexp.escape(attribute)})/,
-          '<div class="form-field form-field--rich-text">'
+          <<~ERB,
+            <div class="form-field form-field--rich-text">
+              <%= form.rich_text_area :#{attribute} %>
+              <%= form.label :#{attribute}, class: "form-label" %>
+            </div>
+
+          ERB
+          before: '  <div class="form-actions">'
         )
       end
 
@@ -150,6 +170,8 @@ module B4um
         return unless File.exist?(resource_partial_path)
 
         resource_name = name.underscore
+
+        add_rich_text_resource_field(resource_name)
 
         preview_length =
           'local_assigns\.fetch\(:preview_length,\s*160\)'
@@ -373,6 +395,36 @@ module B4um
       end
 
       private
+
+      def add_rich_text_resource_field(resource_name)
+        partial = File.read(resource_partial_path)
+
+        return if partial.include?("#{resource_name}.#{attribute}")
+
+        field = <<~ERB
+          <div class="resource-field">
+            <strong class="resource-label">#{attribute.humanize}:</strong>
+            <span class="resource-value">
+              <% if local_assigns[:compact] %>
+                <%= b4um_rich_text_preview(
+                      #{resource_name}.#{attribute},
+                      length: local_assigns.fetch(:preview_length, 160)
+                    ) %>
+              <% else %>
+                <%= #{resource_name}.#{attribute} %>
+              <% end %>
+            </span>
+          </div>
+        ERB
+
+        closing_div = partial.rindex("</div>")
+
+        return unless closing_div
+
+        partial.insert(closing_div, field)
+
+        File.write(resource_partial_path, partial)
+      end
 
       def action_text_installed?
         Dir.glob(

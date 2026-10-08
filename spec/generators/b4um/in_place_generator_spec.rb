@@ -23,6 +23,14 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     )
 
     FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/products")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/layouts")
+    )
+
+    FileUtils.mkdir_p(
       File.join(@destination_root, "config")
     )
 
@@ -35,12 +43,55 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     )
 
     File.write(
+      File.join(
+        @destination_root,
+        "app/views/products/_product.html.erb"
+      ),
+      <<~ERB
+        <div id="<%= dom_id product %>" class="resource">
+          <div class="resource-field">
+            <strong class="resource-label">Name:</strong>
+            <span class="resource-value"><%= product.name %></span>
+          </div>
+        </div>
+      ERB
+    )
+
+    File.write(
       File.join(@destination_root, "config/routes.rb"),
       <<~RUBY
         Rails.application.routes.draw do
           resources :products
         end
       RUBY
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/views/layouts/application.html.erb"
+      ),
+      <<~ERB
+        <body>
+          <main class="container">
+            <% flash.each do |type, message| %>
+              <div class="flash <%= "flash--" + type.to_s %>"
+                   data-controller="dismissible">
+                <%= message %>
+
+                <button type="button"
+                        class="flash__close"
+                        data-action="dismissible#dismiss"
+                        aria-label="Close">
+                  &times;
+                </button>
+              </div>
+            <% end %>
+
+            <%= yield %>
+          </main>
+        </body>
+      ERB
     )
 
     File.write(
@@ -116,6 +167,41 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     )
 
     generator.invoke_all
+
+    resource_partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_product.html.erb"
+      )
+    )
+
+    expect(resource_partial).to include(
+      '<%= render "products/name", product: product, compact: local_assigns[:compact] %>'
+    )
+
+    expect(resource_partial).not_to include(
+      '<span class="resource-value"><%= product.name %></span>'
+    )
+
+    flash_partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/shared/_flash.html.erb"
+      )
+    )
+
+    layout = File.read(
+      File.join(
+        @destination_root,
+        "app/views/layouts/application.html.erb"
+      )
+    )
+
+    expect(flash_partial).to include('id="flash-messages"')
+    expect(flash_partial).to include("flash.each do |type, message|")
+
+    expect(layout).to include('<%= render "shared/flash" %>')
+    expect(layout).not_to include("flash.each do |type, message|")
 
     expect(
       File
@@ -787,11 +873,9 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
       ).count
     ).to eq(1)
 
-    expect(
-      controller.scan(
-        "turbo_stream.update("
-      ).count
-    ).to eq(1)
+    expect(controller).to match(
+      %r{turbo_stream\.replace\(\s*"flash-messages",\s*partial: "shared/flash"\s*\)}
+    )
 
     expect(
       controller.scan(
@@ -819,6 +903,79 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
 
     expect(
       routes.scan("get :edit_name").count
+    ).to eq(1)
+  end
+
+  it "upgrades an existing flash turbo stream from update to replace" do
+    create_basic_product_app
+
+    column = Struct.new(:name, :type).new(
+      "name",
+      :string
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    controller = File.read(controller_path)
+
+    controller = controller.sub(
+      /turbo_stream\.replace\(\s*"flash-messages",/,
+      'turbo_stream.update("flash-messages",'
+    )
+
+    File.write(
+      controller_path,
+      controller
+    )
+
+    generator = described_class.new(
+      %w[Product name],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to match(
+      %r{turbo_stream\.replace\(\s*"flash-messages",\s*partial: "shared/flash"\s*\)}
+    )
+
+    expect(controller).not_to match(
+      /turbo_stream\.update\(\s*"flash-messages",/
+    )
+
+    expect(
+      controller.scan(
+        '"flash-messages"'
+      ).count
+    ).to eq(1)
+
+    expect(
+      controller.scan(
+        'partial: "shared/flash"'
+      ).count
     ).to eq(1)
   end
 

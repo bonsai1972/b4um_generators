@@ -25,6 +25,27 @@ module B4um
                    enum: %w[bento table],
                    desc: "Index layout: bento or table"
 
+      class_option :select,
+                   type: :string,
+                   desc: "Renders a field as a select list. Example: status:Active=Aktiv,Inactive=Inaktiv"
+
+      class_option :radio,
+                   type: :string,
+                   desc: "Renders a field as radio buttons. Example: condition:new=Neu,used=Gebraucht"
+
+      def validate_editor_options
+        configurations = {
+          select: select_configuration,
+          radio: radio_configuration
+        }
+
+        configurations.each do |option_name, configuration|
+          validate_editor_configuration(option_name, configuration)
+        end
+
+        validate_editor_configuration_conflict(configurations)
+      end
+
       def create_b4um_form
         form_path = File.join(
           "app/views",
@@ -327,6 +348,91 @@ module B4um
           marker,
           navigation_link.chomp
         )
+      end
+
+      private
+
+      def validate_editor_configuration(option_name, configuration)
+        return unless options[option_name].present?
+
+        unless configuration
+          raise Thor::Error,
+                "Invalid --#{option_name} configuration. " \
+                "Expected FIELD:VALUE[,VALUE...]"
+        end
+
+        field_names = attributes.map(&:name)
+
+        return if field_names.include?(configuration[:field])
+
+        raise Thor::Error,
+              "--#{option_name} field #{configuration[:field]} " \
+              "must be one of the generated fields: #{field_names.join(", ")}"
+      end
+
+      def validate_editor_configuration_conflict(configurations)
+        select = configurations[:select]
+        radio = configurations[:radio]
+
+        return unless select && radio
+        return unless select[:field] == radio[:field]
+
+        raise Thor::Error,
+              "Field #{select[:field]} cannot use both --select and --radio"
+      end
+
+      def select_configuration
+        editor_configuration(:select)
+      end
+
+      def radio_configuration
+        editor_configuration(:radio)
+      end
+
+      def editor_configuration(option_name)
+        value = options[option_name]
+        return unless value.present?
+
+        field, values = value.split(":", 2)
+
+        return unless field.present? && values.present?
+
+        choices = editor_choices(values)
+        return if choices.empty?
+
+        {
+          field: field,
+          values: choices
+        }
+      end
+
+      def editor_choices(values)
+        values.split(",").filter_map do |choice|
+          value, label = choice.strip.split("=", 2)
+
+          next if value.blank?
+
+          {
+            value: value,
+            label: label.presence || value
+          }
+        end
+      end
+
+      def select_field?(field)
+        configuration = select_configuration
+
+        configuration &&
+          configuration[:field] == field &&
+          configuration[:values].any?
+      end
+
+      def radio_field?(field)
+        configuration = radio_configuration
+
+        configuration &&
+          configuration[:field] == field &&
+          configuration[:values].any?
       end
     end
   end

@@ -62,6 +62,35 @@
     <%%= form.label :<%= attribute.name %>, class: "form-label" %>
   </div>
 
+<% elsif select_field?(attribute.name) -%>
+  <div class="form-field form-field--select">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+
+    <%%= form.select :<%= attribute.name %>,
+          <%= select_configuration[:values].inspect %>.map { |choice|
+            [choice[:label], choice[:value]]
+          },
+          {},
+          class: "form-select" %>
+  </div>
+
+<% elsif radio_field?(attribute.name) -%>
+  <div class="form-field form-field--radio">
+    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+
+    <div class="form-radio-options">
+      <%% <%= radio_configuration[:values].inspect %>.each do |choice| %>
+        <label class="form-radio-option">
+          <%%= form.radio_button :<%= attribute.name %>,
+                choice[:value],
+                class: "form-radio" %>
+
+          <span><%%= choice[:label] %></span>
+        </label>
+      <%% end %>
+    </div>
+  </div>
+
 <% elsif attribute.type == :boolean -%>
   <div class="form-field form-field--checkbox">
     <%%= form.check_box :<%= attribute.name %>, class: "form-checkbox" %>

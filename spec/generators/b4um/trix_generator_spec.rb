@@ -196,6 +196,68 @@ RSpec.describe B4um::Generators::TrixGenerator do
     )
   end
 
+  it "adds a rich text field when the attribute is not already in the form" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article, class: "form") do |form| %>
+          <div class="form-field">
+            <%= form.text_field :title,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :title, class: "form-label" %>
+          </div>
+
+          <div class="form-actions">
+            <%= form.submit class: "form-submit" %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    form = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_form.html.erb"
+      )
+    )
+
+    expect(form).to include(
+      "form.rich_text_area :content"
+    )
+
+    expect(form).to include(
+      'class="form-field form-field--rich-text"'
+    )
+
+    expect(form).to include(
+      "form.label :content"
+    )
+
+    expect(
+      form.index("form.rich_text_area :content")
+    ).to be < form.index('class="form-actions"')
+  end
+
   it "raises an error when the form does not exist" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/models")
@@ -534,6 +596,84 @@ RSpec.describe B4um::Generators::TrixGenerator do
     expect(partial).not_to include(
       "truncate(article.content.to_plain_text, length: 160)"
     )
+  end
+
+  it "adds a rich text field to the resource partial when the attribute is missing" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article) do |form| %>
+          <div class="form-field">
+            <%= form.text_field :title %>
+          </div>
+
+          <div class="form-actions">
+            <%= form.submit %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_article.html.erb"),
+      <<~ERB
+        <div id="<%= dom_id article %>" class="resource">
+          <div class="resource-field">
+            <strong class="resource-label">Title:</strong>
+            <span class="resource-value"><%= article.title %></span>
+          </div>
+        </div>
+      ERB
+    )
+
+    generator = build_generator
+
+    generator.invoke_all
+
+    partial = File.read(
+      File.join(
+        @destination_root,
+        "app/views/articles/_article.html.erb"
+      )
+    )
+
+    expect(partial).to include(
+      '<strong class="resource-label">Content:</strong>'
+    )
+
+    expect(partial).to include(
+      "b4um_rich_text_preview("
+    )
+
+    expect(partial).to include(
+      "article.content"
+    )
+
+    expect(partial).to include(
+      'data-controller="image-lightbox"'
+    )
+
+    expect(
+      partial.scan(
+        '<strong class="resource-label">Content:</strong>'
+      ).count
+    ).to eq(1)
   end
 
   it "adds image lightbox support to the rich text field" do

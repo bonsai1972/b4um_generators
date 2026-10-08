@@ -113,12 +113,53 @@ The scaffold generator provides:
 - Index, show, new and edit views
 - Bento index layout by default
 - Optional table index layout
+- Select fields with custom labels
+- Radio fields with custom labels
 - Automatic navigation entry
 - Active navigation state
 - Form validation errors
 - Flash messages
 - Password field support
 - Optional readable URL parameters
+
+### Select and Radio Fields
+
+The scaffold generator can render string attributes as select or radio fields with custom display labels.
+
+For a select field, use:
+
+```text
+--select='FIELD:VALUE=LABEL,VALUE=LABEL'
+```
+
+Example:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string status:string --select='status:Active=Aktiv,Inactive=Inaktiv'
+```
+
+For radio buttons, use:
+
+```text
+--radio='FIELD:VALUE=LABEL,VALUE=LABEL'
+```
+
+Example:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string condition:string --radio='condition:new=Neu,used=Gebraucht,refurbished=Generalüberholt'
+```
+
+Both options can be combined for different fields:
+
+```bash
+bin/rails generate b4um:scaffold Product name:string status:string condition:string --select='status:Active=Aktiv,Inactive=Inaktiv' --radio='condition:new=Neu,used=Gebraucht'
+```
+
+The configured values are stored in the database, while the labels are displayed in forms, resource views and table
+layouts.
+
+A field cannot use both `--select` and `--radio`.
 
 ### Bento Index
 
@@ -1054,7 +1095,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.2.12`
+Current version: `0.2.13`
 
 ## Author
 

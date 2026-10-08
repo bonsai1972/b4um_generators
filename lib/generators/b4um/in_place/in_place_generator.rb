@@ -56,6 +56,20 @@ module B4um
         validate_editor_configuration_conflict(configurations)
       end
 
+      def ensure_flash_support
+        flash_path = "app/views/shared/_flash.html.erb"
+        full_flash_path = File.join(destination_root, flash_path)
+
+        unless File.exist?(full_flash_path)
+          copy_file(
+            "_flash.html.erb",
+            flash_path
+          )
+        end
+
+        ensure_flash_render_in_layout
+      end
+
       def create_in_place_helper
         helper_path = "app/helpers/b4um_in_place_helper.rb"
         full_helper_path = File.join(destination_root, helper_path)
@@ -146,6 +160,12 @@ module B4um
         end
       end
 
+      def integrate_display_partials
+        fields.each do |field|
+          integrate_display_partial(field)
+        end
+      end
+
       def add_in_place_params
         fields.each do |field|
           add_in_place_params_for(field)
@@ -195,6 +215,31 @@ module B4um
       end
 
       private
+
+      def ensure_flash_render_in_layout
+        layout_path = "app/views/layouts/application.html.erb"
+        full_layout_path = File.join(destination_root, layout_path)
+
+        return unless File.exist?(full_layout_path)
+
+        layout = File.read(full_layout_path)
+
+        return if layout.include?('render "shared/flash"')
+
+        flash_pattern = /
+          \s*<%\s+flash\.each\s+do\s+\|type,\s*message\|\s*%>
+          .*?
+          <%\s+end\s+%>
+        /mx
+
+        return unless layout.match?(flash_pattern)
+
+        gsub_file(
+          layout_path,
+          flash_pattern,
+          "\n  <%= render \"shared/flash\" %>"
+        )
+      end
 
       def validate_editor_configuration(option_name, configuration)
         return unless options[option_name].present?
@@ -704,15 +749,24 @@ module B4um
         update_method
       end
 
+      def upgrade_flash_turbo_stream(update_method)
+        update_method.sub(
+          /turbo_stream\.update\(\s*"flash-messages",/,
+          'turbo_stream.replace("flash-messages",'
+        )
+      end
+
       def integrate_turbo_streams(update_method, controller_path)
+        update_method = upgrade_flash_turbo_stream(update_method)
+
         return update_method if update_method.include?(
           "IN_PLACE_FIELDS.include?(params[:in_place_field])"
         )
 
         success_anchor = update_method[
-          /^\s*format\.html \{ redirect_to .*successfully updated.*$/,
-          0
-        ]
+                /^\s*format\.html \{ redirect_to .*successfully updated.*$/,
+                0
+              ]
 
         unless success_anchor
           raise Thor::Error,
@@ -736,7 +790,7 @@ module B4um
             flash.now[:notice] = "#{class_name} was successfully updated."
 
             streams = [
-              turbo_stream.update(
+              turbo_stream.replace(
                 "flash-messages",
                 partial: "shared/flash"
               )
@@ -981,6 +1035,82 @@ module B4um
           attachment: "edit_attachment.html.erb.tt",
           attachments: "edit_attachments.html.erb.tt"
         }[editor_type(field)]
+      end
+
+      def resource_field_range(resource, field)
+        label = "#{field.humanize}:"
+
+        label_position = resource.index(
+          %(<strong class="resource-label">#{label}</strong>)
+        )
+
+        return unless label_position
+
+        field_start = resource.rindex(
+          '<div class="resource-field">',
+          label_position
+        )
+
+        return unless field_start
+
+        position = field_start
+        depth = 0
+
+        while (match = resource.match(%r{<div\b[^>]*>|</div>}, position))
+          if match[0].start_with?("<div")
+            depth += 1
+          else
+            depth -= 1
+
+            return field_start...match.end(0) if depth.zero?
+          end
+
+          position = match.end(0)
+        end
+
+        nil
+      end
+
+      def integrate_display_partial(field)
+        resource_path = File.join(
+          "app/views",
+          plural_table_name,
+          "_#{singular_table_name}.html.erb"
+        )
+
+        full_resource_path = File.join(
+          destination_root,
+          resource_path
+        )
+
+        return unless File.exist?(full_resource_path)
+
+        resource = File.read(full_resource_path)
+
+        render_statement =
+          "<%= render \"#{plural_table_name}/#{field}\", " \
+          "#{singular_table_name}: #{singular_table_name}, " \
+          "compact: local_assigns[:compact] %>"
+
+        return if resource.include?(render_statement)
+
+        field_range = resource_field_range(resource, field)
+
+        unless field_range
+          say_status(
+            :warning,
+            "Could not integrate in-place field #{field} into #{resource_path}",
+            :yellow
+          )
+          return
+        end
+
+        resource[field_range] = render_statement
+
+        File.write(
+          full_resource_path,
+          resource
+        )
       end
 
       def create_display_partial(field)
