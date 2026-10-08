@@ -1104,7 +1104,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.2.13`
+Aktuelle Version: `0.2.14`
 
 ## Autor
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    b4um_generators (0.2.13)
+    b4um_generators (0.2.14)
       railties (>= 8.0, < 9.0)
 
 GEM
