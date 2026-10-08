@@ -309,4 +309,45 @@ RSpec.describe B4um::Generators::BentoGenerator do
       "Resource partial not found: app/views/products/_product.html.erb"
     )
   end
+
+  it "switches an existing table index back to the bento layout" do
+    index_path = File.join(
+      @destination_root,
+      "app/views/products/index.html.erb"
+    )
+
+    File.write(
+      index_path,
+      <<~ERB
+        <%= content_for :title, "Products" %>
+
+        <% if @products.any? %>
+          <%= render "table",
+                     products: @products %>
+        <% end %>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    index = File.read(index_path)
+
+    expect(index).to include(
+      '<%= render "bento",'
+    )
+
+    expect(index).to include(
+      "products: @products"
+    )
+
+    expect(index).not_to include(
+      'render "table"'
+    )
+  end
 end

@@ -45,6 +45,21 @@ module B4um
         )
       end
 
+      def update_index_layout
+        return unless File.exist?(index_path)
+
+        index = File.read(index_path)
+
+        updated_index = index.sub(
+          /render\s+["'](?:bento|table|list|alternating)["']/,
+          'render "bento"'
+        )
+
+        return if updated_index == index
+
+        File.write(index_path, updated_index)
+      end
+
       private
 
       def model_path
@@ -52,6 +67,15 @@ module B4um
           destination_root,
           "app/models",
           "#{file_name}.rb"
+        )
+      end
+
+      def index_path
+        File.join(
+          destination_root,
+          "app/views",
+          plural_table_name,
+          "index.html.erb"
         )
       end
 

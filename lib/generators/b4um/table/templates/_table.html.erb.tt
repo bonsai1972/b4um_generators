@@ -14,12 +14,298 @@
         <tr>
 <% table_attributes.each do |attribute| -%>
           <td>
+<% if select_field?(attribute.name) -%>
 <% if attribute.name == "status" -%>
+            <span class="b4um-badge">
+              <%%=
+                <%= select_configuration[:values].inspect %>.to_h {
+                  |choice| [choice[:value], choice[:label]]
+                }.fetch(
+                  <%= file_name %>.<%= attribute.name %>,
+                  <%= file_name %>.<%= attribute.name %>
+                )
+              %>
+            </span>
+<% else -%>
+            <%%=
+              <%= select_configuration[:values].inspect %>.to_h {
+                |choice| [choice[:value], choice[:label]]
+              }.fetch(
+                <%= file_name %>.<%= attribute.name %>,
+                <%= file_name %>.<%= attribute.name %>
+              )
+            %>
+<% end -%>
+<% elsif radio_field?(attribute.name) -%>
+            <%%=
+              <%= radio_configuration[:values].inspect %>.to_h {
+                |choice| [choice[:value], choice[:label]]
+              }.fetch(
+                <%= file_name %>.<%= attribute.name %>,
+                <%= file_name %>.<%= attribute.name %>
+              )
+            %>
+<% elsif attribute.type == :rich_text -%>
+            <div
+              class="b4um-table__rich-text trix-content"
+              data-controller="image-lightbox rich-text"
+              data-action="keydown->image-lightbox#keydown"
+            >
+              <%%= <%= file_name %>.<%= attribute.name %> %>
+
+              <div
+                class="image-lightbox"
+                data-image-lightbox-target="overlay"
+                data-action="click->image-lightbox#closeOnBackground"
+                tabindex="-1"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Image preview"
+                hidden
+              >
+                <div
+                  class="image-lightbox__counter"
+                  data-image-lightbox-target="counter"
+                ></div>
+
+                <button
+                  type="button"
+                  class="image-lightbox__close"
+                  aria-label="Close image"
+                  data-action="click->image-lightbox#close"
+                >
+                  &times;
+                </button>
+
+                <button
+                  type="button"
+                  class="image-lightbox__navigation image-lightbox__navigation--previous"
+                  aria-label="Previous image"
+                  data-action="click->image-lightbox#previous"
+                >
+                  &#8249;
+                </button>
+
+                <div
+                  class="image-lightbox__stage"
+                  data-image-lightbox-target="stage"
+                  data-action="
+                    pointerdown->image-lightbox#pointerDown
+                    pointermove->image-lightbox#pointerMove
+                    pointerup->image-lightbox#pointerUp
+                    pointercancel->image-lightbox#pointerCancel
+                  "
+                >
+                  <img
+                    class="image-lightbox__image"
+                    data-image-lightbox-target="image"
+                    alt=""
+                  >
+                </div>
+
+                <button
+                  type="button"
+                  class="image-lightbox__navigation image-lightbox__navigation--next"
+                  aria-label="Next image"
+                  data-action="click->image-lightbox#next"
+                >
+                  &#8250;
+                </button>
+
+                <div
+                  class="image-lightbox__thumbnails"
+                  data-image-lightbox-target="thumbnails"
+                ></div>
+
+                <div
+                  class="image-lightbox__caption"
+                  data-image-lightbox-target="caption"
+                ></div>
+              </div>
+            </div>
+<% elsif attribute.type == :attachment -%>
+            <%% if <%= file_name %>.<%= attribute.name %>.attached? %>
+              <div
+                class="b4um-table__media"
+                data-controller="image-lightbox"
+                data-action="keydown->image-lightbox#keydown"
+              >
+                <button
+                  type="button"
+                  class="b4um-table__image-button"
+                  data-image-lightbox-target="item"
+                  data-image-lightbox-url="<%%= url_for(<%= file_name %>.<%= attribute.name %>) %>"
+                  data-image-lightbox-alt="<%%= <%= file_name %>.<%= attribute.name %>.filename.to_s %>"
+                  data-action="click->image-lightbox#open"
+                >
+                  <%%= image_tag <%= file_name %>.<%= attribute.name %>,
+                        class: "b4um-table__image",
+                        alt: <%= file_name %>.<%= attribute.name %>.filename.to_s %>
+                </button>
+
+                <div
+                  class="image-lightbox"
+                  data-image-lightbox-target="overlay"
+                  data-action="click->image-lightbox#closeOnBackground"
+                  tabindex="-1"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Image preview"
+                  hidden
+                >
+                  <div
+                    class="image-lightbox__counter"
+                    data-image-lightbox-target="counter"
+                  ></div>
+
+                  <button
+                    type="button"
+                    class="image-lightbox__close"
+                    aria-label="Close image"
+                    data-action="click->image-lightbox#close"
+                  >
+                    &times;
+                  </button>
+
+                  <div
+                    class="image-lightbox__stage"
+                    data-image-lightbox-target="stage"
+                    data-action="
+                      pointerdown->image-lightbox#pointerDown
+                      pointermove->image-lightbox#pointerMove
+                      pointerup->image-lightbox#pointerUp
+                      pointercancel->image-lightbox#pointerCancel
+                    "
+                  >
+                    <img
+                      class="image-lightbox__image"
+                      data-image-lightbox-target="image"
+                      alt=""
+                    >
+                  </div>
+
+                  <div
+                    class="image-lightbox__thumbnails"
+                    data-image-lightbox-target="thumbnails"
+                  ></div>
+
+                  <div
+                    class="image-lightbox__caption"
+                    data-image-lightbox-target="caption"
+                  ></div>
+                </div>
+              </div>
+            <%% else %>
+              <span class="b4um-table__media-empty">No image</span>
+            <%% end %>
+<% elsif attribute.type == :attachments -%>
+            <%% if <%= file_name %>.<%= attribute.name %>.attached? %>
+              <div
+                class="b4um-table__media"
+                data-controller="image-lightbox"
+                data-action="keydown->image-lightbox#keydown"
+              >
+                <%% <%= file_name %>.<%= attribute.name %>.each do |image| %>
+                  <button
+                    type="button"
+                    class="b4um-table__image-button"
+                    data-image-lightbox-target="item"
+                    data-image-lightbox-url="<%%= url_for(image) %>"
+                    data-image-lightbox-alt="<%%= image.filename.to_s %>"
+                    data-action="click->image-lightbox#open"
+                  >
+                    <%%= image_tag image,
+                          class: "b4um-table__image",
+                          alt: image.filename.to_s %>
+                  </button>
+                <%% end %>
+
+                <div
+                  class="image-lightbox"
+                  data-image-lightbox-target="overlay"
+                  data-action="click->image-lightbox#closeOnBackground"
+                  tabindex="-1"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Image gallery"
+                  hidden
+                >
+                  <div
+                    class="image-lightbox__counter"
+                    data-image-lightbox-target="counter"
+                  ></div>
+
+                  <button
+                    type="button"
+                    class="image-lightbox__close"
+                    aria-label="Close image"
+                    data-action="click->image-lightbox#close"
+                  >
+                    &times;
+                  </button>
+
+                  <button
+                    type="button"
+                    class="image-lightbox__navigation image-lightbox__navigation--previous"
+                    aria-label="Previous image"
+                    data-action="click->image-lightbox#previous"
+                  >
+                    &#8249;
+                  </button>
+
+                  <div
+                    class="image-lightbox__stage"
+                    data-image-lightbox-target="stage"
+                    data-action="
+                      pointerdown->image-lightbox#pointerDown
+                      pointermove->image-lightbox#pointerMove
+                      pointerup->image-lightbox#pointerUp
+                      pointercancel->image-lightbox#pointerCancel
+                    "
+                  >
+                    <img
+                      class="image-lightbox__image"
+                      data-image-lightbox-target="image"
+                      alt=""
+                    >
+                  </div>
+
+                  <button
+                    type="button"
+                    class="image-lightbox__navigation image-lightbox__navigation--next"
+                    aria-label="Next image"
+                    data-action="click->image-lightbox#next"
+                  >
+                    &#8250;
+                  </button>
+
+                  <div
+                    class="image-lightbox__thumbnails"
+                    data-image-lightbox-target="thumbnails"
+                  ></div>
+
+                  <div
+                    class="image-lightbox__caption"
+                    data-image-lightbox-target="caption"
+                  ></div>
+                </div>
+              </div>
+            <%% else %>
+              <span class="b4um-table__media-empty">No images</span>
+            <%% end %>
+<% elsif attribute.name == "status" -%>
             <span class="b4um-badge">
               <%%= <%= file_name %>.<%= attribute.name %> %>
             </span>
 <% elsif attribute.type == :text -%>
             <%%= truncate(<%= file_name %>.<%= attribute.name %>, length: 100) %>
+<% elsif attribute.type == :decimal -%>
+            <%%= number_with_precision(
+                  <%= file_name %>.<%= attribute.name %>,
+                  precision: 2,
+                  delimiter: ".",
+                  separator: ","
+                ) %>
 <% else -%>
             <%%= <%= file_name %>.<%= attribute.name %> %>
 <% end -%>

@@ -1052,6 +1052,18 @@ RSpec.describe B4um::Generators::InstallGenerator do
     )
 
     expect(image_lightbox_controller).to include(
+      "const figcaption = figure?.querySelector('figcaption')"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "item.dataset.imageLightboxCaption = caption"
+    )
+
+    expect(image_lightbox_controller).to include(
+      "item.dataset.imageLightboxCaption || item.dataset.imageLightboxAlt || ''"
+    )
+
+    expect(image_lightbox_controller).to include(
       "'keydown.enter->image-lightbox#open'"
     )
 
