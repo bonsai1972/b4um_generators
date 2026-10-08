@@ -306,9 +306,13 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
-  it "protects an existing in-place controller" do
+  it "protects an existing in-place controller and its actions" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/controllers")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/products")
     )
 
     File.write(
@@ -342,6 +346,30 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
       RUBY
     )
 
+    File.write(
+      File.join(
+        @destination_root,
+        "app/views/products/index.html.erb"
+      ),
+      <<~ERB
+        <%= link_to "New product", new_product_path, class: "button" %>
+      ERB
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/views/products/show.html.erb"
+      ),
+      <<~ERB
+        <div class="b4um-card__actions">
+          <%= link_to "Edit", edit_product_path(@product), class: "button button--secondary" %>
+          <%= link_to "Back", products_path, class: "button button--secondary" %>
+          <%= button_to "Destroy", @product, method: :delete, class: "button button--danger" %>
+        </div>
+      ERB
+    )
+
     generator = described_class.new(
       ["User"],
       {},
@@ -357,8 +385,38 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
       )
     )
 
+    index = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/index.html.erb"
+      )
+    )
+
+    show = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/show.html.erb"
+      )
+    )
+
     expect(controller).to include(
       "before_action :require_login, except: [:index, :show]"
+    )
+
+    expect(index).to match(
+      /<% if logged_in\? %>.*New product.*<% end %>/m
+    )
+
+    expect(show).to match(
+      /<% if logged_in\? %>.*Edit.*<% end %>/m
+    )
+
+    expect(show).to match(
+      /<% if logged_in\? %>.*Destroy.*<% end %>/m
+    )
+
+    expect(show).to include(
+      '<%= link_to "Back", products_path, class: "button button--secondary" %>'
     )
   end
 

@@ -1670,4 +1670,215 @@ RSpec.describe B4um::Generators::TrixGenerator do
     expect(initializer).to include("section")
     expect(initializer).to include("article")
   end
+
+  it "adds the rich text attribute to strong parameters" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/controllers")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article, class: "form") do |form| %>
+          <div class="form-field">
+            <%= form.text_field :title %>
+          </div>
+
+          <div class="form-actions">
+            <%= form.submit %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/articles_controller.rb"
+      ),
+      <<~RUBY
+        class ArticlesController < ApplicationController
+          private
+
+          def article_params
+            params.expect(article: [ :title ])
+          end
+        end
+      RUBY
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/articles_controller.rb"
+      )
+    )
+
+    expect(controller).to include(
+      "params.expect(article: [ :title, :content ])"
+    )
+  end
+
+  it "adds the rich text attribute before array parameters" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/controllers")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article, class: "form") do |form| %>
+          <div class="form-field">
+            <%= form.text_field :title %>
+          </div>
+
+          <div class="form-actions">
+            <%= form.submit %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/articles_controller.rb"
+      ),
+      <<~RUBY
+        class ArticlesController < ApplicationController
+          private
+
+          def article_params
+            params.expect(article: [ :title, gallery: [] ])
+          end
+        end
+      RUBY
+    )
+
+    generator = build_generator
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/articles_controller.rb"
+      )
+    )
+
+    expect(controller).to include(
+      "params.expect(article: [ :title, :content, gallery: [] ])"
+    )
+
+    expect(controller).not_to include(
+      "gallery: [], :content"
+    )
+  end
+
+  it "does not duplicate the rich text strong parameter when invoked twice" do
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/views/articles")
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/controllers")
+    )
+
+    File.write(
+      File.join(@destination_root, "app/models/article.rb"),
+      <<~RUBY
+        class Article < ApplicationRecord
+        end
+      RUBY
+    )
+
+    File.write(
+      File.join(@destination_root, "app/views/articles/_form.html.erb"),
+      <<~ERB
+        <%= form_with(model: article, class: "form") do |form| %>
+          <div class="form-field">
+            <%= form.text_field :title %>
+          </div>
+
+          <div class="form-actions">
+            <%= form.submit %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/articles_controller.rb"
+      ),
+      <<~RUBY
+        class ArticlesController < ApplicationController
+          private
+
+          def article_params
+            params.expect(article: [ :title, gallery: [] ])
+          end
+        end
+      RUBY
+    )
+
+    2.times do
+      generator = build_generator
+      generator.invoke_all
+    end
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/articles_controller.rb"
+      )
+    )
+
+    expect(
+      controller.scan(":content").length
+    ).to eq(1)
+
+    expect(controller).to include(
+      "params.expect(article: [ :title, :content, gallery: [] ])"
+    )
+  end
 end

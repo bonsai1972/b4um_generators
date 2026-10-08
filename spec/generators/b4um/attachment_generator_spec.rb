@@ -208,7 +208,7 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     controller = File.read(controller_path)
 
     expect(controller).to include(
-      "params.expect(admin: [:name, :email, :avatar, :remove_avatar])"
+      "params.expect(admin: [ :name, :email, :avatar, :remove_avatar ])"
     )
   end
 
@@ -392,6 +392,66 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     expect do
       RubyVM::InstructionSequence.compile(controller)
     end.not_to raise_error
+  end
+
+  it "normalizes existing parameter spacing when adding a single attachment" do
+    create_model(
+      "product",
+      <<~RUBY
+        class Product < ApplicationRecord
+        end
+      RUBY
+    )
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(controller_path))
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def update
+            respond_to do |format|
+              if @product.update(product_params)
+                format.html { redirect_to @product }
+              end
+            end
+          end
+
+          private
+
+          def product_params
+            params.expect(product: [ :name, :description , :image, :remove_image])
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Product avatar],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      "params.expect(product: [ :name, :description, :image, :remove_image, :avatar, :remove_avatar ])"
+    )
+
+    expect(controller).not_to include(
+      ":description ,"
+    )
+
+    expect(controller).not_to include(
+      ":remove_avatar])"
+    )
   end
 
   it "does not duplicate attachment setup when run twice" do
@@ -678,7 +738,7 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     controller = File.read(controller_path)
 
     expect(controller).to include(
-      "params.expect(gallery: [:title, images: [], remove_images_ids: []])"
+      "params.expect(gallery: [ :title, images: [], remove_images_ids: [] ])"
     )
 
     expect(controller).to include(
@@ -707,6 +767,67 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
 
     expect(controller).to include(
       ".find_each(&:purge)"
+    )
+  end
+
+  it "normalizes existing parameter spacing when adding multiple attachments" do
+    create_model(
+      "product",
+      <<~RUBY
+        class Product < ApplicationRecord
+        end
+      RUBY
+    )
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(controller_path))
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def update
+            respond_to do |format|
+              if @product.update(product_params)
+                format.html { redirect_to @product }
+              end
+            end
+          end
+
+          private
+
+          def product_params
+            params.expect(product: [ :name, :description, :thumbnail, :remove_thumbnail ])
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      %w[Product gallery],
+      { multiple: true },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      "params.expect(product: [ :name, :description, :thumbnail, " \
+      ":remove_thumbnail, gallery: [], remove_gallery_ids: [] ])"
+    )
+
+    expect(controller).not_to include(
+      ":remove_thumbnail ,"
+    )
+
+    expect(controller).not_to include(
+      "remove_gallery_ids: []])"
     )
   end
 
@@ -876,6 +997,87 @@ RSpec.describe B4um::Generators::AttachmentGenerator do
     expect(form).to include(
       "Will be removed"
     )
+  end
+
+  it "adds a second multiple attachment after an existing multiple attachment" do
+    create_model(
+      "product",
+      <<~RUBY
+        class Product < ApplicationRecord
+        end
+      RUBY
+    )
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(controller_path))
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def update
+            respond_to do |format|
+              if @product.update(product_params)
+                format.html { redirect_to @product }
+              end
+            end
+          end
+
+          private
+
+          def product_params
+            params.expect(product: [ :name ])
+          end
+        end
+      RUBY
+    )
+
+    gallery_generator = described_class.new(
+      %w[Product gallery],
+      { multiple: true },
+      destination_root: @destination_root
+    )
+
+    gallery_generator.invoke_all
+
+    photos_generator = described_class.new(
+      %w[Product photos],
+      { multiple: true },
+      destination_root: @destination_root
+    )
+
+    photos_generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      "params.expect(product: [ :name, gallery: [], remove_gallery_ids: [], photos: [], remove_photos_ids: [] ])"
+    )
+
+    expect(controller).to include(
+      'new_gallery = update_params.delete("gallery")'
+    )
+
+    expect(controller).to include(
+      'new_photos = update_params.delete("photos")'
+    )
+
+    expect(controller).to include(
+      "@product.gallery.attach(new_gallery) if new_gallery.present?"
+    )
+
+    expect(controller).to include(
+      "@product.photos.attach(new_photos) if new_photos.present?"
+    )
+
+    expect(controller.scan("gallery: []").length).to eq(1)
+    expect(controller.scan("remove_gallery_ids: []").length).to eq(1)
+    expect(controller.scan("photos: []").length).to eq(1)
+    expect(controller.scan("remove_photos_ids: []").length).to eq(1)
   end
 
   it "does not duplicate multiple attachment setup when run twice" do

@@ -187,6 +187,13 @@ module B4um
 
           next unless controller.include?("IN_PLACE_FIELDS")
 
+          controller_name =
+            File
+            .basename(full_controller_path, "_controller.rb")
+
+          protect_index_actions_for(controller_name)
+          protect_show_actions_for(controller_name)
+
           callback =
             "before_action :require_login, except: [:index, :show]"
 

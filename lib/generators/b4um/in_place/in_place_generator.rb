@@ -420,9 +420,29 @@ module B4um
         routes = File.read(full_routes_path)
         route = "get :edit_#{field}"
 
-        return if routes.include?(route)
+        return if route_exists_for_resource?(routes, route)
 
         add_route_to_resources(routes_path, routes, route)
+      end
+
+      def route_exists_for_resource?(routes, route)
+        member_match = routes.match(resources_with_member_pattern)
+
+        if member_match
+          start_index = member_match.begin(0)
+          indentation = member_match[1]
+
+          resource_block = routes[
+            start_index..
+          ][
+            /\A.*?^#{Regexp.escape(indentation)}end\s*$/m,
+            0
+          ]
+
+          return resource_block&.include?(route)
+        end
+
+        false
       end
 
       def add_route_to_resources(routes_path, routes, route)

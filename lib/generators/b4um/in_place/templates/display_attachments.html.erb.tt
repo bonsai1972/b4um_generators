@@ -137,25 +137,29 @@
       </div>
     </div>
   <%% else %>
-    <div class="resource-field">
-      <strong class="resource-label"><%= @field.humanize %>:</strong>
+    <%% if b4um_in_place_editing_allowed? %>
+      <div
+        class="resource-field<%%= " in-place-edit" if b4um_in_place_editing_allowed? %>"
+        data-controller="in-place"
+        data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
+        data-action="click->in-place#edit keydown.enter->in-place#edit keydown.space->in-place#edit"
+        role="button"
+        tabindex="0"
+      >
+        <strong class="resource-label"><%= @field.humanize %>:</strong>
 
-      <span class="resource-value resource-value--empty">
-        <%% if b4um_in_place_editing_allowed? %>
-          <span
-            class="in-place-edit"
-            data-controller="in-place"
-            data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"
-            data-action="click->in-place#edit keydown.enter->in-place#edit keydown.space->in-place#edit"
-            role="button"
-            tabindex="0"
-          >
-            Add images
-          </span>
-        <%% else %>
+        <span class="resource-value resource-value--empty">
+          Add images
+        </span>
+      </div>
+    <%% else %>
+      <div class="resource-field">
+        <strong class="resource-label"><%= @field.humanize %>:</strong>
+
+        <span class="resource-value resource-value--empty">
           No images
-        <%% end %>
-      </span>
-    </div>
+        </span>
+      </div>
+    <%% end %>
   <%% end %>
 <%% end %>

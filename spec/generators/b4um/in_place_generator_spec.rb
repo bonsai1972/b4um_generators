@@ -282,6 +282,14 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     )
 
     expect(display_view).to include(
+      'class="resource-field<%= " in-place-edit" if b4um_in_place_editing_allowed? %>"'
+    )
+
+    expect(display_view).not_to include(
+      'class="resource-field in-place-edit"'
+    )
+
+    expect(display_view).to include(
       "keydown.enter->in-place#edit"
     )
 
@@ -308,6 +316,292 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     expect(stimulus_controller).to include(
       'input:not([type="hidden"]):not([type="file"])'
     )
+
+    expect(stimulus_controller).to include(
+      "event.target.type === 'file'"
+    )
+
+    expect(stimulus_controller).to include(
+      "fileInput?.files?.length"
+    )
+
+    expect(stimulus_controller).to include(
+      "form.requestSubmit()"
+    )
+  end
+
+  it "generates in-place editing for a number field" do
+    create_basic_product_app
+
+    column = Struct.new(:name, :type).new(
+      "price",
+      :decimal
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product price],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    display_view = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_price.html.erb"
+      )
+    )
+
+    expect(display_view).to include(
+      'class="resource-field<%= " in-place-edit" if b4um_in_place_editing_allowed? %>"'
+    )
+
+    expect(display_view).not_to include(
+      'class="resource-field in-place-edit"'
+    )
+  end
+
+  it "adds the same in-place route to different resources" do
+    create_basic_product_app
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          resources :albums do
+            member do
+              get :edit_description
+            end
+          end
+
+          resources :products
+        end
+      RUBY
+    )
+
+    column = Struct.new(:name, :type).new(
+      "description",
+      :string
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product description],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    routes = File.read(routes_path)
+
+    expect(routes).to match(
+      /resources :products do.*?member do.*?get :edit_description.*?end.*?end/m
+    )
+
+    expect(
+      routes.scan("get :edit_description").count
+    ).to eq(2)
+  end
+
+  it "adds the same in-place route to a plain resource" do
+    create_basic_product_app
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          resources :albums do
+            member do
+              get :edit_name
+            end
+          end
+
+          resources :products
+        end
+      RUBY
+    )
+
+    column = Struct.new(:name, :type).new(
+      "name",
+      :string
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    routes = File.read(routes_path)
+
+    expect(routes).to match(
+      /resources :products do.*?member do.*?get :edit_name.*?end.*?end/m
+    )
+
+    expect(
+      routes.scan("get :edit_name").count
+    ).to eq(2)
+  end
+
+  it "adds all in-place routes when multiple fields are generated at once" do
+    create_basic_product_app
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          resources :albums do
+            member do
+              get :edit_name
+            end
+          end
+
+          resources :products
+        end
+      RUBY
+    )
+
+    name_column = Struct.new(:name, :type).new(
+      "name",
+      :string
+    )
+
+    status_column = Struct.new(:name, :type).new(
+      "status",
+      :string
+    )
+
+    product_class = double(
+      "Product",
+      columns: [name_column, status_column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name status],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    routes = File.read(routes_path)
+
+    expect(routes).to match(
+      /resources :products do.*?member do.*?get :edit_status.*?get :edit_name.*?end.*?end/m
+    )
+
+    expect(
+      routes.scan("get :edit_name").count
+    ).to eq(2)
+
+    expect(
+      routes.scan("get :edit_status").count
+    ).to eq(1)
+  end
+
+  it "adds an in-place route when a plain resource comes before another resource with the same route" do
+    create_basic_product_app
+
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          resources :products
+
+          resources :albums do
+            member do
+              get :edit_name
+            end
+          end
+        end
+      RUBY
+    )
+
+    column = Struct.new(:name, :type).new(
+      "name",
+      :string
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    routes = File.read(routes_path)
+
+    expect(routes).to match(
+      /resources :products do.*?member do.*?get :edit_name.*?end.*?end/m
+    )
+
+    expect(
+      routes.scan("get :edit_name").count
+    ).to eq(2)
   end
 
   it "adds multiple regular fields to strong parameters" do
@@ -396,6 +690,20 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
       )
     )
 
+    condition_display = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_condition.html.erb"
+      )
+    )
+
+    featured_display = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_featured.html.erb"
+      )
+    )
+
     expect(condition_editor).to include("radio_button")
     expect(condition_editor).to include("Neu")
     expect(condition_editor).to include("Gebraucht")
@@ -404,6 +712,22 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     expect(featured_editor).to include("check_box")
     expect(featured_editor).to include(
       "change->in-place#save"
+    )
+
+    expect(condition_display).to include(
+      'class="resource-field<%= " in-place-edit" if b4um_in_place_editing_allowed? %>"'
+    )
+
+    expect(condition_display).not_to include(
+      'class="resource-field in-place-edit"'
+    )
+
+    expect(featured_display).to include(
+      'class="resource-field<%= " in-place-edit" if b4um_in_place_editing_allowed? %>"'
+    )
+
+    expect(featured_display).not_to include(
+      'class="resource-field in-place-edit"'
     )
   end
 
@@ -584,6 +908,13 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
       "change->in-place#save"
     )
 
+    expect(display).to include(
+      'class="resource-field<%= " in-place-edit" if b4um_in_place_editing_allowed? %>"'
+    )
+
+    expect(display).not_to include(
+      'class="resource-field in-place-edit"'
+    )
     expect(display).to include("Active")
     expect(display).to include("Aktiv")
     expect(display).to include("Inactive")
@@ -760,6 +1091,13 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
       )
     )
 
+    gallery_display = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_gallery.html.erb"
+      )
+    )
+
     controller = File.read(
       File.join(
         @destination_root,
@@ -781,6 +1119,30 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
 
     expect(gallery_editor).to include(
       "multiple: true"
+    )
+
+    expect(gallery_display).to include(
+      'class="resource-field<%= " in-place-edit" if b4um_in_place_editing_allowed? %>"'
+    )
+
+    expect(gallery_display).not_to include(
+      'class="resource-field in-place-edit"'
+    )
+
+    expect(gallery_display).to include(
+      "Add images"
+    )
+
+    expect(gallery_display).to include(
+      "click->in-place#edit"
+    )
+
+    expect(gallery_display).to include(
+      "keydown.enter->in-place#edit"
+    )
+
+    expect(gallery_display).to include(
+      "keydown.space->in-place#edit"
     )
 
     expect(controller).to include(

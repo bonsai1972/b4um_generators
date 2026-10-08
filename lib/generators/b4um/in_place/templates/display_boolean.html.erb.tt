@@ -1,6 +1,6 @@
 <%%= turbo_frame_tag dom_id(<%= singular_table_name %>, :<%= @field %>) do %>
   <div
-    class="resource-field in-place-edit"
+    class="resource-field<%%= " in-place-edit" if b4um_in_place_editing_allowed? %>"
     <%% if b4um_in_place_editing_allowed? %>
       data-controller="in-place"
       data-in-place-url-value="<%%= edit_<%= @field %>_<%= singular_table_name %>_path(<%= singular_table_name %>) %>"

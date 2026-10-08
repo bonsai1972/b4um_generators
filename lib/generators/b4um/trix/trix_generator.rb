@@ -166,6 +166,45 @@ module B4um
         )
       end
 
+      def update_controller_params
+        return unless File.exist?(controller_path)
+
+        controller = File.read(controller_path)
+
+        params_method = controller[
+          /def #{Regexp.escape(name.underscore)}_params.*?^\s*end/m,
+          0
+        ]
+
+        unless params_method
+          raise Thor::Error,
+                "Could not find #{name.underscore}_params in #{controller_path}"
+        end
+
+        parameter = ":#{attribute}"
+
+        return if params_method.include?(parameter)
+
+        updated_method =
+          if params_method.match?(/\w+:\s*\[\]/)
+            params_method.sub(
+              /(?=\w+:\s*\[\])/,
+              "#{parameter}, "
+            )
+          else
+            params_method.sub(
+              /\s*\]\s*\)\s*$/,
+              ", #{parameter} ])"
+            )
+          end
+
+        gsub_file(
+          controller_path,
+          params_method,
+          updated_method
+        )
+      end
+
       def update_resource_partial
         return unless File.exist?(resource_partial_path)
 
@@ -450,6 +489,13 @@ module B4um
         File.join(
           destination_root,
           "app/views/#{name.underscore.pluralize}/_form.html.erb"
+        )
+      end
+
+      def controller_path
+        File.join(
+          destination_root,
+          "app/controllers/#{name.underscore.pluralize}_controller.rb"
         )
       end
 

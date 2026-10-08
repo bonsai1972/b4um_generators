@@ -134,19 +134,24 @@ module B4um
 
           insertion = ":#{attachment}, :remove_#{attachment}"
 
+          normalized_attributes =
+            attributes
+            .strip
+            .gsub(/\s+,/, ",")
+
           updated_attributes =
-            if attributes.match?(/\w+:\s*\[/)
-              attributes.sub(
+            if normalized_attributes.match?(/\w+:\s*\[/)
+              normalized_attributes.sub(
                 /(?=\w+:\s*\[)/,
                 "#{insertion}, "
               )
             else
-              "#{attributes}, #{insertion}"
+              "#{normalized_attributes}, #{insertion}"
             end
 
           match.sub(
             attributes,
-            updated_attributes
+            " #{updated_attributes} "
           )
         end
       end
@@ -220,23 +225,59 @@ module B4um
       def update_multiple_permitted_params(content)
         return if multiple_attachment_permitted?(content)
 
-        pattern = /
+        params_method_pattern = /
+          def\s+#{Regexp.escape(file_name)}_params
+          (?<body>.*?)
+          ^\s*end
+        /mx
+
+        params_method = content[params_method_pattern, 0]
+
+        unless params_method
+          raise Thor::Error,
+                "Could not find #{file_name}_params in #{controller_path}"
+        end
+
+        expect_pattern = /
           params\.expect\(
           #{Regexp.escape(file_name)}:\s*
           \[
-          (?<attributes>[^\]]*)
+          (?<attributes>.*)
           \]
           \)
         /mx
 
-        return unless content.match?(pattern)
+        match_data = expect_pattern.match(params_method)
 
-        gsub_file(controller_path, pattern) do |match|
-          match.sub(
-            /\]\)$/,
-            ", #{attachment}: [], remove_#{attachment}_ids: []])"
-          )
+        unless match_data
+          raise Thor::Error,
+                "Could not find params.expect for #{file_name} in #{controller_path}"
         end
+
+        normalized_attributes =
+          match_data[:attributes]
+          .strip
+          .gsub(/\s+,/, ",")
+
+        updated_attributes =
+          "#{normalized_attributes}, " \
+          "#{attachment}: [], " \
+          "remove_#{attachment}_ids: []"
+
+        updated_params_method =
+          params_method.sub(
+            match_data[0],
+            match_data[0].sub(
+              match_data[:attributes],
+              " #{updated_attributes} "
+            )
+          )
+
+        gsub_file(
+          controller_path,
+          params_method,
+          updated_params_method
+        )
       end
 
       def multiple_attachment_permitted?(content)
@@ -252,24 +293,43 @@ module B4um
           "new_#{attachment} = update_params.delete(\"#{attachment}\")"
         )
 
+        unless content.include?("    update_params = #{file_name}_params\n")
+          gsub_file(
+            controller_path,
+            "  def update\n    respond_to do |format|\n",
+            [
+              "  def update",
+              "    update_params = #{file_name}_params",
+              "",
+              "    respond_to do |format|",
+              ""
+            ].join("\n")
+          )
+        end
+
         setup = [
-          "  def update",
-          "    update_params = #{file_name}_params",
           "    new_#{attachment} = update_params.delete(\"#{attachment}\")",
           "    remove_#{attachment}_ids = update_params.delete(\"remove_#{attachment}_ids\")",
-          "",
-          "    respond_to do |format|",
           ""
         ].join("\n")
 
-        gsub_file(
+        insert_into_file(
           controller_path,
-          "  def update\n    respond_to do |format|\n",
-          setup
+          setup,
+          after: "    update_params = #{file_name}_params\n"
         )
 
+        content = File.read(controller_path)
+
+        unless content.include?("      if @#{file_name}.update(update_params)\n")
+          gsub_file(
+            controller_path,
+            "      if @#{file_name}.update(#{file_name}_params)\n",
+            "      if @#{file_name}.update(update_params)\n"
+          )
+        end
+
         attachment_handling = [
-          "      if @#{file_name}.update(update_params)",
           "        @#{file_name}.#{attachment}.attach(new_#{attachment}) if new_#{attachment}.present?",
           "",
           "        if remove_#{attachment}_ids.present?",
@@ -280,10 +340,10 @@ module B4um
           ""
         ].join("\n")
 
-        gsub_file(
+        insert_into_file(
           controller_path,
-          "      if @#{file_name}.update(#{file_name}_params)\n",
-          attachment_handling
+          attachment_handling,
+          after: "      if @#{file_name}.update(update_params)\n"
         )
       end
 
