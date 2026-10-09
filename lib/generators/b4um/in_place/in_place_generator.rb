@@ -1149,6 +1149,7 @@ module B4um
         )
 
         @field = field
+        @field_type = field_type(field)
 
         template(
           template_name,
@@ -1156,6 +1157,7 @@ module B4um
         )
       ensure
         @field = nil
+        @field_type = nil
       end
 
       def display_template_for(field)

@@ -330,7 +330,7 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     )
   end
 
-  it "generates in-place editing for a number field" do
+  it "generates in-place editing for a decimal number field" do
     create_basic_product_app
 
     column = Struct.new(:name, :type).new(
@@ -368,6 +368,55 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
 
     expect(display_view).not_to include(
       'class="resource-field in-place-edit"'
+    )
+
+    expect(display_view).to include(
+      'number_with_precision(product.price, precision: 2, delimiter: ".", separator: ",")'
+    )
+
+    expect(display_view).to include(
+      "product.price.present?"
+    )
+  end
+
+  it "keeps integer number fields unformatted" do
+    create_basic_product_app
+
+    column = Struct.new(:name, :type).new(
+      "quantity",
+      :integer
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product quantity],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    display_view = File.read(
+      File.join(
+        @destination_root,
+        "app/views/products/_quantity.html.erb"
+      )
+    )
+
+    expect(display_view).to include(
+      '<%= product.quantity.presence || "—" %>'
+    )
+
+    expect(display_view).not_to include(
+      "number_with_precision"
     )
   end
 

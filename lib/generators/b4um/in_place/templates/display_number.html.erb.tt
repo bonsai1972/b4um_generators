@@ -11,8 +11,9 @@
   >
     <strong class="resource-label"><%= @field.humanize %>:</strong>
 
-    <span class="resource-value">
-      <%%= <%= singular_table_name %>.<%= @field %>.presence || "—" %>
+    <span class="resource-value"><% if @field_type == :decimal %>
+      <%%= <%= singular_table_name %>.<%= @field %>.present? ? number_with_precision(<%= singular_table_name %>.<%= @field %>, precision: 2, delimiter: ".", separator: ",") : "—" %><% else %>
+      <%%= <%= singular_table_name %>.<%= @field %>.presence || "—" %><% end %>
     </span>
   </div>
 <%% end %>
