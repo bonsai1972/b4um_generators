@@ -299,16 +299,33 @@ The partial uses a local collection and can therefore also be reused with anothe
 Generate a reusable b4um table for an existing model:
 
 ```bash
-bin/rails generate b4um:table MODEL FIELDS
-```
-
-Example:
-
-```bash
-bin/rails generate b4um:table Product name:string description:text price:decimal status:string
+bin/rails generate b4um:table MODEL [FIELDS]
 ```
 
 The model must already exist.
+
+Fields are optional. If no fields are supplied, the generator automatically detects the model's database fields, Action
+Text fields and Active Storage attachments. `id`, `created_at` and `updated_at` are excluded automatically.
+
+Recommended:
+
+```bash
+bin/rails generate b4um:table Product
+```
+
+Fields can also be specified explicitly:
+
+```bash
+bin/rails generate b4um:table Product name price status
+```
+
+Configured select and radio values can be displayed using their labels:
+
+```bash
+bin/rails generate b4um:table Product \
+  --select="status:active=Active,inactive=Inactive" \
+  --radio="condition:new=New,used=Used"
+```
 
 For a `Product` model, the generated partial is stored at:
 
@@ -318,20 +335,32 @@ app/views/products/_table.html.erb
 
 The generated table provides:
 
+- Automatic field detection from the existing model
 - Responsive table layout
-- Typed field definitions
+- Model-aware field types
 - Text fields shortened to 100 characters
+- Decimal values formatted with two decimal places
 - Status fields displayed as b4um badges
+- Labels for configured `--select` and `--radio` values
+- Action Text / Trix content
+- Lightbox support for images embedded in rich text
+- Trix image captions in the Lightbox
+- Active Storage `has_one_attached` images
+- Active Storage `has_many_attached` galleries
+- Thumbnails, Lightbox navigation and drag/swipe support
 - Actions column with a Show button
 - Empty-state handling
 
-Render it with:
+Running the Table generator automatically switches an existing b4um index view to the table partial:
 
 ```erb
 <%= render "table", products: @products %>
 ```
 
-The partial can also be reused with another collection:
+Running `b4um:bento Product` later switches the index back to the Bento partial. This also applies to the `grid`, `list`
+and `alternating` Bento layouts.
+
+The table partial can also be reused with another collection:
 
 ```erb
 <%= render "products/table", products: @featured_products %>

@@ -758,15 +758,39 @@ module B4um
 
           TABLE
 
-            bin/rails generate b4um:table MODEL FIELDS
+            bin/rails generate b4um:table MODEL [FIELDS]
 
           Generates a reusable b4um table partial for an existing model.
 
-          Example:
-
-            bin/rails generate b4um:table Product name:string description:text price:decimal status:string
-
           The model must already exist.
+
+          Fields are optional. If no fields are supplied, the generator
+          automatically detects:
+
+            - Database fields
+            - Action Text rich text fields
+            - Active Storage single attachments
+            - Active Storage multiple attachments
+
+          id, created_at and updated_at are excluded automatically.
+
+          Recommended:
+
+            bin/rails generate b4um:table Product
+
+          Fields can also be specified explicitly:
+
+            bin/rails generate b4um:table Product name price status
+
+          Select fields can be configured with --select:
+
+            bin/rails generate b4um:table Product --select='status:active=Active,inactive=Inactive'
+
+          Radio fields can be configured with --radio:
+
+            bin/rails generate b4um:table Product --radio='condition:new=New,used=Used'
+
+          The configured database values are displayed using their labels.
 
           The generated partial is created at:
 
@@ -774,18 +798,34 @@ module B4um
 
           Table features:
 
+            - Automatic field detection from the existing model
             - Responsive b4um table component
-            - Typed field definitions
+            - Model-aware field types
             - Text fields shortened to 100 characters
-            - Status field displayed as a b4um badge
+            - Decimal values formatted with two decimal places
+            - Status fields displayed as b4um badges
+            - Select and radio labels
+            - Action Text / Trix content
+            - Lightbox for images embedded in rich text
+            - Trix image captions in the lightbox
+            - Active Storage single images
+            - Active Storage multiple image galleries
+            - Image thumbnails and lightbox navigation
+            - Mouse and touch drag / swipe
             - Actions column with a Show button
+            - Empty-state handling
             - No migrations, routes or controllers are generated
 
-          Render the partial from an index view with:
+          Running the Table generator automatically switches an existing
+          b4um index view to the table partial:
 
             <%= render "table", products: @products %>
 
-          The partial uses a local collection, so it can also be
+          Running b4um:bento later switches the index back to the Bento
+          partial. This also applies to the grid, list and alternating
+          Bento layouts.
+
+          The table partial uses a local collection, so it can also be
           reused with another collection:
 
             <%= render "products/table", products: @featured_products %>

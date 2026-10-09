@@ -302,16 +302,34 @@ Das Partial verwendet eine lokale Collection und kann daher auch mit einer ander
 Erzeuge eine wiederverwendbare b4um-Tabelle für ein bestehendes Modell:
 
 ```bash
-bin/rails generate b4um:table MODEL FIELDS
-```
-
-Beispiel:
-
-```bash
-bin/rails generate b4um:table Product name:string description:text price:decimal status:string
+bin/rails generate b4um:table MODEL [FIELDS]
 ```
 
 Das Modell muss bereits vorhanden sein.
+
+Die Felder sind optional. Werden keine Felder angegeben, erkennt der Generator automatisch die Datenbankfelder des
+Modells, Action-Text-Felder und Active-Storage-Anhänge. `id`, `created_at` und `updated_at` werden automatisch
+ausgeschlossen.
+
+Empfohlen:
+
+```bash
+bin/rails generate b4um:table Product
+```
+
+Felder können weiterhin ausdrücklich angegeben werden:
+
+```bash
+bin/rails generate b4um:table Product name price status
+```
+
+Konfigurierte Select- und Radio-Werte können mit ihren Beschriftungen dargestellt werden:
+
+```bash
+bin/rails generate b4um:table Product \
+  --select="status:active=Aktiv,inactive=Inaktiv" \
+  --radio="condition:new=Neu,used=Gebraucht"
+```
 
 Für ein `Product`-Modell wird das generierte Partial hier gespeichert:
 
@@ -321,20 +339,33 @@ app/views/products/_table.html.erb
 
 Die generierte Tabelle bietet:
 
+- Automatische Felderkennung aus dem bestehenden Modell
 - Responsives Tabellenlayout
-- Typisierte Felddefinitionen
+- Erkennung der tatsächlichen Feldtypen des Modells
 - Kürzung von Textfeldern auf 100 Zeichen
+- Formatierung von Dezimalwerten mit zwei Nachkommastellen
 - Darstellung von Statusfeldern als b4um-Badges
+- Beschriftungen für konfigurierte `--select`- und `--radio`-Werte
+- Action-Text-/Trix-Inhalte
+- Lightbox für Bilder innerhalb von Rich Text
+- Übernahme von Trix-Bildbeschriftungen in die Lightbox
+- Active-Storage-`has_one_attached`-Bilder
+- Active-Storage-`has_many_attached`-Galerien
+- Vorschaubilder, Lightbox-Navigation und Ziehen/Wischen
 - Aktionsspalte mit Show-Button
 - Empty-State-Darstellung
 
-Einbindung:
+Beim Aufruf des Tabellen-Generators wird eine vorhandene b4um-Index-Ansicht automatisch auf das Tabellen-Partial
+umgestellt:
 
 ```erb
 <%= render "table", products: @products %>
 ```
 
-Das Partial kann auch mit einer anderen Collection verwendet werden:
+Wird später `b4um:bento Product` ausgeführt, stellt der Generator den Index wieder auf das Bento-Partial zurück. Das
+gilt auch für die Bento-Layouts `grid`, `list` und `alternating`.
+
+Das Tabellen-Partial kann auch mit einer anderen Collection verwendet werden:
 
 ```erb
 <%= render "products/table", products: @featured_products %>
