@@ -676,6 +676,66 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the b4um sortable generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "SORTABLE"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:sortable MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:sortable Product"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:sortable Product --path=sortierung"
+      )
+
+      expect(text).to include(
+        "Existing records receive positions automatically"
+      )
+
+      expect(text).to include(
+        "New records are automatically added at the end"
+      )
+
+      expect(text).to include(
+        "Drag-and-drop sorting with Stimulus"
+      )
+
+      expect(text).to include(
+        "Positions can also be changed directly with a number field"
+      )
+
+      expect(text).to include(
+        "Positions remain contiguous after moving or deleting records"
+      )
+
+      expect(text).to include(
+        "No additional sorting gem required"
+      )
+
+      expect(text).to include(
+        "Works with b4um Search and Pagination"
+      )
+
+      expect(text).to include(
+        "Optional separate sortable page with --path"
+      )
+
+      expect(text).to include(
+        "No additional controller or namespace is generated."
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the b4um comments generator" do
     generator = described_class.new
 

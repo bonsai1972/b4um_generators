@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+class AddPositionTo<%= class_name.pluralize %> < ActiveRecord::Migration[8.0]
+  def up
+    add_column :<%= plural_table_name %>, :position, :integer
+
+    sortable_record = Class.new(ActiveRecord::Base) do
+      self.table_name = "<%= plural_table_name %>"
+    end
+
+    sortable_record.reset_column_information
+
+    sortable_record.order(:id).find_each.with_index(1) do |record, position|
+      record.update_columns(position: position)
+    end
+
+    change_column_null :<%= plural_table_name %>, :position, false
+
+    add_index :<%= plural_table_name %>, :position
+  end
+
+  def down
+    remove_index :<%= plural_table_name %>, :position
+    remove_column :<%= plural_table_name %>, :position
+  end
+end

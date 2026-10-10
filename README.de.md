@@ -732,6 +732,86 @@ Die Suche bietet:
 - Kein zusätzliches Such-Gem erforderlich
 - Sichere wiederholte Ausführung des Generators
 
+## Sortable
+
+Füge einer bestehenden Ressource eine dauerhaft gespeicherte Sortierreihenfolge hinzu:
+
+```bash
+bin/rails generate b4um:sortable Product
+bin/rails db:migrate
+```
+
+Der Generator fügt eine `position`-Spalte hinzu und weist bestehenden Datensätzen beim Ausführen der generierten
+Migration automatisch Positionen zu.
+
+Neue Datensätze werden automatisch am Ende der Liste eingefügt.
+
+Standardmäßig wird die bestehende Index-Seite zur sortierbaren Seite:
+
+```text
+/products
+```
+
+Das bestehende Index-Layout wird auf das b4um-Sortable-Layout umgestellt. Die gespeicherte Position wird außerdem als
+Standardsortierung der Ressource verwendet.
+
+Sortable bietet:
+
+- Dauerhaft in der Datenbank gespeicherte ganzzahlige Positionen
+- Automatische Positionierung bestehender Datensätze während der Migration
+- Automatische Positionierung neuer Datensätze am Ende
+- Drag-and-Drop-Sortierung mit Stimulus
+- Direkte Änderung der Position über ein Zahlenfeld
+- Automatisches Verschieben der betroffenen Datensätze
+- Lückenlose Positionen nach dem Verschieben oder Löschen von Datensätzen
+- Serverseitige Sortierung innerhalb einer Datenbanktransaktion
+- CSRF-geschützte Update-Anfragen
+- Integration mit b4um Search und Pagination
+- Kein zusätzliches Sortier-Gem erforderlich
+- Sichere wiederholte Ausführung des Generators
+
+### Separate Sortierseite
+
+Mit `--path` kann eine separate Sortierseite erstellt werden:
+
+```bash
+bin/rails generate b4um:sortable Product --path=sortierung
+bin/rails db:migrate
+```
+
+Dadurch wird die sortierbare Seite genau unter folgender URL erstellt:
+
+```text
+/sortierung
+```
+
+während der normale Ressourcen-Index weiterhin unter
+
+```text
+/products
+```
+
+verfügbar bleibt.
+
+Das bestehende Index-Layout, beispielsweise Bento oder Table, bleibt unverändert. Es verwendet weiterhin die
+gespeicherte `position`-Sortierung.
+
+Die separate Sortierseite verwendet den bestehenden Controller der Ressource. Es wird kein zusätzlicher Controller und
+kein Namespace erzeugt.
+
+Der mit `--path` angegebene Wert bestimmt direkt die URL der separaten Sortierseite. Zum Beispiel:
+
+```bash
+bin/rails generate b4um:sortable Product --path=produktuebersicht
+bin/rails generate b4um:sortable Product --path=verwaltung
+bin/rails generate b4um:sortable Product --path=admin
+```
+
+Dadurch entstehen entsprechend `/produktuebersicht`, `/verwaltung` und `/admin`.
+
+Eine separate Sortierseite ermöglicht außerdem, nur die `sort`-Action durch die Authentifizierung zu schützen, während
+der normale Ressourcen-Index öffentlich bleiben kann.
+
 ## Kommentare
 
 Füge einem bestehenden Modell polymorphe Kommentare hinzu:
@@ -1135,7 +1215,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.2.17`
+Aktuelle Version: `0.3.0`
 
 ## Autor
 

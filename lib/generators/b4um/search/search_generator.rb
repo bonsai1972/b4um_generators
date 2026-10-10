@@ -92,19 +92,33 @@ module B4um
           return
         end
 
-        old_index = "@#{file_name.pluralize} = #{class_name}.all"
+        plain_collection = "#{class_name}.all"
+        sortable_collection = "#{class_name}.order(:position, :id)"
 
-        unless controller_content.include?(old_index)
+        collection =
+          if controller_content.include?(
+            "@#{file_name.pluralize} = #{sortable_collection}"
+          )
+            sortable_collection
+          elsif controller_content.include?(
+            "@#{file_name.pluralize} = #{plain_collection}"
+          )
+            plain_collection
+          end
+
+        unless collection
           raise Thor::Error,
                 "Could not find the index collection in #{controller_path}"
         end
 
-        search_code = <<~RUBY.chomp
-          @#{file_name.pluralize} = b4um_search(
-            #{class_name}.all,
-            params[:q]
-          )
-        RUBY
+        old_index = "@#{file_name.pluralize} = #{collection}"
+
+        search_code = [
+          "@#{file_name.pluralize} = b4um_search(",
+          "      #{collection},",
+          "      params[:q]",
+          "    )"
+        ].join("\n")
 
         gsub_file(
           controller_path,

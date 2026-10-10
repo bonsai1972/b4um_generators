@@ -1,0 +1,40 @@
+<div class="b4um-sortable"
+     data-controller="sortable"
+     data-sortable-update-url-value="<%%= sort_<%= plural_table_name %>_path %>">
+
+  <%% <%= plural_table_name %>.each do |<%= singular_table_name %>| %>
+    <div class="b4um-sortable__item"
+          data-sortable-id="<%%= <%= singular_table_name %>.id %>"
+          data-action="dragover->sortable#dragOver drop->sortable#drop">
+
+      <div class="b4um-sortable__controls">
+        <input type="number"
+                class="b4um-sortable__position"
+                value="<%%= <%= singular_table_name %>.position %>"
+                min="1"
+                aria-label="Position"
+                data-action="change->sortable#positionChanged keydown->sortable#positionKeydown">
+
+        <button type="button"
+                class="b4um-sortable__handle"
+                draggable="true"
+                aria-label="Move <%= singular_table_name.humanize.downcase %>"
+                data-action="dragstart->sortable#dragStart dragend->sortable#dragEnd">
+          &#9776;
+        </button>
+      </div>
+
+      <div class="b4um-sortable__content">
+        <%%= render <%= singular_table_name %>,
+                    compact: true,
+                    preview_length: 100 %>
+      </div>
+
+      <div class="b4um-sortable__actions">
+        <%%= link_to "Show",
+                    <%= singular_table_name %>,
+                    class: "button button--secondary" %>
+      </div>
+    </div>
+  <%% end %>
+</div>

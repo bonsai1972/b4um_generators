@@ -725,6 +725,81 @@ Search provides:
 - No additional search gem
 - Safe repeated generator runs
 
+## Sortable
+
+Add persistent sortable positioning to an existing resource:
+
+```bash
+bin/rails generate b4um:sortable Product
+bin/rails db:migrate
+```
+
+The generator adds a `position` column and assigns positions to existing records when the generated migration is run.
+
+New records are automatically added at the end of the list.
+
+By default, the existing resource index becomes the sortable page:
+
+```text
+/products
+```
+
+The existing index layout is switched to the b4um sortable layout. The stored position is also used as the default
+ordering for the resource.
+
+Sortable provides:
+
+- Persistent integer positions stored in the database
+- Automatic positioning of existing records during migration
+- Automatic positioning of new records at the end
+- Drag-and-drop sorting with Stimulus
+- Direct position changes using a number field
+- Automatic shifting of affected records
+- Contiguous positions after moving or deleting records
+- Server-side sorting inside a database transaction
+- CSRF-protected update requests
+- Integration with b4um Search and Pagination
+- No additional sorting gem
+- Safe repeated generator runs
+
+### Separate Sortable Page
+
+A separate sortable page can be created with `--path`:
+
+```bash
+bin/rails generate b4um:sortable Product --path=sortierung
+bin/rails db:migrate
+```
+
+This creates the sortable page at exactly:
+
+```text
+/sortierung
+```
+
+while the regular resource index remains available at:
+
+```text
+/products
+```
+
+The existing index layout, such as Bento or Table, remains unchanged. It still uses the stored `position` ordering.
+
+The separate sortable page uses the existing resource controller. No additional controller or namespace is generated.
+
+The value passed to `--path` directly defines the URL of the separate sortable page. For example:
+
+```bash
+bin/rails generate b4um:sortable Product --path=produktuebersicht
+bin/rails generate b4um:sortable Product --path=verwaltung
+bin/rails generate b4um:sortable Product --path=admin
+```
+
+These create `/produktuebersicht`, `/verwaltung`, and `/admin` respectively.
+
+Using a separate sortable page also makes it possible to protect only the `sort` action with authentication while
+keeping the regular resource index public.
+
 ## Comments
 
 Add polymorphic comments to an existing model:
@@ -1124,7 +1199,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.2.17`
+Current version: `0.3.0`
 
 ## Author
 

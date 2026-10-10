@@ -1,0 +1,3 @@
+<h1><%= class_name.pluralize %> sortieren</h1>
+
+<%%= render "sortable", <%= plural_table_name %>: @<%= plural_table_name %> %>

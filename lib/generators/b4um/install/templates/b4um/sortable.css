@@ -1,0 +1,158 @@
+/* -------------------------------------------------------
+   Sortable
+------------------------------------------------------- */
+
+.b4um-sortable {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.b4um-sortable__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+
+  padding: 1rem 1.25rem;
+
+  background: var(--b4um-surface);
+  border: 1px solid var(--b4um-border-light);
+  border-radius: var(--b4um-radius);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.b4um-sortable__item:hover {
+  border-color: var(--b4um-border-hover);
+}
+
+.b4um-sortable__item--dragging {
+  opacity: 0.5;
+  box-shadow: 0 8px 24px var(--b4um-primary-shadow-soft);
+}
+
+/* -------------------------------------------------------
+   Controls
+------------------------------------------------------- */
+
+.b4um-sortable__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.b4um-sortable__position {
+  box-sizing: border-box;
+
+  width: 4rem;
+  min-width: 4rem;
+  height: 2.75rem;
+
+  margin: 0;
+  padding: 0.5rem;
+
+  background: var(--b4um-surface);
+  color: var(--b4um-text);
+
+  border: 1px solid var(--b4um-border);
+  border-radius: 10px;
+
+  font: inherit;
+  text-align: center;
+}
+
+.b4um-sortable__position:hover {
+  border-color: var(--b4um-border-hover);
+}
+
+.b4um-sortable__position:focus {
+  border-color: var(--b4um-primary);
+  outline: 3px solid var(--b4um-primary-focus);
+  outline-offset: 1px;
+}
+
+/* -------------------------------------------------------
+   Drag handle
+------------------------------------------------------- */
+
+.b4um-sortable__handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.75rem;
+  height: 2.75rem;
+
+  margin: 0;
+  padding: 0;
+
+  background: transparent;
+  color: var(--b4um-text-secondary);
+
+  border: 0;
+  border-radius: 10px;
+
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+
+  cursor: grab;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.b4um-sortable__handle:hover {
+  background: var(--b4um-primary-soft);
+  color: var(--b4um-primary);
+}
+
+.b4um-sortable__handle:active {
+  cursor: grabbing;
+}
+
+/* -------------------------------------------------------
+   Content
+------------------------------------------------------- */
+
+.b4um-sortable__content {
+  min-width: 0;
+}
+
+.b4um-sortable__content .resource {
+  margin: 0;
+}
+
+/* -------------------------------------------------------
+   Actions
+------------------------------------------------------- */
+
+.b4um-sortable__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.b4um-sortable__actions .button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------
+   Responsive
+------------------------------------------------------- */
+
+@media (max-width: 48rem) {
+  .b4um-sortable__item {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .b4um-sortable__actions {
+    justify-content: flex-start;
+  }
+}

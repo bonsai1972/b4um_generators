@@ -943,6 +943,72 @@ module B4um
             - No additional search gem required
             - Safe repeated generator runs
 
+          SORTABLE
+
+            bin/rails generate b4um:sortable MODEL
+
+          Adds persistent sortable positioning to an existing resource.
+
+          Example:
+
+            bin/rails generate b4um:sortable Product
+            bin/rails db:migrate
+
+          Existing records receive positions automatically when the
+          generated migration is run.
+
+          New records are automatically added at the end of the list.
+
+          By default, the existing index page becomes the sortable page:
+
+            /products
+
+          The existing index layout is switched to the b4um sortable
+          layout. The stored position is also used as the default
+          ordering for the resource.
+
+          A separate sortable page can be created with --path:
+
+            bin/rails generate b4um:sortable Product --path=sortierung
+            bin/rails db:migrate
+
+          This creates the sortable page at exactly:
+
+            /sortierung
+
+          The existing resource index remains unchanged:
+
+            /products
+
+          The separate page uses the existing resource controller.
+          No additional controller or namespace is generated.
+
+          Other examples:
+
+            --path=produktuebersicht
+            --path=verwaltung
+            --path=admin
+
+          The value passed to --path defines the URL of the separate
+          sortable page.
+
+          Sortable features:
+
+            - Persistent integer positions stored in the database
+            - Existing records receive positions during migration
+            - New records are automatically placed at the end
+            - Drag-and-drop sorting with Stimulus
+            - Positions can also be changed directly with a number field
+            - Moving a record automatically shifts the affected records
+            - Positions remain contiguous after moving or deleting records
+            - Server-side sorting inside a database transaction
+            - CSRF-protected update requests
+            - No additional sorting gem required
+            - Works with b4um Search and Pagination
+            - Stored ordering is reflected by the regular resource index
+            - Optional separate sortable page with --path
+            - Safe repeated generator runs
+
 
           COMMENTS
 

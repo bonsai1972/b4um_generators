@@ -287,11 +287,95 @@ RSpec.describe B4um::Generators::SearchGenerator do
 
       expect(controller).to include(
         <<~RUBY
-          @products = b4um_search(
-            Product.all,
-            params[:q]
-          )
+          class ProductsController < ApplicationController
+            include B4umSearch
+
+            def index
+              @products = b4um_search(
+                Product.all,
+                params[:q]
+              )
+            end
+          end
         RUBY
+      )
+    end
+  end
+
+  it "preserves sortable ordering when adding search" do
+    Dir.mktmpdir("b4um_search_generator_test") do |directory|
+      FileUtils.mkdir_p(
+        File.join(directory, "app/models")
+      )
+
+      FileUtils.mkdir_p(
+        File.join(directory, "app/controllers")
+      )
+
+      FileUtils.mkdir_p(
+        File.join(directory, "app/views/products")
+      )
+
+      File.write(
+        File.join(directory, "app/models/product.rb"),
+        <<~RUBY
+          class Product < ApplicationRecord
+          end
+        RUBY
+      )
+
+      controller_path = File.join(
+        directory,
+        "app/controllers/products_controller.rb"
+      )
+
+      File.write(
+        controller_path,
+        <<~RUBY
+          class ProductsController < ApplicationController
+            def index
+              @products = Product.order(:position, :id)
+            end
+          end
+        RUBY
+      )
+
+      File.write(
+        File.join(directory, "app/views/products/index.html.erb"),
+        <<~ERB
+          <h1>Products</h1>
+
+          <%= render "bento", products: @products %>
+        ERB
+      )
+
+      generator = described_class.new(
+        ["Product"],
+        {},
+        destination_root: directory
+      )
+
+      generator.invoke_all
+
+      controller = File.read(controller_path)
+
+      expect(controller).to include(
+        <<~RUBY
+          class ProductsController < ApplicationController
+            include B4umSearch
+
+            def index
+              @products = b4um_search(
+                Product.order(:position, :id),
+                params[:q]
+              )
+            end
+          end
+        RUBY
+      )
+
+      expect(controller).not_to include(
+        "Product.all,"
       )
     end
   end

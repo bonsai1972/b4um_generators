@@ -148,6 +148,50 @@ RSpec.describe B4um::Generators::PaginationGenerator do
     expect(content).not_to include("@products = Product.all")
   end
 
+  it "preserves sortable ordering when adding pagination" do
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+            @products = Product.order(:position, :id)
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      "@products, @pagination = b4um_paginate("
+    )
+
+    expect(controller).to include(
+      "Product.order(:position, :id),"
+    )
+
+    expect(controller).to include(
+      "per_page: 20"
+    )
+
+    expect(controller).not_to include(
+      "Product.all,"
+    )
+  end
+
   it "adds the pagination partial to the index view" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/views/products")
@@ -369,6 +413,52 @@ RSpec.describe B4um::Generators::PaginationGenerator do
       /@products,\s*@pagination\s*=\s*b4um_paginate\(\s*
         b4um_search\(\s*
           Product\.all,\s*
+          params\[:q\]\s*
+        \),\s*
+        per_page:\s*20\s*
+      \)/x
+    )
+  end
+
+  it "preserves sortable ordering when paginating an existing B4UM search" do
+    File.write(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      ),
+      <<~RUBY
+        class ProductsController < ApplicationController
+          include B4umSearch
+
+          def index
+            @products = b4um_search(
+              Product.order(:position, :id),
+              params[:q]
+            )
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    expect(controller).to match(
+      /@products,\s*@pagination\s*=\s*b4um_paginate\(\s*
+        b4um_search\(\s*
+          Product\.order\(:position,\s*:id\),\s*
           params\[:q\]\s*
         \),\s*
         per_page:\s*20\s*

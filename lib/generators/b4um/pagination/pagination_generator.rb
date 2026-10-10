@@ -108,20 +108,33 @@ module B4um
         /
           @#{Regexp.escape(plural_table_name)}\s*=\s*
           b4um_search\(\s*
-          #{Regexp.escape(class_name)}\.all,\s*
+          (?<collection>
+            #{Regexp.escape(class_name)}
+            \.(?:all|order\(\s*:position\s*,\s*:id\s*\))
+          )\s*,\s*
           params\[:q\]\s*
           \)
         /x
       end
 
       def paginate_existing_search
+        controller_content = File.read(controller_path)
+        match = controller_content.match(search_pattern)
+
+        unless match
+          raise Thor::Error,
+                "Could not find the search collection in app/controllers/#{plural_table_name}_controller.rb"
+        end
+
+        collection = match[:collection]
+
         gsub_file(
           controller_path,
           search_pattern,
           [
             "@#{plural_table_name}, @pagination = b4um_paginate(",
             "      b4um_search(",
-            "        #{class_name}.all,",
+            "        #{collection},",
             "        params[:q]",
             "      ),",
             "      per_page: #{options[:per_page]}",
@@ -131,19 +144,33 @@ module B4um
       end
 
       def paginate_plain_collection(controller_content)
-        old_index = "@#{plural_table_name} = #{class_name}.all"
+        plain_collection = "#{class_name}.all"
+        sortable_collection = "#{class_name}.order(:position, :id)"
 
-        unless controller_content.include?(old_index)
+        collection =
+          if controller_content.include?(
+            "@#{plural_table_name} = #{sortable_collection}"
+          )
+            sortable_collection
+          elsif controller_content.include?(
+            "@#{plural_table_name} = #{plain_collection}"
+          )
+            plain_collection
+          end
+
+        unless collection
           raise Thor::Error,
                 "Could not find the index collection in app/controllers/#{plural_table_name}_controller.rb"
         end
+
+        old_index = "@#{plural_table_name} = #{collection}"
 
         gsub_file(
           controller_path,
           old_index,
           [
             "@#{plural_table_name}, @pagination = b4um_paginate(",
-            "      #{class_name}.all,",
+            "      #{collection},",
             "      per_page: #{options[:per_page]}",
             "    )"
           ].join("\n")

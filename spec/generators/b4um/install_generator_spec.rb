@@ -381,6 +381,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       tables.css
+      sortable.css
       pagination.css
       badges.css
       callouts.css
@@ -415,6 +416,7 @@ RSpec.describe B4um::Generators::InstallGenerator do
       hero.css
       cards.css
       tables.css
+      sortable.css
       pagination.css
       badges.css
       callouts.css
