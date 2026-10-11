@@ -6,8 +6,8 @@ b4um Generators is a collection of reusable Rails generators, templates, compone
 Rails projects.
 
 The gem provides a consistent starting point for Rails applications and includes generators for scaffolds, controllers,
-Bento layouts, tables, pagination, infinite scrolling, search, comments, authentication, attachments and rich-text
-editing.
+Bento layouts, tables, pagination, infinite scrolling, search, sorting, comments, authentication, administrator
+management, attachments and rich-text editing.
 
 Generated components share the same b4um styling and are designed to work together.
 
@@ -23,7 +23,7 @@ b4um Generators is currently used as a local gem during development.
 Add the gem to the Rails application's `Gemfile`:
 
 ```ruby
-gem "b4um_generators", "~> 0.2.0", path: "/path/to/b4um_generators"
+gem "b4um_generators", "~> 0.4.0", path: "/path/to/b4um_generators"
 ```
 
 Then run:
@@ -79,9 +79,11 @@ b4um:controller
 b4um:pagination
 b4um:infinite_scroll
 b4um:search
+b4um:sortable
 b4um:comments
 b4um:in_place
 b4um:authentication
+b4um:admin
 b4um:trix
 b4um:readable
 b4um:help
@@ -95,7 +97,7 @@ bin/rails generate b4um:help
 
 ## Scaffold Generator
 
-Generate a Rails resource using the b4um views and components:
+Generate a Rails resource with b4um views and components:
 
 ```bash
 bin/rails generate b4um:scaffold MODEL ATTRIBUTES
@@ -113,6 +115,7 @@ The scaffold generator provides:
 - Index, show, new and edit views
 - Bento index layout by default
 - Optional table index layout
+- Required fields with `presence` validation
 - Select fields with custom labels
 - Radio fields with custom labels
 - Automatic navigation entry
@@ -121,6 +124,32 @@ The scaffold generator provides:
 - Flash messages
 - Password field support
 - Optional readable URL parameters
+
+### Required Fields
+
+Use `--required` to select fields for which the scaffold generator adds a `presence` validation to the model.
+
+Use:
+
+```text
+--required=FIELD,FIELD
+```
+
+Example:
+
+```bash
+bin/rails generate b4um:scaffold Customer first_name:string last_name:string company:string email:string --required=first_name,last_name,email
+```
+
+This adds the following validation to the generated model:
+
+```ruby
+validates :first_name, :last_name, :email, presence: true
+```
+
+Fields not listed in `--required` remain optional.
+
+`--required` can be combined with other scaffold options such as `--select`, `--radio`, `--layout` and `--param`.
 
 ### Select and Radio Fields
 
@@ -537,6 +566,166 @@ The generator also validates its authentication requirements before changing the
 setup is missing, the generator stops with a helpful error message and a suggested b4um scaffold command.
 
 Repeated generator runs do not duplicate authentication helpers, routes, navigation controls or controller protection.
+
+## Admin
+
+Add administrator user management to an existing b4um authentication model:
+
+```bash
+bin/rails generate b4um:admin MODEL
+```
+
+Example:
+
+```bash
+bin/rails generate b4um:admin User
+bin/rails db:migrate
+```
+
+The Admin generator builds on the existing b4um authentication system. Authentication must therefore be installed for
+the selected model before running the Admin generator.
+
+A complete setup looks like this:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+bin/rails db:migrate
+
+bin/rails generate b4um:authentication User
+
+bin/rails generate b4um:admin User
+bin/rails db:migrate
+```
+
+The Admin generator adds two boolean fields to the authentication model:
+
+```text
+admin
+blocked
+```
+
+Both fields default to `false`.
+
+The generator also adds:
+
+- An Admin dashboard
+- Admin-only controller protection
+- User management
+- Administrator routes
+- Blocking and unblocking users
+- Granting and revoking administrator rights
+- Deleting users
+- Protection against blocking your own account
+- Protection against deleting your own account
+- Protection against removing the last administrator
+- Blocked login prevention
+- Automatic invalidation of sessions belonging to blocked users
+
+### Creating the First Administrator
+
+Administrator privileges are not available through public registration.
+
+After running the Admin generator and the database migration, create the first administrator from the command line:
+
+```bash
+bin/rails b4um:admin:create
+```
+
+Run the database migration before creating the first administrator:
+
+```bash
+bin/rails db:migrate
+```
+
+The task automatically detects additional fields from the authentication model.
+
+Fields with an unconditional `presence` validation are marked with `*` and must be entered. Other detected fields are
+optional and can be left empty.
+
+Email, password and password confirmation are always required.
+
+For example, an authentication model with required `first_name` and `last_name` fields and an optional `company` field
+may result in:
+
+```text
+First name *: Alex
+Last name *: Example
+Company:
+Email *: admin@example.com
+Password *:
+Confirm password *:
+Administrator admin@example.com was created successfully.
+```
+
+The password is entered without being displayed in the terminal.
+
+If the Admin migration has not been run yet, the task stops and asks you to run `bin/rails db:migrate`.
+
+The task creates the account with:
+
+```text
+admin: true
+blocked: false
+```
+
+If an account with the entered email address already exists, the task stops instead of granting administrator privileges
+to that account.
+
+Existing users can be promoted from the Admin user management interface after the first administrator has been created.
+
+### Admin Area
+
+The generated Admin area is available at:
+
+```text
+/admin
+```
+
+Only a logged-in account with administrator privileges can access it.
+
+The Admin dashboard links to the generated user management interface.
+
+From there, administrators can:
+
+- Block users
+- Unblock users
+- Grant administrator rights
+- Revoke administrator rights
+- Delete users
+
+The currently logged-in administrator cannot block or delete their own account through the generated interface.
+
+The last remaining administrator cannot lose administrator rights. This prevents an application from accidentally being
+left without an administrator.
+
+### Blocking Users
+
+Blocking a user sets the authentication model's `blocked` field to `true`.
+
+A blocked user cannot log in, even with the correct password.
+
+If a user is already logged in when the account becomes blocked, the existing session is invalidated when authentication
+is checked again.
+
+Unblocking the account allows the user to log in again.
+
+### Administrator Rights
+
+Administrator access is controlled by the authentication model's `admin` field.
+
+A regular registered user starts with:
+
+```text
+admin: false
+blocked: false
+```
+
+An administrator can grant administrator rights to an existing user from the Admin user management interface.
+
+Administrator rights can also be revoked there, as long as this would not remove the last administrator.
+
+The Admin generator uses the same authentication model and login system as `b4um:authentication`; it does not create a
+separate administrator account system or a second login.
 
 ## Active Storage and Images
 
@@ -1199,7 +1388,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.3.0`
+Current version: `0.4.0`
 
 ## Author
 

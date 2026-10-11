@@ -317,6 +317,159 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     expect(gemfile).to include('gem "bcrypt"')
   end
 
+  it "adds presence validations for required fields" do
+    generator = described_class.new(
+      [
+        "Customer",
+        [
+          "first_name:string",
+          "last_name:string",
+          "company:string",
+          "email:string"
+        ]
+      ],
+      {
+        required: "first_name,last_name,email"
+      },
+      destination_root: @destination_root
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/models/customer.rb"
+      ),
+      "class Customer < ApplicationRecord\nend\n"
+    )
+
+    generator.invoke_all
+
+    model = File.read(
+      File.join(
+        @destination_root,
+        "app/models/customer.rb"
+      )
+    )
+
+    expect(model).to include(
+      "validates :first_name, :last_name, :email, presence: true"
+    )
+
+    expect(model).not_to include(
+      "validates :company"
+    )
+  end
+
+  it "rejects required fields that are not scaffold attributes" do
+    expect do
+      described_class.new(
+        [
+          "Customer",
+          [
+            "first_name:string",
+            "last_name:string",
+            "email:string"
+          ]
+        ],
+        {
+          required: "first_name,unknown_field"
+        },
+        destination_root: @destination_root
+      )
+    end.to raise_error(
+      Thor::Error,
+      "Unknown required field: unknown_field"
+    )
+  end
+
+  it "rejects invalid required fields before generating scaffold files" do
+    expect do
+      described_class.new(
+        [
+          "Customer",
+          [
+            "name:string",
+            "email:string"
+          ]
+        ],
+        {
+          required: "unknown"
+        },
+        destination_root: @destination_root
+      )
+    end.to raise_error(
+      Thor::Error,
+      "Unknown required field: unknown"
+    )
+
+    expect(
+      File.exist?(
+        File.join(
+          @destination_root,
+          "app/controllers/customers_controller.rb"
+        )
+      )
+    ).to be(false)
+
+    expect(
+      File.exist?(
+        File.join(
+          @destination_root,
+          "app/views/customers/index.html.erb"
+        )
+      )
+    ).to be(false)
+  end
+
+  it "adds presence validation for a single required field" do
+    generator = described_class.new(
+      [
+        "Customer",
+        [
+          "name:string",
+          "company:string"
+        ]
+      ],
+      {
+        required: "name"
+      },
+      destination_root: @destination_root
+    )
+
+    FileUtils.mkdir_p(
+      File.join(@destination_root, "app/models")
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "app/models/customer.rb"
+      ),
+      "class Customer < ApplicationRecord\nend\n"
+    )
+
+    generator.invoke_all
+
+    model = File.read(
+      File.join(
+        @destination_root,
+        "app/models/customer.rb"
+      )
+    )
+
+    expect(model).to include(
+      "validates :name, presence: true"
+    )
+
+    expect(model).not_to include(
+      "validates :company"
+    )
+  end
+
   it "generates specialized form fields" do
     generator = described_class.new(
       [

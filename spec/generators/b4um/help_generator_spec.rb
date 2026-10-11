@@ -128,6 +128,38 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the b4um scaffold generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "SCAFFOLD"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:scaffold MODEL ATTRIBUTES"
+      )
+
+      expect(text).to include(
+        "Required fields with presence validation"
+      )
+
+      expect(text).to include(
+        "--required=FIELD,FIELD"
+      )
+
+      expect(text).to include(
+        "--required=first_name,last_name,email"
+      )
+
+      expect(text).to include(
+        "Fields not listed in --required remain optional."
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the b4um footer" do
     generator = described_class.new
 
@@ -982,6 +1014,94 @@ RSpec.describe B4um::Generators::HelpGenerator do
 
       expect(text).to include(
         "before changing the application"
+      )
+    end
+
+    generator.show_help
+  end
+
+  it "documents b4um admin" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "ADMIN"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:admin MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:admin User"
+      )
+
+      expect(text).to include(
+        "bin/rails db:migrate"
+      )
+
+      expect(text).to include(
+        "bin/rails b4um:admin:create"
+      )
+
+      expect(text).to include(
+        "/admin"
+      )
+
+      expect(text).to include(
+        "admin"
+      )
+
+      expect(text).to include(
+        "blocked"
+      )
+
+      expect(text).to include(
+        "Block"
+      )
+
+      expect(text).to include(
+        "Unblock"
+      )
+
+      expect(text).to include(
+        "administrator rights"
+      )
+
+      expect(text).to include(
+        "Delete"
+      )
+
+      expect(text).to include(
+        "last administrator"
+      )
+
+      expect(text).to include(
+        "b4um:authentication"
+      )
+    end
+
+    generator.show_help
+  end
+
+  it "documents dynamic administrator creation fields" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "Additional authentication model fields are requested automatically."
+      )
+
+      expect(text).to include(
+        "Fields with an unconditional presence validation are marked with * and are required."
+      )
+
+      expect(text).to include(
+        "Optional fields can be left empty."
+      )
+
+      expect(text).to include(
+        "Run bin/rails db:migrate before creating the first administrator."
       )
     end
 

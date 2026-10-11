@@ -1,0 +1,70 @@
+# frozen_string_literal: true
+
+class Admin::UsersController < Admin::BaseController
+  def index
+    @users = <%= authentication_class_name %>.all
+  end
+
+  def block
+    user = <%= authentication_class_name %>.find(params[:id])
+
+    if user == <%= current_authentication_method %>
+      redirect_to admin_users_path,
+                  alert: "You cannot block your own account."
+      return
+    end
+
+    user.update!(blocked: true)
+
+    redirect_to admin_users_path,
+                notice: "User was blocked."
+  end
+
+  def unblock
+    user = <%= authentication_class_name %>.find(params[:id])
+
+    user.update!(blocked: false)
+
+    redirect_to admin_users_path,
+                notice: "User was unblocked."
+  end
+
+  def grant_admin
+    user = <%= authentication_class_name %>.find(params[:id])
+
+    user.update!(admin: true)
+
+    redirect_to admin_users_path,
+                notice: "Administrator rights were granted."
+  end
+
+  def revoke_admin
+    user = <%= authentication_class_name %>.find(params[:id])
+
+    if user.admin? && <%= authentication_class_name %>.where(admin: true).count == 1
+      redirect_to admin_users_path,
+                  alert: "The last administrator cannot lose administrator rights."
+      return
+    end
+
+    user.update!(admin: false)
+
+    redirect_to admin_users_path,
+                notice: "Administrator rights were revoked."
+  end
+
+  def destroy
+    user = <%= authentication_class_name %>.find(params[:id])
+
+    if user == <%= current_authentication_method %>
+      redirect_to admin_users_path,
+                  alert: "You cannot delete your own account."
+      return
+    end
+
+    user.destroy!
+
+    redirect_to admin_users_path,
+                notice: "User was deleted."
+  end
+end

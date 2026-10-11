@@ -261,6 +261,108 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
+  it "adds authentication helpers before the final ApplicationController end" do
+    application_controller_path = File.join(
+      @destination_root,
+      "app/controllers/application_controller.rb"
+    )
+
+    File.write(
+      application_controller_path,
+      <<~RUBY
+        class ApplicationController < ActionController::Base
+          def existing_method
+            true
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(application_controller_path)
+
+    existing_method_end = controller.index(
+      "  end"
+    )
+
+    authentication_helper = controller.index(
+      "helper_method :current_user, :logged_in?"
+    )
+
+    final_end = controller.rindex(
+      /^end$/
+    )
+
+    expect(existing_method_end).not_to be_nil
+    expect(authentication_helper).not_to be_nil
+    expect(final_end).not_to be_nil
+
+    expect(authentication_helper).to be > existing_method_end
+    expect(authentication_helper).to be < final_end
+
+    expect do
+      RubyVM::InstructionSequence.compile(controller)
+    end.not_to raise_error
+  end
+
+  it "adds session routes before the final routes draw end" do
+    routes_path = File.join(
+      @destination_root,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          namespace :api do
+            resources :products
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    routes = File.read(routes_path)
+
+    api_end = routes.index(
+      "  end"
+    )
+
+    login_route = routes.index(
+      'get "login", to: "sessions#new", as: :login'
+    )
+
+    final_end = routes.rindex(
+      /^end$/
+    )
+
+    expect(api_end).not_to be_nil
+    expect(login_route).not_to be_nil
+    expect(final_end).not_to be_nil
+
+    expect(login_route).to be > api_end
+    expect(login_route).to be < final_end
+
+    expect do
+      RubyVM::InstructionSequence.compile(routes)
+    end.not_to raise_error
+  end
+
   it "updates an existing in-place helper to require login" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/helpers")
@@ -642,6 +744,58 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     expect(navigation).to include(
       "<%# B4UM_NAVIGATION_LINKS %>"
     )
+  end
+
+  it "adds email presence validation to the authentication model" do
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    model = File.read(
+      File.join(
+        @destination_root,
+        "app/models/user.rb"
+      )
+    )
+
+    expect(model).to include(
+      "validates :email, presence: true"
+    )
+  end
+
+  it "does not duplicate an existing email presence validation" do
+    model_path = File.join(
+      @destination_root,
+      "app/models/user.rb"
+    )
+
+    File.write(
+      model_path,
+      <<~RUBY
+        class User < ApplicationRecord
+          has_secure_password
+          validates :email, presence: true
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    model = File.read(model_path)
+
+    expect(
+      model.scan("validates :email, presence: true").count
+    ).to eq(1)
   end
 
   it "uses the requested authentication model" do

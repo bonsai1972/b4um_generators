@@ -1,0 +1,10 @@
+class AddAdminFieldsTo<%= authentication_class_name.pluralize %> < ActiveRecord::Migration[8.0]
+  def change
+<% unless admin_column_exists? -%>
+    add_column :<%= authentication_model_name.pluralize %>, :admin, :boolean, default: false, null: false
+<% end -%>
+<% unless blocked_column_exists? -%>
+    add_column :<%= authentication_model_name.pluralize %>, :blocked, :boolean, default: false, null: false
+<% end -%>
+  end
+end

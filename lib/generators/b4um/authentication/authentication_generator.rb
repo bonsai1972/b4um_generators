@@ -50,6 +50,30 @@ module B4um
               "#{authentication_class_name} email:string password_digest:string"
       end
 
+      def add_email_presence_validation
+        model_path = File.join(
+          "app/models",
+          "#{authentication_model_name}.rb"
+        )
+
+        full_model_path = File.join(
+          destination_root,
+          model_path
+        )
+
+        model = File.read(full_model_path)
+
+        return if model.include?(
+          "validates :email, presence: true"
+        )
+
+        inject_into_class(
+          model_path,
+          authentication_class_name,
+          "  validates :email, presence: true\n"
+        )
+      end
+
       def validate_protected_controllers
         protected_controller_names.each do |controller_name|
           controller_path = File.join(
@@ -94,9 +118,15 @@ module B4um
       end
 
       def create_sessions_controller
+        controller_path = "app/controllers/sessions_controller.rb"
+
+        return if File.exist?(
+          File.join(destination_root, controller_path)
+        )
+
         template(
           "sessions_controller.rb.tt",
-          "app/controllers/sessions_controller.rb"
+          controller_path
         )
       end
 

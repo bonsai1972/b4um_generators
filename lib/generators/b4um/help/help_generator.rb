@@ -362,6 +362,7 @@ module B4um
             - b4um index, show, new and edit views
             - Bento index layout by default
             - Optional table index layout
+            - Required fields with presence validation
             - Select fields with custom labels
             - Radio fields with custom labels
             - Automatic navigation entry
@@ -370,6 +371,19 @@ module B4um
             - Flash messages
             - Password field support
             - Optional readable URL parameters
+
+          Required fields can be generated with:
+
+            --required=FIELD,FIELD
+
+          Example:
+
+            bin/rails generate b4um:scaffold Customer first_name:string last_name:string company:string email:string --required=first_name,last_name,email
+
+          This adds a presence validation for the selected fields
+          to the generated model.
+
+          Fields not listed in --required remain optional.
 
           Select fields can be generated with:
 
@@ -595,6 +609,98 @@ module B4um
 
           Repeated generator runs do not duplicate the authentication
           helpers, routes or navigation controls.
+
+
+          ADMIN
+
+            bin/rails generate b4um:admin MODEL
+
+          Adds administrator user management to an existing
+          b4um authentication model.
+
+          Example:
+
+            bin/rails generate b4um:admin User
+            bin/rails db:migrate
+
+          The admin generator requires b4um authentication to be
+          installed for the selected model first.
+
+          Example setup:
+
+            bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+            bin/rails generate b4um:authentication User
+            bin/rails generate b4um:admin User
+            bin/rails db:migrate
+
+          The generator adds two fields to the authentication model:
+
+            admin
+            blocked
+
+          Both fields are boolean values and default to false.
+
+          The generator also adds:
+
+            - Admin dashboard
+            - User management
+            - Admin-only controller protection
+            - Administrator routes
+            - Blocking and unblocking users
+            - Granting and revoking administrator rights
+            - Deleting users
+            - Protection against blocking your own account
+            - Protection against deleting your own account
+            - Protection against removing the last administrator
+            - Blocked session invalidation
+            - Blocked login prevention
+
+          The admin area is available at:
+
+            /admin
+
+          Only logged-in users with administrator rights can access
+          the admin area.
+
+          The first administrator is created from the command line.
+          This prevents public registration from granting administrator
+          rights.
+
+          Run:
+
+            bin/rails b4um:admin:create
+
+          Run bin/rails db:migrate before creating the first administrator.
+
+          The task asks for the authentication model fields automatically.
+
+          Additional authentication model fields are requested automatically.
+          Fields with an unconditional presence validation are marked with * and are required.
+          Optional fields can be left empty.
+
+          Email, password and password confirmation are always required.
+
+          The password is not displayed while it is entered.
+
+          Existing users cannot be converted to administrators with
+          this task. Administrator rights for existing users are
+          managed from the admin user management interface.
+
+          From the admin user management interface, administrators can:
+
+            - Block a user
+            - Unblock a user
+            - Grant administrator rights
+            - Revoke administrator rights
+            - Delete a user
+
+          A blocked user cannot log in. If a logged-in user becomes
+          blocked, the existing session is invalidated.
+
+          Administrators cannot block or delete their own account
+          through the generated user management interface.
+
+          The last administrator cannot lose administrator rights.
 
 
           ACTIVE STORAGE / IMAGES

@@ -24,7 +24,7 @@ b4um Generators wird während der Entwicklung derzeit als lokales Gem verwendet.
 Füge das Gem zur `Gemfile` der Rails-Anwendung hinzu:
 
 ```ruby
-gem "b4um_generators", "~> 0.2.0", path: "/pfad/zu/b4um_generators"
+gem "b4um_generators", "~> 0.4.0", path: "/pfad/zu/b4um_generators"
 ```
 
 Führe anschließend aus:
@@ -81,9 +81,11 @@ b4um:controller
 b4um:pagination
 b4um:infinite_scroll
 b4um:search
+b4um:sortable
 b4um:comments
 b4um:in_place
 b4um:authentication
+b4um:admin
 b4um:trix
 b4um:readable
 b4um:help
@@ -115,6 +117,7 @@ Der Scaffold-Generator bietet:
 - Index-, Show-, New- und Edit-Views
 - Standardmäßig ein Bento-Index-Layout
 - Optionales Tabellen-Index-Layout
+- Pflichtfelder mit `presence`-Validierung
 - Select-Felder mit eigenen Anzeigebezeichnungen
 - Radio-Felder mit eigenen Anzeigebezeichnungen
 - Automatischen Navigationseintrag
@@ -123,6 +126,34 @@ Der Scaffold-Generator bietet:
 - Flash-Meldungen
 - Unterstützung für Passwortfelder
 - Optionale lesbare URL-Parameter
+
+### Pflichtfelder
+
+Mit `--required` können Felder ausgewählt werden, für die der Scaffold-Generator eine `presence`-Validierung im Modell
+erzeugt.
+
+Verwende:
+
+```text
+--required=FIELD,FIELD
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold Customer first_name:string last_name:string company:string email:string --required=first_name,last_name,email
+```
+
+Dadurch wird dem generierten Modell folgende Validierung hinzugefügt:
+
+```ruby
+validates :first_name, :last_name, :email, presence: true
+```
+
+Felder, die nicht mit `--required` angegeben werden, bleiben optional.
+
+`--required` kann mit den anderen Scaffold-Optionen wie `--select`, `--radio`, `--layout` und `--param` kombiniert
+werden.
 
 ### Select- und Radio-Felder
 
@@ -544,6 +575,171 @@ passenden Vorschlag für einen b4um-Scaffold-Befehl ab.
 
 Bei wiederholter Ausführung werden Authentifizierungs-Helper, Routen, Navigationselemente und Controller-Schutz nicht
 dupliziert.
+
+## Administration
+
+Füge einem bestehenden b4um-Authentifizierungsmodell eine Benutzer- und Administratorverwaltung hinzu:
+
+```bash
+bin/rails generate b4um:admin MODEL
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:admin User
+bin/rails db:migrate
+```
+
+Der Admin-Generator baut auf der bestehenden b4um-Authentifizierung auf. Für das ausgewählte Modell muss daher zuerst
+die b4um-Authentifizierung eingerichtet werden.
+
+Ein vollständiger Ablauf sieht so aus:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+bin/rails db:migrate
+
+bin/rails generate b4um:authentication User
+
+bin/rails generate b4um:admin User
+bin/rails db:migrate
+```
+
+Der Admin-Generator fügt dem Authentifizierungsmodell zwei boolesche Felder hinzu:
+
+```text
+admin
+blocked
+```
+
+Beide Felder haben standardmäßig den Wert `false`.
+
+Der Generator fügt außerdem Folgendes hinzu:
+
+- Admin-Dashboard
+- Schutz des Admin-Bereichs
+- Benutzerverwaltung
+- Admin-Routen
+- Benutzer sperren und entsperren
+- Administratorrechte vergeben und entziehen
+- Benutzer löschen
+- Schutz vor dem Sperren des eigenen Kontos
+- Schutz vor dem Löschen des eigenen Kontos
+- Schutz vor dem Entziehen der Rechte des letzten Administrators
+- Verhinderung der Anmeldung gesperrter Benutzer
+- Automatische Ungültigmachung bestehender Sitzungen gesperrter Benutzer
+
+### Ersten Administrator anlegen
+
+Administratorrechte können nicht über die öffentliche Registrierung vergeben werden.
+
+Nach dem Ausführen des Admin-Generators und der Datenbankmigration wird der erste Administrator über die Kommandozeile
+angelegt:
+
+```bash
+bin/rails b4um:admin:create
+```
+
+Führe vor dem Anlegen des ersten Administrators die Datenbankmigration aus:
+
+```bash
+bin/rails db:migrate
+```
+
+Die Aufgabe erkennt zusätzliche Felder des Authentifizierungsmodells automatisch.
+
+Felder mit einer unbedingten `presence`-Validierung werden mit `*` gekennzeichnet und müssen ausgefüllt werden. Andere
+erkannte Felder sind optional und können leer bleiben.
+
+E-Mail-Adresse, Passwort und Passwortbestätigung sind immer erforderlich.
+
+Ein Authentifizierungsmodell mit den Pflichtfeldern `first_name` und `last_name` sowie dem optionalen Feld `company`
+kann zum Beispiel zu folgender Abfrage führen:
+
+```text
+First name *: Alex
+Last name *: Beispiel
+Company:
+Email *: admin@example.com
+Password *:
+Confirm password *:
+Administrator admin@example.com was created successfully.
+```
+
+Das Passwort wird während der Eingabe im Terminal nicht angezeigt.
+
+Wurde die Admin-Migration noch nicht ausgeführt, bricht die Aufgabe ab und weist darauf hin, `bin/rails db:migrate`
+auszuführen.
+
+Das Konto wird mit folgenden Werten angelegt:
+
+```text
+admin: true
+blocked: false
+```
+
+Existiert bereits ein Konto mit der eingegebenen E-Mail-Adresse, bricht die Aufgabe ab. Ein vorhandenes Konto erhält
+dadurch nicht automatisch Administratorrechte.
+
+Bestehende Benutzer können nach dem Anlegen des ersten Administrators über die Admin-Benutzerverwaltung zu
+Administratoren gemacht werden.
+
+### Admin-Bereich
+
+Der generierte Admin-Bereich ist erreichbar unter:
+
+```text
+/admin
+```
+
+Nur ein angemeldetes Konto mit Administratorrechten kann auf diesen Bereich zugreifen.
+
+Das Admin-Dashboard führt zur generierten Benutzerverwaltung.
+
+Dort können Administratoren:
+
+- Benutzer sperren
+- Benutzer entsperren
+- Administratorrechte vergeben
+- Administratorrechte entziehen
+- Benutzer löschen
+
+Der aktuell angemeldete Administrator kann sein eigenes Konto über die generierte Benutzerverwaltung weder sperren noch
+löschen.
+
+Dem letzten verbliebenen Administrator können die Administratorrechte nicht entzogen werden. Dadurch wird verhindert,
+dass eine Anwendung versehentlich ohne Administrator zurückbleibt.
+
+### Benutzer sperren
+
+Beim Sperren eines Benutzers wird das Feld `blocked` des Authentifizierungsmodells auf `true` gesetzt.
+
+Ein gesperrter Benutzer kann sich auch mit dem richtigen Passwort nicht anmelden.
+
+Wird ein bereits angemeldeter Benutzer gesperrt, wird seine bestehende Sitzung ungültig, sobald die Authentifizierung
+erneut geprüft wird.
+
+Nach dem Entsperren kann sich der Benutzer wieder anmelden.
+
+### Administratorrechte
+
+Der Zugriff auf den Admin-Bereich wird über das Feld `admin` des Authentifizierungsmodells gesteuert.
+
+Ein normal registrierter Benutzer startet mit:
+
+```text
+admin: false
+blocked: false
+```
+
+Ein Administrator kann einem bestehenden Benutzer über die Admin-Benutzerverwaltung Administratorrechte geben.
+
+Administratorrechte können dort auch wieder entzogen werden, solange dadurch nicht dem letzten Administrator seine
+Rechte entzogen würden.
+
+Der Admin-Generator verwendet dasselbe Authentifizierungsmodell und dasselbe Anmeldesystem wie `b4um:authentication`. Es
+wird weder ein separates Administratorkonto-System noch ein zweiter Login erzeugt.
 
 ## Active Storage und Bilder
 
@@ -1215,7 +1411,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.3.0`
+Aktuelle Version: `0.4.0`
 
 ## Autor
 

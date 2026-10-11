@@ -1,0 +1,85 @@
+# frozen_string_literal: true
+
+require "io/console"
+
+namespace :b4um do
+  namespace :admin do
+    desc "Create an administrator"
+
+    task create: :environment do
+      model = <%= authentication_class_name %>
+
+      missing_columns = %w[admin blocked] - model.column_names
+
+      unless missing_columns.empty?
+        abort(
+          "Missing database columns: #{missing_columns.join(', ')}. " \
+          "Run bin/rails db:migrate before creating an administrator."
+        )
+      end
+
+      required_fields = model.validators
+                        .select do |validator|
+                          validator.is_a?(
+                            ActiveModel::Validations::PresenceValidator
+                          ) &&
+                            validator.options[:if].nil? &&
+                            validator.options[:unless].nil?
+                        end
+                        .flat_map(&:attributes)
+                        .map(&:to_s)
+
+      attributes = {}
+
+<% admin_creation_fields.each do |field| -%>
+      required = required_fields.include?("<%= field %>")
+      required_marker = required ? " *" : ""
+
+      print "<%= admin_user_field_label(field) %>#{required_marker}: "
+      <%= field %> = STDIN.gets&.strip
+
+      if required && (<%= field %>.nil? || <%= field %>.empty?)
+        abort "<%= admin_user_field_label(field) %> cannot be empty."
+      end
+
+      unless <%= field %>.nil? || <%= field %>.empty?
+        attributes[:<%= field %>] = <%= field %>
+      end
+
+<% end -%>
+      print "Email *: "
+      email = STDIN.gets&.strip
+
+      abort "Email cannot be empty." if email.nil? || email.empty?
+
+      if model.exists?(email: email)
+        abort "A user with this email already exists."
+      end
+
+      print "Password *: "
+      password = STDIN.noecho(&:gets)&.strip
+      puts
+
+      abort "Password cannot be empty." if password.nil? || password.empty?
+
+      print "Confirm password *: "
+      password_confirmation = STDIN.noecho(&:gets)&.strip
+      puts
+
+      unless password == password_confirmation
+        abort "Passwords do not match."
+      end
+
+      attributes.merge!(
+        email: email,
+        password: password,
+        password_confirmation: password_confirmation,
+        admin: true
+      )
+
+      model.create!(attributes)
+
+      puts "Administrator #{email} was created successfully."
+    end
+  end
+end

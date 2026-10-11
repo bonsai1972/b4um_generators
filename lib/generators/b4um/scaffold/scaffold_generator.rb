@@ -33,6 +33,36 @@ module B4um
                    type: :string,
                    desc: "Renders a field as radio buttons. Example: condition:new=Neu,used=Gebraucht"
 
+      class_option :required,
+                   type: :string,
+                   desc: "Adds presence validation to fields. Example: name,email"
+
+      def initialize(args, options, config)
+        super
+
+        validate_required_fields
+      end
+
+      no_tasks do
+        def validate_required_fields
+          return if options[:required].blank?
+
+          required_fields = options[:required]
+                            .split(",")
+                            .map(&:strip)
+                            .reject(&:empty?)
+
+          attribute_names = attributes.map(&:name)
+
+          unknown_fields = required_fields - attribute_names
+
+          return if unknown_fields.empty?
+
+          raise Thor::Error,
+                "Unknown required field: #{unknown_fields.first}"
+        end
+      end
+
       def validate_editor_options
         configurations = {
           select: select_configuration,
@@ -144,6 +174,30 @@ module B4um
         template(
           "edit.html.erb.tt",
           edit_path
+        )
+      end
+
+      def add_required_validations
+        return if options[:required].blank?
+
+        required_fields = options[:required]
+                          .split(",")
+                          .map(&:strip)
+                          .reject(&:empty?)
+
+        return if required_fields.empty?
+
+        validation = required_fields
+                     .map { |field| ":#{field}" }
+                     .join(", ")
+
+        inject_into_class(
+          File.join(
+            "app/models",
+            "#{singular_table_name}.rb"
+          ),
+          class_name,
+          "  validates #{validation}, presence: true\n"
         )
       end
 
