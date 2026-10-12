@@ -317,7 +317,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     expect(gemfile).to include('gem "bcrypt"')
   end
 
-  it "adds presence validations for required fields" do
+  it "adds presence validations and marks required fields in the form" do
     generator = described_class.new(
       [
         "Customer",
@@ -355,12 +355,35 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
+    form = File.read(
+      File.join(
+        @destination_root,
+        "app/views/customers/_form.html.erb"
+      )
+    )
+
     expect(model).to include(
       "validates :first_name, :last_name, :email, presence: true"
     )
 
     expect(model).not_to include(
       "validates :company"
+    )
+
+    expect(form).to include(
+      'form.label :first_name, "First name *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :last_name, "Last name *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :email, "Email *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :company, "Company", class: "form-label"'
     )
   end
 

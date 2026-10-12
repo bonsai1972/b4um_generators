@@ -703,6 +703,62 @@ module B4um
           The last administrator cannot lose administrator rights.
 
 
+          GUEST
+
+            bin/rails generate b4um:guest MODEL --required=FIELDS
+
+          Adds temporary guest access to an existing
+          b4um authentication model.
+
+          Example:
+
+            bin/rails generate b4um:guest User --required=first_name,email
+            bin/rails db:migrate
+
+          The guest generator requires b4um authentication to be
+          installed for the selected model first.
+
+          At least one field must be supplied with --required.
+          These fields are required when creating a guest account.
+
+          Additional suitable model fields are offered automatically
+          and remain optional unless included in --required.
+
+          The generator adds two fields to the authentication model:
+
+            guest
+            guest_expires_at
+
+          Guest accounts use the same authentication model as regular
+          accounts. No separate guest model is created.
+
+          Guest accounts receive an internal password automatically.
+          The guest does not need to choose or enter this password.
+
+          By default, guest access expires after 7 days.
+
+          A different lifetime can be configured with --expires-in:
+
+            bin/rails generate b4um:guest User --required=first_name,email --expires-in=14
+
+          Guest accounts can be converted into regular accounts.
+          The existing record is retained so existing account data
+          remains associated with the user.
+
+          During conversion, missing required account fields and a
+          password are requested.
+
+          Guest accounts approaching expiration receive a warning.
+          Expired guest accounts can be removed with:
+
+            bin/rails b4um:guests:cleanup
+
+          Run the cleanup task regularly in production to remove
+          expired guest accounts.
+
+          Run bin/rails db:migrate after installing guest access.
+
+
           ACTIVE STORAGE / IMAGES
 
           Image attachments require Active Storage.

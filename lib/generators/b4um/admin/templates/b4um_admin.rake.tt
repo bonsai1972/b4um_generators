@@ -19,27 +19,34 @@ namespace :b4um do
       end
 
       required_fields = model.validators
-                        .select do |validator|
-                          validator.is_a?(
-                            ActiveModel::Validations::PresenceValidator
-                          ) &&
-                            validator.options[:if].nil? &&
-                            validator.options[:unless].nil?
-                        end
-                        .flat_map(&:attributes)
-                        .map(&:to_s)
+                            .select do |validator|
+                              next false unless validator.is_a?(
+                                ActiveModel::Validations::PresenceValidator
+                              )
+
+                              validator.options[:if].nil? &&
+                                (
+                                  validator.options[:unless].nil? ||
+                                  validator.options[:unless] == :guest?
+                                )
+                            end
+                            .flat_map(&:attributes)
+                            .map(&:to_s)
 
       attributes = {}
 
 <% admin_creation_fields.each do |field| -%>
       required = required_fields.include?("<%= field %>")
       required_marker = required ? " *" : ""
+      <%= field %> = nil
 
-      print "<%= admin_user_field_label(field) %>#{required_marker}: "
-      <%= field %> = STDIN.gets&.strip
+      loop do
+        print "<%= admin_user_field_label(field) %>#{required_marker}: "
+        <%= field %> = STDIN.gets&.strip
 
-      if required && (<%= field %>.nil? || <%= field %>.empty?)
-        abort "<%= admin_user_field_label(field) %> cannot be empty."
+        break unless required && (<%= field %>.nil? || <%= field %>.empty?)
+
+        puts "<%= admin_user_field_label(field) %> cannot be empty."
       end
 
       unless <%= field %>.nil? || <%= field %>.empty?
@@ -47,27 +54,41 @@ namespace :b4um do
       end
 
 <% end -%>
-      print "Email *: "
-      email = STDIN.gets&.strip
+      email = nil
+      password = nil
+      password_confirmation = nil
 
-      abort "Email cannot be empty." if email.nil? || email.empty?
+      loop do
+        print "Email *: "
+        email = STDIN.gets&.strip
+
+        break unless email.nil? || email.empty?
+
+        puts "Email cannot be empty."
+      end
 
       if model.exists?(email: email)
         abort "A user with this email already exists."
       end
 
-      print "Password *: "
-      password = STDIN.noecho(&:gets)&.strip
-      puts
+      loop do
+        print "Password *: "
+        password = STDIN.noecho(&:gets)&.strip
+        puts
 
-      abort "Password cannot be empty." if password.nil? || password.empty?
+        break unless password.nil? || password.empty?
 
-      print "Confirm password *: "
-      password_confirmation = STDIN.noecho(&:gets)&.strip
-      puts
+        puts "Password cannot be empty."
+      end
 
-      unless password == password_confirmation
-        abort "Passwords do not match."
+      loop do
+        print "Confirm password *: "
+        password_confirmation = STDIN.noecho(&:gets)&.strip
+        puts
+
+        break if password == password_confirmation
+
+        puts "Passwords do not match."
       end
 
       attributes.merge!(

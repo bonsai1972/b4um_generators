@@ -74,6 +74,65 @@ module B4um
         )
       end
 
+      def mark_registration_fields_required
+        form_path = File.join(
+          destination_root,
+          "app/views",
+          authentication_model_name.pluralize,
+          "_form.html.erb"
+        )
+
+        return unless File.exist?(form_path)
+
+        model_path = File.join(
+          destination_root,
+          "app/models",
+          "#{authentication_model_name}.rb"
+        )
+
+        model = File.read(model_path)
+        form = File.read(form_path)
+
+        model_required_fields =
+          model
+          .scan(
+            /validates\s+((?::[a-zA-Z_]\w*\s*,?\s*)+),\s*presence:\s+true/
+          )
+          .flat_map do |match|
+            match.first.scan(/:([a-zA-Z_]\w*)/).flatten
+          end
+
+        required_fields = model_required_fields.dup
+
+        if model.match?(/\bhas_secure_password\b/)
+          required_fields.push(
+            "password",
+            "password_confirmation"
+          )
+        end
+
+        required_fields.uniq!
+
+        required_fields.each do |field|
+          label = "#{field.humanize} *"
+
+          plain_label = /
+            form\.label\s+:#{Regexp.escape(field)},
+            \s*class:\s*"form-label"
+          /x
+
+          form.gsub!(
+            plain_label,
+            %(form.label :#{field}, "#{label}", class: "form-label")
+          )
+        end
+
+        File.write(
+          form_path,
+          form
+        )
+      end
+
       def validate_protected_controllers
         protected_controller_names.each do |controller_name|
           controller_path = File.join(

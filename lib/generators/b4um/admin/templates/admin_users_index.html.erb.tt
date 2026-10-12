@@ -4,103 +4,107 @@
   <h1>Users</h1>
 </div>
 
-<%% if @users.any? %>
-  <div class="b4um-table-wrapper">
-    <table class="b4um-table">
-      <thead>
-        <tr>
+<div class="b4um-grid">
+  <section class="b4um-card b4um-card--full">
+    <%% if @users.any? %>
+      <div class="b4um-table-wrapper">
+        <table class="b4um-table">
+          <thead>
+            <tr>
 <% admin_user_display_fields.each do |field| -%>
-          <th><%= admin_user_field_label(field) %></th>
+              <th><%= admin_user_field_label(field) %></th>
 <% end -%>
-          <th>Admin</th>
-          <th>Blocked</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+              <th>Admin</th>
+              <th>Blocked</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-      <tbody>
-        <%% @users.each do |user| %>
-          <tr>
+          <tbody>
+            <%% @users.each do |user| %>
+              <tr>
 <% admin_user_display_fields.each do |field| -%>
-            <td>
-              <%%= user.<%= field %> %>
-            </td>
+                <td>
+                  <%%= user.<%= field %> %>
+                </td>
 
 <% end -%>
-            <td>
-              <span class="b4um-badge">
-                <%%= user.admin? ? "Yes" : "No" %>
-              </span>
-            </td>
+                <td>
+                  <span class="b4um-badge">
+                    <%%= user.admin? ? "Yes" : "No" %>
+                  </span>
+                </td>
 
-            <td>
-              <span class="b4um-badge">
-                <%%= user.blocked? ? "Yes" : "No" %>
-              </span>
-            </td>
+                <td>
+                  <span class="b4um-badge">
+                    <%%= user.blocked? ? "Yes" : "No" %>
+                  </span>
+                </td>
 
-            <td>
-              <div class="b4um-table__actions">
-                <%% if user != <%= current_authentication_method %> %>
-                  <%% if user.blocked? %>
-                    <%%= link_to "Unblock",
-                                unblock_admin_user_path(user),
-                                class: "button button--secondary",
-                                data: {
-                                  turbo_method: :patch,
-                                  turbo_confirm: "Unblock this user?"
-                                } %>
-                  <%% else %>
-                    <%%= link_to "Block",
-                                block_admin_user_path(user),
-                                class: "button button--secondary",
-                                data: {
-                                  turbo_method: :patch,
-                                  turbo_confirm: "Block this user?"
-                                } %>
-                  <%% end %>
+                <td>
+                  <div class="b4um-table__actions">
+                    <%% if user != <%= current_authentication_method %> %>
+                      <%% if user.blocked? %>
+                        <%%= link_to "Unblock",
+                                    unblock_admin_user_path(user),
+                                    class: "button button--secondary",
+                                    data: {
+                                      turbo_method: :patch,
+                                      turbo_confirm: "Unblock this user?"
+                                    } %>
+                      <%% else %>
+                        <%%= link_to "Block",
+                                    block_admin_user_path(user),
+                                    class: "button button--secondary",
+                                    data: {
+                                      turbo_method: :patch,
+                                      turbo_confirm: "Block this user?"
+                                    } %>
+                      <%% end %>
 
-                  <%% if user.admin? %>
-                    <%%= link_to "Remove admin",
-                                revoke_admin_admin_user_path(user),
-                                class: "button button--secondary",
-                                data: {
-                                  turbo_method: :patch,
-                                  turbo_confirm: "Remove administrator rights from this user?"
-                                } %>
-                  <%% else %>
-                    <%%= link_to "Make admin",
-                                grant_admin_admin_user_path(user),
-                                class: "button button--secondary",
-                                data: {
-                                  turbo_method: :patch,
-                                  turbo_confirm: "Grant administrator rights to this user?"
-                                } %>
-                  <%% end %>
+                      <%% if user.admin? %>
+                        <%%= link_to "Remove admin",
+                                    revoke_admin_admin_user_path(user),
+                                    class: "button button--secondary",
+                                    data: {
+                                      turbo_method: :patch,
+                                      turbo_confirm: "Remove administrator rights from this user?"
+                                    } %>
+                      <%% else %>
+                        <%%= link_to "Make admin",
+                                    grant_admin_admin_user_path(user),
+                                    class: "button button--secondary",
+                                    data: {
+                                      turbo_method: :patch,
+                                      turbo_confirm: "Grant administrator rights to this user?"
+                                    } %>
+                      <%% end %>
 
-                  <%%= link_to "Delete",
-                              admin_user_path(user),
-                              class: "button button--secondary",
-                              data: {
-                                turbo_method: :delete,
-                                turbo_confirm: "Delete this user permanently?"
-                              } %>
-                <%% end %>
-              </div>
-            </td>
-          </tr>
-        <%% end %>
-      </tbody>
-    </table>
-  </div>
-<%% else %>
-  <section class="b4um-empty-state">
-    <h2 class="b4um-empty-state__title">
-      No users yet.
-    </h2>
+                      <%%= link_to "Delete",
+                                  admin_user_path(user),
+                                  class: "button button--secondary",
+                                  data: {
+                                    turbo_method: :delete,
+                                    turbo_confirm: "Delete this user permanently?"
+                                  } %>
+                    <%% end %>
+                  </div>
+                </td>
+              </tr>
+            <%% end %>
+          </tbody>
+        </table>
+      </div>
+    <%% else %>
+      <section class="b4um-empty-state">
+        <h2 class="b4um-empty-state__title">
+          No users yet.
+        </h2>
 
-    <p class="b4um-empty-state__text">
-      Registered users will appear here.
-    </p>
+        <p class="b4um-empty-state__text">
+          Registered users will appear here.
+        </p>
+      </section>
+    <%% end %>
   </section>
-<%% end %>
+</div>

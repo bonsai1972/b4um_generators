@@ -1,0 +1,12 @@
+<%% if guest_expiring_soon? %>
+  <div class="flash flash--alert">
+    <span>Your guest access expires soon.</span>
+
+    <%%= link_to "Create account", convert_guest_path %>
+
+    <%%= button_to "Delete guest account",
+          guest_path,
+          method: :delete,
+          data: { turbo_confirm: "Delete your guest account?" } %>
+  </div>
+<%% end %>

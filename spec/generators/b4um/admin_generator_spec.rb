@@ -1262,6 +1262,14 @@ RSpec.describe B4um::Generators::AdminGenerator do
     view = File.read(view_path)
 
     expect(view).to include("Admin")
+
+    expect(view).to include(
+      '<div class="b4um-grid">'
+    )
+
+    expect(view).to include(
+      '<section class="b4um-card b4um-card--full">'
+    )
   end
 
   it "adds the admin users route" do
@@ -1700,6 +1708,14 @@ RSpec.describe B4um::Generators::AdminGenerator do
     view = File.read(view_path)
 
     expect(view).to include("Users")
+
+    expect(view).to include(
+      '<div class="b4um-grid">'
+    )
+
+    expect(view).to include(
+      '<section class="b4um-card b4um-card--full">'
+    )
 
     [
       "Display name",
@@ -2618,7 +2634,7 @@ RSpec.describe B4um::Generators::AdminGenerator do
     )
   end
 
-  it "asks for the administrator name when the authentication model has a name field" do
+  it "asks again when a required administrator field is empty" do
     destination_root = File.expand_path(
       "../../tmp/admin_generator",
       __dir__
@@ -2627,6 +2643,17 @@ RSpec.describe B4um::Generators::AdminGenerator do
     FileUtils.rm_rf(destination_root)
 
     create_authentication_setup(destination_root)
+
+    File.write(
+      File.join(destination_root, "app/models/user.rb"),
+      <<~RUBY
+        class User < ApplicationRecord
+          has_secure_password
+
+          validates :name, presence: true
+        end
+      RUBY
+    )
 
     FileUtils.mkdir_p(
       File.join(destination_root, "db")
@@ -2663,6 +2690,22 @@ RSpec.describe B4um::Generators::AdminGenerator do
     task = File.read(task_path)
 
     expect(task).to include(
+      'required = required_fields.include?("name")'
+    )
+
+    expect(task).to include(
+      'required_marker = required ? " *" : ""'
+    )
+
+    expect(task).to include(
+      "name = nil"
+    )
+
+    expect(task).to include(
+      "loop do"
+    )
+
+    expect(task).to include(
       "print \"Name\#{required_marker}: \""
     )
 
@@ -2671,10 +2714,14 @@ RSpec.describe B4um::Generators::AdminGenerator do
     )
 
     expect(task).to include(
-      'required_fields.include?("name")'
+      "break unless required && (name.nil? || name.empty?)"
     )
 
     expect(task).to include(
+      'puts "Name cannot be empty."'
+    )
+
+    expect(task).not_to include(
       'abort "Name cannot be empty."'
     )
 
@@ -3026,23 +3073,23 @@ RSpec.describe B4um::Generators::AdminGenerator do
     )
 
     expect(task).to include(
-      "if required && (first_name.nil? || first_name.empty?)"
+      "break unless required && (first_name.nil? || first_name.empty?)"
     )
 
     expect(task).to include(
-      "if required && (last_name.nil? || last_name.empty?)"
+      "break unless required && (last_name.nil? || last_name.empty?)"
     )
 
     expect(task).to include(
-      "if required && (company.nil? || company.empty?)"
+      "break unless required && (company.nil? || company.empty?)"
     )
 
     expect(task).to include(
-      "if required && (phone.nil? || phone.empty?)"
+      "break unless required && (phone.nil? || phone.empty?)"
     )
 
     expect(task).to include(
-      "if required && (api_token.nil? || api_token.empty?)"
+      "break unless required && (api_token.nil? || api_token.empty?)"
     )
 
     expect(task).to include(
@@ -3063,6 +3110,98 @@ RSpec.describe B4um::Generators::AdminGenerator do
 
     expect(task).to include(
       "attributes[:api_token] = api_token"
+    )
+  end
+
+  it "marks normal account requirements as required after guest support" do
+    destination_root = File.expand_path(
+      "../../tmp/admin_generator",
+      __dir__
+    )
+
+    FileUtils.rm_rf(destination_root)
+
+    create_authentication_setup(destination_root)
+
+    File.write(
+      File.join(destination_root, "app/models/user.rb"),
+      <<~RUBY
+        class User < ApplicationRecord
+          has_secure_password
+
+          validates :first_name, :last_name, :email,
+                    presence: true,
+                    unless: :guest?
+
+          validates :first_name, :email,
+                    presence: true,
+                    if: :guest?
+        end
+      RUBY
+    )
+
+    FileUtils.mkdir_p(
+      File.join(destination_root, "db")
+    )
+
+    File.write(
+      File.join(destination_root, "db/schema.rb"),
+      <<~RUBY
+        ActiveRecord::Schema[8.0].define(version: 2026_01_01_000000) do
+          create_table "users", force: :cascade do |t|
+            t.string "first_name"
+            t.string "last_name"
+            t.string "company"
+            t.string "email"
+            t.string "password_digest"
+            t.boolean "guest", default: false, null: false
+            t.datetime "guest_expires_at"
+            t.boolean "admin", default: false, null: false
+            t.boolean "blocked", default: false, null: false
+            t.datetime "created_at", null: false
+            t.datetime "updated_at", null: false
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: destination_root
+    )
+
+    generator.invoke_all
+
+    task_path = File.join(
+      destination_root,
+      "lib/tasks/b4um_admin.rake"
+    )
+
+    task = File.read(task_path)
+
+    expect(task).to include(
+      "validator.options[:unless] == :guest?"
+    )
+
+    expect(task).to include(
+      'required = required_fields.include?("first_name")'
+    )
+
+    expect(task).to include(
+      'required = required_fields.include?("last_name")'
+    )
+
+    expect(task).to include(
+      'required_marker = required ? " *" : ""'
+    )
+
+    expect(task).to include(
+      "break unless required && (first_name.nil? || first_name.empty?)"
+    )
+
+    expect(task).to include(
+      "break unless required && (last_name.nil? || last_name.empty?)"
     )
   end
 
@@ -3276,15 +3415,19 @@ RSpec.describe B4um::Generators::AdminGenerator do
     )
 
     expect(task).to include(
-      "unless password == password_confirmation"
+      "break if password == password_confirmation"
     )
 
     expect(task).to include(
+      'puts "Passwords do not match."'
+    )
+
+    expect(task).not_to include(
       'abort "Passwords do not match."'
     )
   end
 
-  it "rejects empty administrator credentials" do
+  it "asks again when administrator credentials are empty" do
     destination_root = File.expand_path(
       "../../tmp/admin_generator",
       __dir__
@@ -3310,11 +3453,47 @@ RSpec.describe B4um::Generators::AdminGenerator do
     task = File.read(task_path)
 
     expect(task).to include(
-      'abort "Email cannot be empty." if email.nil? || email.empty?'
+      "email = nil"
     )
 
     expect(task).to include(
-      'abort "Password cannot be empty." if password.nil? || password.empty?'
+      "password = nil"
+    )
+
+    expect(task).to include(
+      "password_confirmation = nil"
+    )
+
+    expect(task).to include(
+      'print "Email *: "'
+    )
+
+    expect(task).to include(
+      "break unless email.nil? || email.empty?"
+    )
+
+    expect(task).to include(
+      'puts "Email cannot be empty."'
+    )
+
+    expect(task).not_to include(
+      'abort "Email cannot be empty."'
+    )
+
+    expect(task).to include(
+      'print "Password *: "'
+    )
+
+    expect(task).to include(
+      "break unless password.nil? || password.empty?"
+    )
+
+    expect(task).to include(
+      'puts "Password cannot be empty."'
+    )
+
+    expect(task).not_to include(
+      'abort "Password cannot be empty."'
     )
   end
 

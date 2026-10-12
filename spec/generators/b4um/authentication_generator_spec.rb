@@ -767,6 +767,116 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
+  it "marks model and authentication requirements in the registration form" do
+    model_path = File.join(
+      @destination_root,
+      "app/models/user.rb"
+    )
+
+    File.write(
+      model_path,
+      <<~RUBY
+        class User < ApplicationRecord
+          has_secure_password
+          validates :first_name, :last_name, presence: true
+        end
+      RUBY
+    )
+
+    form_path = File.join(
+      @destination_root,
+      "app/views/users/_form.html.erb"
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(form_path)
+    )
+
+    File.write(
+      form_path,
+      <<~ERB
+        <%= form_with(model: user, class: "form") do |form| %>
+          <div class="form-field">
+            <%= form.text_field :first_name,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :first_name, class: "form-label" %>
+          </div>
+
+          <div class="form-field">
+            <%= form.text_field :last_name,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :last_name, class: "form-label" %>
+          </div>
+
+          <div class="form-field">
+            <%= form.text_field :company,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :company, class: "form-label" %>
+          </div>
+
+          <div class="form-field">
+            <%= form.email_field :email,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :email, class: "form-label" %>
+          </div>
+
+          <div class="form-field">
+            <%= form.password_field :password,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :password, class: "form-label" %>
+          </div>
+
+          <div class="form-field">
+            <%= form.password_field :password_confirmation,
+                  class: "form-input",
+                  placeholder: " " %>
+            <%= form.label :password_confirmation, class: "form-label" %>
+          </div>
+        <% end %>
+      ERB
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    form = File.read(form_path)
+
+    expect(form).to include(
+      'form.label :first_name, "First name *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :last_name, "Last name *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :company, class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :email, "Email *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      'form.label :password, "Password *", class: "form-label"'
+    )
+
+    expect(form).to include(
+      "form.label :password_confirmation, " \
+      '"Password confirmation *", class: "form-label"'
+    )
+  end
+
   it "does not duplicate an existing email presence validation" do
     model_path = File.join(
       @destination_root,

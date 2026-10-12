@@ -1,0 +1,156 @@
+<div class="page-header">
+  <h1>Create your account</h1>
+</div>
+
+<div class="b4um-grid">
+  <section class="b4um-card b4um-card--full">
+    <%%= form_with model: @<%= authentication_model_name %>,
+          url: convert_guest_path,
+          method: :patch,
+          class: "form" do |form| %>
+      <%% if @<%= authentication_model_name %>.errors.any? %>
+        <div class="error-messages">
+          <h2>
+            <%%= pluralize(@<%= authentication_model_name %>.errors.count, "error") %>
+            prohibited this account from being saved:
+          </h2>
+
+          <ul>
+            <%% @<%= authentication_model_name %>.errors.each do |error| %>
+              <li><%%= error.full_message %></li>
+            <%% end %>
+          </ul>
+        </div>
+      <%% end %>
+
+<% guest_available_fields.each do |field| -%>
+<% field_type = guest_field_type(field) -%>
+<% required = account_required_fields.include?(field) -%>
+<% label = field.humanize + (required ? " *" : "") -%>
+<% if field.match?(/(?:^|_)email(?:_|$)/) -%>
+      <div class="form-field">
+        <%%= form.email_field :<%= field %>,
+              class: "form-input",
+              placeholder: " ",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif field.match?(/(?:^|_)(?:phone|telephone|mobile)(?:_|$)/) -%>
+      <div class="form-field">
+        <%%= form.telephone_field :<%= field %>,
+              class: "form-input",
+              placeholder: " ",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif field.match?(/(?:^|_)(?:url|website|homepage)(?:_|$)/) -%>
+      <div class="form-field">
+        <%%= form.url_field :<%= field %>,
+              class: "form-input",
+              placeholder: " ",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif field_type == :boolean -%>
+      <div class="form-field form-field--checkbox">
+        <%%= form.check_box :<%= field %>,
+              class: "form-checkbox",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>",
+              class: "form-label form-label--checkbox" %>
+      </div>
+
+<% elsif field_type == :text -%>
+      <div class="form-field form-field--textarea">
+        <%%= form.text_area :<%= field %>,
+              class: "form-textarea",
+              placeholder: " ",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif field_type == :integer -%>
+      <div class="form-field">
+        <%%= form.number_field :<%= field %>,
+              class: "form-input",
+              placeholder: " ",
+              step: 1,
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif [:float, :decimal].include?(field_type) -%>
+      <div class="form-field">
+        <%%= form.number_field :<%= field %>,
+              class: "form-input",
+              placeholder: " ",
+              step: "any",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif field_type == :date -%>
+      <div class="form-field">
+        <%%= form.date_field :<%= field %>,
+              class: "form-input",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif [:datetime, :timestamp].include?(field_type) -%>
+      <div class="form-field">
+        <%%= form.datetime_local_field :<%= field %>,
+              class: "form-input",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% elsif field_type == :time -%>
+      <div class="form-field">
+        <%%= form.time_field :<%= field %>,
+              class: "form-input",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% else -%>
+      <div class="form-field">
+        <%%= form.text_field :<%= field %>,
+              class: "form-input",
+              placeholder: " ",
+              required: <%= required %> %>
+        <%%= form.label :<%= field %>, "<%= label %>", class: "form-label" %>
+      </div>
+
+<% end -%>
+<% end -%>
+
+      <div class="form-field">
+        <%%= form.password_field :password,
+              class: "form-input",
+              placeholder: " ",
+              required: true,
+              autocomplete: "new-password" %>
+        <%%= form.label :password, "Password *", class: "form-label" %>
+      </div>
+
+      <div class="form-field">
+        <%%= form.password_field :password_confirmation,
+              class: "form-input",
+              placeholder: " ",
+              required: true,
+              autocomplete: "new-password" %>
+        <%%= form.label :password_confirmation,
+              "Password confirmation *",
+              class: "form-label" %>
+      </div>
+
+      <div class="form-actions">
+        <%%= form.submit "Create account", class: "form-submit" %>
+      </div>
+    <%% end %>
+  </section>
+</div>

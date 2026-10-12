@@ -7,7 +7,7 @@ Rails projects.
 
 The gem provides a consistent starting point for Rails applications and includes generators for scaffolds, controllers,
 Bento layouts, tables, pagination, infinite scrolling, search, sorting, comments, authentication, administrator
-management, attachments and rich-text editing.
+management, guest access, attachments and rich-text editing.
 
 Generated components share the same b4um styling and are designed to work together.
 
@@ -84,6 +84,7 @@ b4um:comments
 b4um:in_place
 b4um:authentication
 b4um:admin
+b4um:guest
 b4um:trix
 b4um:readable
 b4um:help
@@ -726,6 +727,141 @@ Administrator rights can also be revoked there, as long as this would not remove
 
 The Admin generator uses the same authentication model and login system as `b4um:authentication`; it does not create a
 separate administrator account system or a second login.
+
+## Guest Access
+
+Add temporary guest access to an existing b4um authentication model:
+
+```bash
+bin/rails generate b4um:guest MODEL --required=FIELDS
+```
+
+Example:
+
+```bash
+bin/rails generate b4um:guest User --required=first_name,email
+bin/rails db:migrate
+```
+
+The Guest generator builds on the existing b4um authentication system. Authentication must therefore be installed for
+the selected model before running the Guest generator.
+
+At least one field must be supplied with `--required`.
+
+A complete setup can look like this:
+
+```bash
+bin/rails generate b4um:scaffold User first_name:string last_name:string company:string email:string password_digest:string --required=first_name,last_name,email
+bin/rails db:migrate
+
+bin/rails generate b4um:authentication User
+
+bin/rails generate b4um:guest User --required=first_name,email
+bin/rails db:migrate
+```
+
+The Guest generator adds two fields to the authentication model:
+
+```text
+guest
+guest_expires_at
+```
+
+Guest accounts use the same authentication model as regular registered accounts. The generator does not create a
+separate Guest model.
+
+### Guest Fields
+
+Fields listed with `--required` are required when creating a guest account.
+
+Example:
+
+```bash
+bin/rails generate b4um:guest User --required=first_name,email
+```
+
+In this example, `first_name` and `email` are required for guests.
+
+Additional suitable fields from the authentication model are detected automatically and can be entered when creating the
+guest account. Fields not listed with `--required` remain optional.
+
+Technical and sensitive fields are not exposed as normal guest profile fields.
+
+The Guest generator adapts normal account presence validations so that a guest can be created with the smaller set of
+fields defined by `--required`. The normal account requirements still apply when the guest is converted into a regular
+account.
+
+### Guest Passwords
+
+Guest accounts use the existing `has_secure_password` authentication system.
+
+A secure internal password is generated automatically for a guest account. The guest does not need to choose or enter
+this password when guest access is created.
+
+When the guest later converts the account into a regular account, a normal password must be chosen.
+
+### Expiration
+
+Guest access expires automatically.
+
+The default lifetime is 7 days.
+
+A different lifetime can be configured with `--expires-in`:
+
+```bash
+bin/rails generate b4um:guest User --required=first_name,email --expires-in=14
+```
+
+This example gives newly created guest accounts 14 days of guest access.
+
+The expiration time is stored in:
+
+```text
+guest_expires_at
+```
+
+Guests approaching expiration receive a warning before the account expires.
+
+### Converting a Guest Account
+
+A guest account can be converted into a regular registered account.
+
+Conversion keeps the existing authentication model record instead of creating a second user. Data already associated
+with the guest therefore remains associated with the converted account.
+
+During conversion, the generated form asks for the fields that are required for a normal account as well as a password
+and password confirmation.
+
+After successful conversion:
+
+```text
+guest: false
+guest_expires_at: nil
+```
+
+The account then behaves like a regular authenticated account.
+
+### Deleting a Guest Account
+
+A guest can delete the temporary account instead of converting it.
+
+Expired guest accounts can also be removed with the generated cleanup task:
+
+```bash
+bin/rails b4um:guests:cleanup
+```
+
+Run this task regularly in production so expired guest accounts do not remain stored indefinitely.
+
+The scheduling mechanism is intentionally left to the application and its deployment environment.
+
+### Guest and Admin
+
+Guest access and Admin management use the same authentication model.
+
+The Guest generator can therefore be used together with `b4um:admin`. Guest-specific validation handling preserves
+normal account requirements so administrator creation and regular account registration continue to require the
+appropriate fields.
 
 ## Active Storage and Images
 

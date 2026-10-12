@@ -1,0 +1,88 @@
+require "securerandom"
+
+class GuestsController < ApplicationController
+  before_action :require_guest, only: %i[edit update destroy]
+  before_action :require_logged_out, only: %i[new create]
+
+  def new
+    @<%= authentication_model_name %> = <%= authentication_class_name %>.new
+  end
+
+  def create
+    @<%= authentication_model_name %> = <%= authentication_class_name %>.new(guest_params)
+    @<%= authentication_model_name %>.guest = true
+    @<%= authentication_model_name %>.guest_expires_at = <%= options[:expires_in].to_i %>.days.from_now
+
+    guest_password = SecureRandom.base64(32)
+    @<%= authentication_model_name %>.password = guest_password
+    @<%= authentication_model_name %>.password_confirmation = guest_password
+
+    if @<%= authentication_model_name %>.save
+      session[:<%= authentication_model_name %>_id] = @<%= authentication_model_name %>.id
+      redirect_to root_path
+    else
+      render :new, status: :unprocessable_content
+    end
+  end
+
+  def edit
+    @<%= authentication_model_name %> = <%= current_authentication_method %>
+  end
+
+  def update
+    @<%= authentication_model_name %> = <%= current_authentication_method %>
+
+    if conversion_params[:password].blank?
+      @<%= authentication_model_name %>.errors.add(:password, "can't be blank")
+      render :edit, status: :unprocessable_content
+      return
+    end
+
+    guest_expires_at = @<%= authentication_model_name %>.guest_expires_at
+
+    @<%= authentication_model_name %>.assign_attributes(conversion_params)
+    @<%= authentication_model_name %>.guest = false
+    @<%= authentication_model_name %>.guest_expires_at = nil
+
+    if @<%= authentication_model_name %>.save
+      redirect_to root_path
+    else
+      @<%= authentication_model_name %>.guest = true
+      @<%= authentication_model_name %>.guest_expires_at = guest_expires_at
+      render :edit, status: :unprocessable_content
+    end
+  end
+
+  def destroy
+    @<%= authentication_model_name %> = <%= current_authentication_method %>
+
+    session.delete(:<%= authentication_model_name %>_id)
+    @<%= authentication_model_name %>.destroy!
+
+    redirect_to root_path
+  end
+
+  private
+
+  def guest_params
+    params.require(:guest).permit(<%= guest_available_fields.map { |field| ":#{field}" }.join(", ") %>)
+  end
+
+  def conversion_params
+    params.require(:<%= authentication_model_name %>).permit(
+      <%= (guest_available_fields + %w[password password_confirmation]).map { |field| ":#{field}" }.join(", ") %>
+    )
+  end
+
+  def require_guest
+    return if <%= current_authentication_method %>&.guest?
+
+    redirect_to root_path, alert: "Guest access required."
+  end
+
+  def require_logged_out
+    return unless <%= current_authentication_method %>
+
+    redirect_to root_path, alert: "You are already logged in."
+  end
+end

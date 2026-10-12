@@ -45,12 +45,7 @@ module B4um
 
       no_tasks do
         def validate_required_fields
-          return if options[:required].blank?
-
-          required_fields = options[:required]
-                            .split(",")
-                            .map(&:strip)
-                            .reject(&:empty?)
+          return if required_fields.empty?
 
           attribute_names = attributes.map(&:name)
 
@@ -60,6 +55,14 @@ module B4um
 
           raise Thor::Error,
                 "Unknown required field: #{unknown_fields.first}"
+        end
+
+        def required_fields
+          options[:required]
+            .to_s
+            .split(",")
+            .map(&:strip)
+            .reject(&:empty?)
         end
       end
 
@@ -178,13 +181,6 @@ module B4um
       end
 
       def add_required_validations
-        return if options[:required].blank?
-
-        required_fields = options[:required]
-                          .split(",")
-                          .map(&:strip)
-                          .reject(&:empty?)
-
         return if required_fields.empty?
 
         validation = required_fields

@@ -15,6 +15,8 @@
   <%% end %>
 
 <% attributes.each do |attribute| -%>
+<% required = required_fields.include?(attribute.name) -%>
+<% label = attribute.name.humanize + (required ? " *" : "") -%>
 <% if attribute.name == "password_digest" -%>
   <div class="form-field">
     <%%= form.password_field :password,
@@ -35,7 +37,7 @@
     <%%= form.email_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.name.match?(/(?:^|_)(?:password|password_confirmation)(?:_|$)/) -%>
@@ -43,7 +45,7 @@
     <%%= form.password_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.name.match?(/(?:^|_)(?:phone|telephone|mobile)(?:_|$)/) -%>
@@ -51,7 +53,7 @@
     <%%= form.telephone_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.name.match?(/(?:^|_)(?:url|website|homepage)(?:_|$)/) -%>
@@ -59,12 +61,12 @@
     <%%= form.url_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif select_field?(attribute.name) -%>
   <div class="form-field form-field--select">
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
 
     <%%= form.select :<%= attribute.name %>,
           <%= select_configuration[:values].inspect %>.map { |choice|
@@ -76,7 +78,7 @@
 
 <% elsif radio_field?(attribute.name) -%>
   <div class="form-field form-field--radio">
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
 
     <div class="form-radio-options">
       <%% <%= radio_configuration[:values].inspect %>.each do |choice| %>
@@ -94,7 +96,7 @@
 <% elsif attribute.type == :boolean -%>
   <div class="form-field form-field--checkbox">
     <%%= form.check_box :<%= attribute.name %>, class: "form-checkbox" %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label form-label--checkbox" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label form-label--checkbox" %>
   </div>
 
 <% elsif attribute.type == :text -%>
@@ -102,7 +104,7 @@
     <%%= form.text_area :<%= attribute.name %>,
           class: "form-textarea",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.type == :integer -%>
@@ -111,7 +113,7 @@
           class: "form-input",
           placeholder: " ",
           step: 1 %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif [:float, :decimal].include?(attribute.type) -%>
@@ -120,7 +122,7 @@
           class: "form-input",
           placeholder: " ",
           step: "any" %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.type == :date -%>
@@ -128,7 +130,7 @@
     <%%= form.date_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif [:datetime, :timestamp].include?(attribute.type) -%>
@@ -136,7 +138,7 @@
     <%%= form.datetime_local_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.type == :time -%>
@@ -144,7 +146,7 @@
     <%%= form.time_field :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 
 <% elsif attribute.type == :attachment -%>
@@ -153,6 +155,7 @@
 
     <div class="form-file-control">
       <%%= form.label :<%= attribute.name %>,
+            "<%= label %>",
             class: "form-file-label" %>
 
       <%%= form.file_field :<%= attribute.name %>,
@@ -189,6 +192,7 @@
 
     <div class="form-file-control">
       <%%= form.label :<%= attribute.name %>,
+            "<%= label %>",
             class: "form-file-label" %>
 
       <%% <%= singular_table_name %>.<%= attribute.name %>.each do |image| %>
@@ -246,7 +250,7 @@
     <%%= form.<%= attribute.field_type %> :<%= attribute.name %>,
           class: "form-input",
           placeholder: " " %>
-    <%%= form.label :<%= attribute.name %>, class: "form-label" %>
+    <%%= form.label :<%= attribute.name %>, "<%= label %>", class: "form-label" %>
   </div>
 <% end -%>
 <% end -%>

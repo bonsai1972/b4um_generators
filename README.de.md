@@ -6,8 +6,8 @@ b4um Generators ist eine Sammlung wiederverwendbarer Rails-Generatoren, Template
 für b4um-Rails-Projekte.
 
 Das Gem bietet eine einheitliche Grundlage für Rails-Anwendungen und enthält Generatoren für Scaffolds, Controller,
-Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare, Authentifizierung, Attachments und
-Rich-Text-Bearbeitung.
+Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare, Authentifizierung, Administration, Gastzugänge,
+Attachments und Rich-Text-Bearbeitung.
 
 Die generierten Komponenten verwenden ein gemeinsames b4um-Styling und sind darauf ausgelegt, miteinander zu
 funktionieren.
@@ -86,6 +86,7 @@ b4um:comments
 b4um:in_place
 b4um:authentication
 b4um:admin
+b4um:guest
 b4um:trix
 b4um:readable
 b4um:help
@@ -740,6 +741,143 @@ Rechte entzogen würden.
 
 Der Admin-Generator verwendet dasselbe Authentifizierungsmodell und dasselbe Anmeldesystem wie `b4um:authentication`. Es
 wird weder ein separates Administratorkonto-System noch ein zweiter Login erzeugt.
+
+## Gastzugang
+
+Füge einem bestehenden b4um-Authentifizierungsmodell einen zeitlich begrenzten Gastzugang hinzu:
+
+```bash
+bin/rails generate b4um:guest MODEL --required=FIELDS
+```
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:guest User --required=first_name,email
+bin/rails db:migrate
+```
+
+Der Guest-Generator baut auf der bestehenden b4um-Authentifizierung auf. Für das ausgewählte Modell muss daher zuerst
+die b4um-Authentifizierung eingerichtet werden.
+
+Mit `--required` muss mindestens ein Feld angegeben werden.
+
+Eine vollständige Einrichtung kann zum Beispiel so aussehen:
+
+```bash
+bin/rails generate b4um:scaffold User first_name:string last_name:string company:string email:string password_digest:string --required=first_name,last_name,email
+bin/rails db:migrate
+
+bin/rails generate b4um:authentication User
+
+bin/rails generate b4um:guest User --required=first_name,email
+bin/rails db:migrate
+```
+
+Der Guest-Generator fügt dem Authentifizierungsmodell zwei Felder hinzu:
+
+```text
+guest
+guest_expires_at
+```
+
+Gastkonten verwenden dasselbe Authentifizierungsmodell wie regulär registrierte Konten. Der Generator erzeugt kein
+separates Gastmodell.
+
+### Felder für Gastkonten
+
+Die mit `--required` angegebenen Felder sind beim Erstellen eines Gastkontos Pflichtfelder.
+
+Beispiel:
+
+```bash
+bin/rails generate b4um:guest User --required=first_name,email
+```
+
+In diesem Beispiel sind `first_name` und `email` für Gastkonten erforderlich.
+
+Weitere geeignete Felder des Authentifizierungsmodells werden automatisch erkannt und können beim Erstellen des
+Gastkontos ausgefüllt werden. Felder, die nicht mit `--required` angegeben wurden, bleiben optional.
+
+Technische und sensible Felder werden nicht als normale Profilfelder für Gastkonten angeboten.
+
+Der Guest-Generator passt die normalen Presence-Validierungen des Kontos so an, dass ein Gast mit der kleineren, über
+`--required` festgelegten Feldmenge erstellt werden kann. Bei der Umwandlung in ein reguläres Konto gelten weiterhin die
+normalen Pflichtfelder des Kontos.
+
+### Passwörter für Gastkonten
+
+Gastkonten verwenden das bestehende `has_secure_password`-Authentifizierungssystem.
+
+Für ein Gastkonto wird automatisch ein sicheres internes Passwort erzeugt. Der Gast muss beim Erstellen des Gastzugangs
+kein Passwort auswählen oder eingeben.
+
+Wird das Gastkonto später in ein reguläres Konto umgewandelt, muss ein normales Passwort festgelegt werden.
+
+### Ablaufzeit
+
+Ein Gastzugang läuft automatisch ab.
+
+Die Standardlaufzeit beträgt 7 Tage.
+
+Mit `--expires-in` kann eine andere Laufzeit festgelegt werden:
+
+```bash
+bin/rails generate b4um:guest User --required=first_name,email --expires-in=14
+```
+
+In diesem Beispiel erhalten neu erstellte Gastkonten 14 Tage Gastzugang.
+
+Der Ablaufzeitpunkt wird gespeichert in:
+
+```text
+guest_expires_at
+```
+
+Gastbenutzer erhalten vor dem Ablauf ihres Kontos einen Hinweis.
+
+### Gastkonto umwandeln
+
+Ein Gastkonto kann in ein regulär registriertes Konto umgewandelt werden.
+
+Bei der Umwandlung wird der bestehende Datensatz des Authentifizierungsmodells weiterverwendet und kein zweiter Benutzer
+angelegt. Daten, die bereits mit dem Gastkonto verknüpft sind, bleiben dadurch dem umgewandelten Konto zugeordnet.
+
+Bei der Umwandlung fragt das generierte Formular die für ein reguläres Konto erforderlichen Felder sowie ein Passwort
+und die Passwortbestätigung ab.
+
+Nach erfolgreicher Umwandlung gilt:
+
+```text
+guest: false
+guest_expires_at: nil
+```
+
+Das Konto verhält sich anschließend wie ein regulär authentifiziertes Konto.
+
+### Gastkonto löschen
+
+Ein Gast kann das temporäre Konto löschen, anstatt es in ein reguläres Konto umzuwandeln.
+
+Abgelaufene Gastkonten können außerdem mit der generierten Cleanup-Task entfernt werden:
+
+```bash
+bin/rails b4um:guests:cleanup
+```
+
+Diese Task sollte in einer Produktionsumgebung regelmäßig ausgeführt werden, damit abgelaufene Gastkonten nicht
+dauerhaft gespeichert bleiben.
+
+Wie die Task zeitgesteuert ausgeführt wird, bleibt bewusst der Anwendung und ihrer jeweiligen Deployment-Umgebung
+überlassen.
+
+### Gastzugang und Administration
+
+Gastzugang und Admin-Verwaltung verwenden dasselbe Authentifizierungsmodell.
+
+Der Guest-Generator kann deshalb zusammen mit `b4um:admin` verwendet werden. Die Gast-spezifische Behandlung der
+Validierungen erhält die Anforderungen für reguläre Konten, sodass bei der Administrator-Erstellung und bei der normalen
+Registrierung weiterhin die entsprechenden Pflichtfelder verlangt werden.
 
 ## Active Storage und Bilder
 

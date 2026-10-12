@@ -1,0 +1,12 @@
+namespace :b4um do
+  namespace :guests do
+    desc "Delete expired guest accounts"
+
+    task cleanup: :environment do
+      <%= authentication_class_name %>
+        .where(guest: true)
+        .where("guest_expires_at <= ?", Time.current)
+        .destroy_all
+    end
+  end
+end

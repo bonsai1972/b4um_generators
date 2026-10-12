@@ -1084,6 +1084,54 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents b4um guest access" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "GUEST"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:guest MODEL --required=FIELDS"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:guest User --required=first_name,email"
+      )
+
+      expect(text).to include(
+        "--expires-in"
+      )
+
+      expect(text).to include(
+        "7 days"
+      )
+
+      expect(text).to include(
+        "bin/rails db:migrate"
+      )
+
+      expect(text).to include(
+        "guest"
+      )
+
+      expect(text).to include(
+        "guest_expires_at"
+      )
+
+      expect(text).to include(
+        "bin/rails b4um:guests:cleanup"
+      )
+
+      expect(text).to include(
+        "b4um:authentication"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents dynamic administrator creation fields" do
     generator = described_class.new
 
