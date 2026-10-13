@@ -233,6 +233,8 @@ module B4um
           ":password_digest",
           ":password, :password_confirmation"
         )
+
+        update_password_test_params
       end
 
       def update_multiple_attachments
@@ -343,16 +345,16 @@ module B4um
           gsub_file(
             controller_path,
             /
-              format\.html\ \{\ redirect_to\ ([^,]+),
+              ^([ \t]*)format\.html\ \{\ redirect_to\ ([^,]+),
               \ notice:\ ("[^"]*\ was\ successfully\ destroyed\."),
               \ status:\ :see_other\ \}
             /x,
-            <<~RUBY.chomp
-              format.html do
-                flash[:deleted] = \\2
-                redirect_to \\1, status: :see_other
-              end
-            RUBY
+            [
+              "\\1format.html do",
+              "\\1  flash[:deleted] = \\3",
+              "\\1  redirect_to \\2, status: :see_other",
+              "\\1end"
+            ].join("\n")
           )
 
           return
@@ -361,11 +363,11 @@ module B4um
         # Rails-Scaffold ohne respond_to
         gsub_file(
           controller_path,
-          /redirect_to ([^,]+), notice: ("[^"]* was successfully destroyed\."), status: :see_other/,
-          <<~RUBY.chomp
-            flash[:deleted] = \\2
-            redirect_to \\1, status: :see_other
-          RUBY
+          /^([ \t]*)redirect_to ([^,]+), notice: ("[^"]* was successfully destroyed\."), status: :see_other/,
+          [
+            "\\1flash[:deleted] = \\3",
+            "\\1redirect_to \\2, status: :see_other"
+          ].join("\n")
         )
       end
 
@@ -401,6 +403,23 @@ module B4um
       end
 
       private
+
+      def update_password_test_params
+        test_path = File.join(
+          "test/controllers",
+          "#{plural_table_name}_controller_test.rb"
+        )
+
+        return unless File.exist?(
+          File.join(destination_root, test_path)
+        )
+
+        gsub_file(
+          test_path,
+          "password_digest: @#{singular_table_name}.password_digest",
+          'password: "password", password_confirmation: "password"'
+        )
+      end
 
       def validate_editor_configuration(option_name, configuration)
         return unless options[option_name].present?

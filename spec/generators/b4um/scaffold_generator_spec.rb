@@ -255,6 +255,41 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       "source \"https://rubygems.org\"\n"
     )
 
+    controller_test_path = File.join(
+      @destination_root,
+      "test/controllers/members_controller_test.rb"
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(controller_test_path)
+    )
+
+    File.write(
+      controller_test_path,
+      <<~RUBY
+        require "test_helper"
+
+        class MembersControllerTest < ActionDispatch::IntegrationTest
+          setup do
+            @member = members(:one)
+          end
+
+          test "should create member" do
+            assert_difference("Member.count") do
+              post members_url, params: { member: { email: @member.email, password_digest: @member.password_digest } }
+            end
+
+            assert_redirected_to member_url(Member.last)
+          end
+
+          test "should update member" do
+            patch member_url(@member), params: { member: { email: @member.email, password_digest: @member.password_digest } }
+            assert_redirected_to member_url(@member)
+          end
+        end
+      RUBY
+    )
+
     generator.invoke_all
 
     form = File.read(
@@ -305,6 +340,10 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
+    controller_test = File.read(
+      controller_test_path
+    )
+
     gemfile = File.read(
       File.join(
         @destination_root,
@@ -322,6 +361,14 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
 
     expect(controller).not_to include(
       ":password_digest"
+    )
+
+    expect(controller_test).to include(
+      'password: "password", password_confirmation: "password"'
+    )
+
+    expect(controller_test).not_to include(
+      "password_digest: @member.password_digest"
     )
 
     expect(gemfile).to include(
@@ -1150,12 +1197,16 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
-    expect(controller).to include(
-      'flash[:deleted] = "Article was successfully destroyed."'
-    )
+    expected_destroy_block = [
+      "  def destroy",
+      "    @article.destroy!",
+      '    flash[:deleted] = "Article was successfully destroyed."',
+      "    redirect_to articles_path, status: :see_other",
+      "  end"
+    ].join("\n")
 
     expect(controller).to include(
-      "redirect_to articles_path, status: :see_other"
+      expected_destroy_block
     )
 
     expect(controller).not_to include(
