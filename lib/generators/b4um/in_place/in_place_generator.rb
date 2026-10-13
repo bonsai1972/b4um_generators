@@ -137,9 +137,48 @@ module B4um
       end
 
       def add_edit_actions
-        fields.each do |field|
-          add_edit_action(field)
-        end
+        controller_path = File.join(
+          "app/controllers",
+          "#{plural_table_name}_controller.rb"
+        )
+
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
+
+        controller = File.read(full_controller_path)
+
+        fields_to_insert =
+          prepare_in_place_edit_actions(controller)
+
+        create_comment =
+          extract_create_comment(controller)
+
+        create_match =
+          find_create_action(controller, controller_path)
+
+        replacement = build_edit_actions_block(
+          fields_to_insert,
+          create_match[1],
+          create_comment
+        )
+
+        controller.sub!(
+          /\n*^[ \t]*def[ \t]+create[ \t]*$/,
+          replacement
+        )
+
+        File.write(
+          full_controller_path,
+          controller
+        )
+
+        say_status(
+          :gsub,
+          controller_path,
+          :green
+        )
       end
 
       def add_edit_actions_to_set_product
@@ -215,6 +254,77 @@ module B4um
       end
 
       private
+
+      def prepare_in_place_edit_actions(controller)
+        fields.filter_map do |field|
+          empty_edit_action = /
+            ^[ \t]*def[ \t]+edit_#{Regexp.escape(field)}[ \t]*\n
+            ^[ \t]*end[ \t]*\n?
+          /x
+
+          removed_empty_action =
+            controller.gsub!(empty_edit_action, "")
+
+          custom_action =
+            controller.match?(
+              /^[ \t]*def[ \t]+edit_#{Regexp.escape(field)}[ \t]*$/
+            )
+
+          field unless custom_action && !removed_empty_action
+        end
+      end
+
+      def extract_create_comment(controller)
+        create_comment_pattern =
+          %r{^[ \t]*# POST /#{Regexp.escape(plural_table_name)} or /#{Regexp.escape(plural_table_name)}\.json[ \t]*\n?}
+
+        create_comment =
+          controller[create_comment_pattern]&.rstrip
+
+        controller.gsub!(
+          create_comment_pattern,
+          ""
+        )
+
+        create_comment
+      end
+
+      def find_create_action(controller, controller_path)
+        create_match =
+          controller.match(
+            /^([ \t]*)def[ \t]+create[ \t]*$/
+          )
+
+        return create_match if create_match
+
+        raise Thor::Error,
+              "Could not find create action in #{controller_path}"
+      end
+
+      def build_edit_actions_block(
+        fields_to_insert,
+        indentation,
+        create_comment
+      )
+        edit_actions = fields_to_insert.flat_map do |field|
+          [
+            "#{indentation}def edit_#{field}",
+            "#{indentation}end",
+            ""
+          ]
+        end
+
+        replacement = [
+          "",
+          "",
+          *edit_actions
+        ]
+
+        replacement << create_comment if create_comment
+        replacement << "#{indentation}def create"
+
+        replacement.join("\n")
+      end
 
       def ensure_flash_render_in_layout
         layout_path = "app/views/layouts/application.html.erb"
@@ -581,11 +691,26 @@ module B4um
           /^\s*def edit_#{Regexp.escape(field)}\s*$/
         )
 
-        inject_into_file(
+        create_action = /^([ \t]*)def create\s*$/
+
+        unless controller.match?(create_action)
+          raise Thor::Error,
+                "Could not find create action in #{controller_path}"
+        end
+
+        gsub_file(
           controller_path,
-          before: /^\s*def create\s*$/
-        ) do
-          "  def edit_#{field}\n  end\n\n"
+          /\n*[ \t]*def create\s*$/
+        ) do |match|
+          indentation = match[/[ \t]*(?=def create)/]
+
+          [
+            "",
+            "#{indentation}def edit_#{field}",
+            "#{indentation}end",
+            "",
+            "#{indentation}def create"
+          ].join("\n")
         end
       end
 

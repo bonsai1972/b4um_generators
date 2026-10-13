@@ -53,6 +53,46 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
             <strong class="resource-label">Name:</strong>
             <span class="resource-value"><%= product.name %></span>
           </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Price:</strong>
+            <span class="resource-value"><%= product.price %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Quantity:</strong>
+            <span class="resource-value"><%= product.quantity %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Description:</strong>
+            <span class="resource-value"><%= product.description %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Status:</strong>
+            <span class="resource-value"><%= product.status %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Condition:</strong>
+            <span class="resource-value"><%= product.condition %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Featured:</strong>
+            <span class="resource-value"><%= product.featured %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Image:</strong>
+            <span class="resource-value"><%= product.image %></span>
+          </div>
+
+          <div class="resource-field">
+            <strong class="resource-label">Gallery:</strong>
+            <span class="resource-value"><%= product.gallery %></span>
+          </div>
         </div>
       ERB
     )
@@ -530,6 +570,232 @@ RSpec.describe B4um::Generators::InPlaceGenerator do
     expect(
       routes.scan("get :edit_name").count
     ).to eq(2)
+  end
+
+  it "formats multiple edit actions with single blank lines" do
+    create_basic_product_app
+
+    columns = [
+      Struct.new(:name, :type).new("name", :string),
+      Struct.new(:name, :type).new("status", :string)
+    ]
+
+    product_class = double(
+      "Product",
+      columns: columns,
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name status],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    expect(controller).to include(
+      [
+        "  def edit",
+        "  end",
+        "",
+        "  def edit_name",
+        "  end",
+        "",
+        "  def edit_status",
+        "  end",
+        "",
+        "  def create"
+      ].join("\n")
+    )
+
+    expect(controller).not_to include(
+      "# POST /products or /products.json"
+    )
+
+    expect(controller).not_to match(
+      /def edit_name\n  end\n{3,}/
+    )
+
+    expect(controller).not_to match(
+      /def edit_status\n  end\n{3,}/
+    )
+  end
+
+  it "normalizes existing in-place edit action formatting" do
+    create_basic_product_app
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    controller = File.read(controller_path)
+
+    controller.sub!(
+      "  def create\n",
+      [
+        "  # POST /products or /products.json",
+        "  def edit_name",
+        "  end",
+        "  def edit_status",
+        "  end",
+        "",
+        "",
+        "",
+        "  def create",
+        ""
+      ].join("\n")
+    )
+
+    controller.sub!(
+      "show edit update destroy",
+      "show edit edit_name edit_status update destroy"
+    )
+
+    File.write(
+      controller_path,
+      controller
+    )
+
+    columns = [
+      Struct.new(:name, :type).new("name", :string),
+      Struct.new(:name, :type).new("status", :string)
+    ]
+
+    product_class = double(
+      "Product",
+      columns: columns,
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name status],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      [
+        "  def edit_name",
+        "  end",
+        "",
+        "  def edit_status",
+        "  end",
+        "",
+        "  # POST /products or /products.json",
+        "  def create"
+      ].join("\n")
+    )
+
+    expect(controller).not_to include(
+      [
+        "  # POST /products or /products.json",
+        "  def edit_name"
+      ].join("\n")
+    )
+
+    expect(controller).not_to include(
+      [
+        "  def edit_name",
+        "  end",
+        "  def edit_status"
+      ].join("\n")
+    )
+
+    expect(controller).not_to match(
+      /def edit_status\n  end\n{3,}/
+    )
+  end
+
+  it "preserves a custom in-place edit action without duplicating it" do
+    create_basic_product_app
+
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    controller = File.read(controller_path)
+
+    controller.sub!(
+      "  def create\n",
+      [
+        "  def edit_name",
+        "    @custom_editor = true",
+        "  end",
+        "",
+        "  def create",
+        ""
+      ].join("\n")
+    )
+
+    File.write(
+      controller_path,
+      controller
+    )
+
+    column = Struct.new(:name, :type).new(
+      "name",
+      :string
+    )
+
+    product_class = double(
+      "Product",
+      columns: [column],
+      reflect_on_all_associations: [],
+      reflect_on_all_attachments: []
+    )
+
+    stub_const("Product", product_class)
+
+    generator = described_class.new(
+      %w[Product name],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to include(
+      [
+        "  def edit_name",
+        "    @custom_editor = true",
+        "  end"
+      ].join("\n")
+    )
+
+    expect(
+      controller.scan(
+        /^\s*def edit_name\s*$/
+      ).count
+    ).to eq(1)
+
+    expect(controller).not_to include(
+      [
+        "  def edit_name",
+        "  end"
+      ].join("\n")
+    )
   end
 
   it "adds all in-place routes when multiple fields are generated at once" do

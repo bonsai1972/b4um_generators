@@ -732,7 +732,7 @@ RSpec.describe B4um::Generators::AdminGenerator do
     )
   end
 
-  it "adds require_admin to the application controller" do
+  it "adds require_admin to the application controller with correct formatting" do
     destination_root = File.expand_path(
       "../../tmp/admin_generator",
       __dir__
@@ -757,15 +757,17 @@ RSpec.describe B4um::Generators::AdminGenerator do
 
     controller = File.read(application_controller_path)
 
-    expect(controller).to include("def require_admin")
-
     expect(controller).to include(
-      "return if logged_in? && current_user.admin?"
+      [
+        "  def require_admin",
+        "    return if logged_in? && current_user.admin?",
+        "",
+        '    redirect_to root_path, alert: "Access denied."',
+        "  end"
+      ].join("\n")
     )
 
-    expect(controller).to include(
-      'redirect_to root_path, alert: "Access denied."'
-    )
+    expect(controller.scan(/^\s*def require_admin\s*$/).length).to eq(1)
   end
 
   it "does not add require_admin more than once" do
@@ -1094,6 +1096,88 @@ RSpec.describe B4um::Generators::AdminGenerator do
     expect(
       controller.scan("session.delete(:user_id)").length
     ).to eq(1)
+  end
+
+  it "removes generated admin authentication changes when revoking" do
+    destination_root = File.expand_path(
+      "../../tmp/admin_generator_revoke",
+      __dir__
+    )
+
+    FileUtils.rm_rf(destination_root)
+
+    create_authentication_setup(destination_root)
+
+    application_controller_path = File.join(
+      destination_root,
+      "app/controllers/application_controller.rb"
+    )
+
+    sessions_controller_path = File.join(
+      destination_root,
+      "app/controllers/sessions_controller.rb"
+    )
+
+    routes_path = File.join(
+      destination_root,
+      "config/routes.rb"
+    )
+
+    application_controller_before =
+      File.read(application_controller_path)
+
+    sessions_controller_before =
+      File.read(sessions_controller_path)
+
+    routes_before =
+      File.read(routes_path)
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: destination_root
+    )
+
+    generator.invoke_all
+
+    expect(
+      File.read(application_controller_path)
+    ).to include("def require_admin")
+
+    expect(
+      File.read(application_controller_path)
+    ).to include("if @current_user&.blocked?")
+
+    expect(
+      File.read(sessions_controller_path)
+    ).to include("if user.blocked?")
+
+    expect(
+      File.read(routes_path)
+    ).to include(
+      'get "admin", to: "admin/dashboard#index", as: :admin_root'
+    )
+
+    revoke_generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: destination_root,
+      behavior: :revoke
+    )
+
+    revoke_generator.invoke_all
+
+    expect(
+      File.read(application_controller_path)
+    ).to eq(application_controller_before)
+
+    expect(
+      File.read(sessions_controller_path)
+    ).to eq(sessions_controller_before)
+
+    expect(
+      File.read(routes_path)
+    ).to eq(routes_before)
   end
 
   it "creates a protected admin base controller" do

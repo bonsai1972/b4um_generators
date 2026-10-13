@@ -169,20 +169,50 @@ module B4um
         routes = File.read(full_routes_path)
         resource_name = commentable.to_s.underscore.pluralize
 
-        return if routes.include?(
-          "resources :#{resource_name} do\n    resources :comments"
-        )
+        resource_block = /
+          ^(?<indent>[ \t]*)resources\s+:#{Regexp.escape(resource_name)}\s+do[ \t]*\n
+          (?<body>.*?)
+          ^\k<indent>end[ \t]*$
+        /mx
+
+        if (match = routes.match(resource_block))
+          return if match[:body].include?(
+            "resources :comments, only: %i[create destroy]"
+          )
+
+          updated_block = [
+            "#{match[:indent]}resources :#{resource_name} do",
+            match[:body].rstrip,
+            "#{match[:indent]}  resources :comments, only: %i[create destroy]",
+            "#{match[:indent]}end"
+          ].reject(&:empty?).join("\n")
+
+          gsub_file(
+            routes_path,
+            match[0],
+            updated_block
+          )
+
+          return
+        end
+
+        simple_resource =
+          /^([ \t]*)resources\s+:#{Regexp.escape(resource_name)}[ \t]*$/
+
+        return unless routes.match?(simple_resource)
 
         gsub_file(
           routes_path,
-          "  resources :#{resource_name}\n",
+          simple_resource
+        ) do |resource_line|
+          indentation = resource_line[/\A[ \t]*/]
+
           [
-            "  resources :#{resource_name} do",
-            "    resources :comments, only: %i[create destroy]",
-            "  end",
-            ""
+            "#{indentation}resources :#{resource_name} do",
+            "#{indentation}  resources :comments, only: %i[create destroy]",
+            "#{indentation}end"
           ].join("\n")
-        )
+        end
       end
 
       def add_comments_to_show_view

@@ -64,6 +64,10 @@ module B4um
             .map(&:strip)
             .reject(&:empty?)
         end
+
+        def revoking?
+          behavior == :revoke
+        end
       end
 
       def validate_editor_options
@@ -181,6 +185,7 @@ module B4um
       end
 
       def add_required_validations
+        return if revoking?
         return if required_fields.empty?
 
         validation = required_fields
@@ -198,6 +203,7 @@ module B4um
       end
 
       def add_secure_password
+        return if revoking?
         return unless attributes.any? { |attribute| attribute.name == "password_digest" }
 
         inject_into_class(
@@ -208,6 +214,7 @@ module B4um
       end
 
       def add_bcrypt
+        return if revoking?
         return unless attributes.any? { |attribute| attribute.name == "password_digest" }
 
         gemfile_path = "Gemfile"
@@ -221,6 +228,7 @@ module B4um
       end
 
       def update_password_params
+        return if revoking?
         return unless attributes.any? { |attribute| attribute.name == "password_digest" }
 
         controller_path = File.join(
@@ -238,71 +246,36 @@ module B4um
       end
 
       def update_multiple_attachments
-        attachment_attributes = attributes.select do |attribute|
-          attribute.type == :attachments
-        end
+        return if revoking?
 
-        return if attachment_attributes.empty?
+        attachment_names = multiple_attachment_names
+
+        return if attachment_names.empty?
 
         controller_path = File.join(
           "app/controllers",
           "#{plural_table_name}_controller.rb"
         )
 
-        attachment_names = attachment_attributes.map(&:name)
-
-        setup_lines = attachment_names.map do |name|
-          [
-            "    new_#{name} = update_params.delete(\"#{name}\")",
-            "    remove_#{name}_ids = update_params.delete(\"remove_#{name}_ids\")"
-          ]
-        end.flatten.join("\n")
-
-        attachment_lines = attachment_names.map do |name|
-          [
-            "        @#{singular_table_name}.#{name}.attach(new_#{name}) if new_#{name}.present?",
-            "",
-            "        if remove_#{name}_ids.present?",
-            "          @#{singular_table_name}.#{name}.attachments",
-            "            .where(id: remove_#{name}_ids)",
-            "            .find_each(&:purge)",
-            "        end"
-          ]
-        end.flatten.join("\n")
-
-        gsub_file(
+        add_multiple_attachment_setup(
           controller_path,
-          "  def update\n    respond_to do |format|\n",
-          [
-            "  def update",
-            "    update_params = #{singular_table_name}_params",
-            setup_lines,
-            "",
-            "    respond_to do |format|",
-            ""
-          ].join("\n")
+          attachment_names
         )
 
-        gsub_file(
+        add_multiple_attachment_handling(
           controller_path,
-          "      if @#{singular_table_name}.update(#{singular_table_name}_params)\n",
-          [
-            "      if @#{singular_table_name}.update(update_params)",
-            attachment_lines,
-            ""
-          ].join("\n")
+          attachment_names
         )
 
-        attachment_names.each do |name|
-          gsub_file(
-            controller_path,
-            "#{name}: []",
-            "#{name}: [], remove_#{name}_ids: []"
-          )
-        end
+        add_multiple_attachment_removal_params(
+          controller_path,
+          attachment_names
+        )
       end
 
       def add_readable_param
+        return if revoking?
+
         param_name = options[:param]
 
         return if param_name.blank?
@@ -317,18 +290,24 @@ module B4um
           return
         end
 
+        readable_method = [
+          "  def to_param",
+          "    \"\#{id} \#{#{param_name}}\".parameterize",
+          "  end",
+          "",
+          ""
+        ].join("\n")
+
         inject_into_class(
           File.join("app/models", "#{singular_table_name}.rb"),
           class_name,
-          <<~RUBY
-            def to_param
-              "\#{id} \#{#{param_name}}".parameterize
-            end
-          RUBY
+          readable_method
         )
       end
 
       def update_destroy_flash
+        return if revoking?
+
         controller_path = File.join(
           "app/controllers",
           "#{plural_table_name}_controller.rb"
@@ -378,14 +357,7 @@ module B4um
         return unless File.exist?(full_navigation_path)
 
         navigation = File.read(full_navigation_path)
-
-        return if navigation.include?(
-          "controller: :#{plural_table_name}"
-        )
-
         marker = "<%# B4UM_NAVIGATION_LINKS %>"
-
-        return unless navigation.include?(marker)
 
         navigation_link = <<~ERB
           <%= navigation_link_to "#{plural_table_name.humanize}",
@@ -395,6 +367,34 @@ module B4um
             #{marker}
         ERB
 
+        if revoking?
+          generated_link = navigation_link.chomp
+
+          return unless navigation.include?(generated_link)
+
+          File.write(
+            full_navigation_path,
+            navigation.sub(
+              generated_link,
+              marker
+            )
+          )
+
+          say_status(
+            :remove,
+            "#{plural_table_name.humanize} navigation link",
+            :red
+          )
+
+          return
+        end
+
+        return if navigation.include?(
+          "controller: :#{plural_table_name}"
+        )
+
+        return unless navigation.include?(marker)
+
         gsub_file(
           navigation_path,
           marker,
@@ -403,6 +403,77 @@ module B4um
       end
 
       private
+
+      def multiple_attachment_names
+        attributes
+          .select { |attribute| attribute.type == :attachments }
+          .map(&:name)
+      end
+
+      def add_multiple_attachment_setup(
+        controller_path,
+        attachment_names
+      )
+        setup_lines = attachment_names.flat_map do |name|
+          [
+            "    new_#{name} = update_params.delete(\"#{name}\")",
+            "    remove_#{name}_ids = update_params.delete(\"remove_#{name}_ids\")"
+          ]
+        end.join("\n")
+
+        gsub_file(
+          controller_path,
+          "  def update\n    respond_to do |format|\n",
+          [
+            "  def update",
+            "    update_params = #{singular_table_name}_params",
+            setup_lines,
+            "",
+            "    respond_to do |format|",
+            ""
+          ].join("\n")
+        )
+      end
+
+      def add_multiple_attachment_handling(
+        controller_path,
+        attachment_names
+      )
+        attachment_lines = attachment_names.flat_map do |name|
+          [
+            "        @#{singular_table_name}.#{name}.attach(new_#{name}) if new_#{name}.present?",
+            "",
+            "        if remove_#{name}_ids.present?",
+            "          @#{singular_table_name}.#{name}.attachments",
+            "            .where(id: remove_#{name}_ids)",
+            "            .find_each(&:purge)",
+            "        end"
+          ]
+        end.join("\n")
+
+        gsub_file(
+          controller_path,
+          "      if @#{singular_table_name}.update(#{singular_table_name}_params)\n",
+          [
+            "      if @#{singular_table_name}.update(update_params)",
+            attachment_lines,
+            ""
+          ].join("\n")
+        )
+      end
+
+      def add_multiple_attachment_removal_params(
+        controller_path,
+        attachment_names
+      )
+        attachment_names.each do |name|
+          gsub_file(
+            controller_path,
+            "#{name}: []",
+            "#{name}: [], remove_#{name}_ids: []"
+          )
+        end
+      end
 
       def update_password_test_params
         test_path = File.join(

@@ -1222,7 +1222,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
   end
 
-  it "generates a readable URL parameter" do
+  it "generates a correctly formatted readable URL parameter" do
     FileUtils.mkdir_p(
       File.join(@destination_root, "app/models")
     )
@@ -1244,6 +1244,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
         ["title:string", "body:text"]
       ],
       {
+        required: "title",
         param: "title"
       },
       destination_root: @destination_root
@@ -1258,12 +1259,17 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
-    expect(model).to include(
-      "def to_param"
-    )
-
-    expect(model).to include(
-      "\"\#{id} \#{title}\".parameterize"
+    expect(model).to eq(
+      [
+        "class Article < ApplicationRecord",
+        "  def to_param",
+        "    \"\#{id} \#{title}\".parameterize",
+        "  end",
+        "",
+        "  validates :title, presence: true",
+        "end",
+        ""
+      ].join("\n")
     )
   end
 
@@ -1362,6 +1368,78 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     expect(
       navigation.scan("controller: :products").count
     ).to eq(1)
+  end
+
+  it "removes the generated navigation link when revoking" do
+    navigation_directory = File.join(
+      @destination_root,
+      "app/views/shared"
+    )
+
+    FileUtils.mkdir_p(navigation_directory)
+
+    navigation_path = File.join(
+      navigation_directory,
+      "_navigation.html.erb"
+    )
+
+    original_navigation = <<~ERB
+      <div
+        class="navigation__menu"
+        id="navigation-menu"
+        data-navigation-target="menu"
+      >
+        <%# B4UM_NAVIGATION_LINKS %>
+      </div>
+    ERB
+
+    File.write(
+      navigation_path,
+      original_navigation
+    )
+
+    generator = described_class.new(
+      ["Article", "title:string", "body:text"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.add_navigation_link
+
+    navigation = File.read(navigation_path)
+
+    expect(navigation).to include(
+      'navigation_link_to "Articles"'
+    )
+
+    expect(navigation).to include(
+      "articles_path"
+    )
+
+    expect(navigation).to include(
+      "controller: :articles"
+    )
+
+    expect(
+      navigation.scan("controller: :articles").count
+    ).to eq(1)
+
+    generator.behavior = :revoke
+    generator.add_navigation_link
+
+    navigation = File.read(navigation_path)
+
+    expect(navigation).to eq(
+      original_navigation
+    )
+
+    expect(navigation).not_to include(
+      "controller: :articles"
+    )
+
+    expect(navigation).to include(
+      "<%# B4UM_NAVIGATION_LINKS %>"
+    )
   end
 
   it "provides all B4UM scaffold templates" do

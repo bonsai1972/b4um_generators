@@ -39,14 +39,17 @@ module B4um
                 "#{class_name} already defines to_param."
         end
 
+        readable_method = [
+          "  def to_param",
+          "    \"\#{id} \#{#{attribute}}\".parameterize",
+          "  end",
+          ""
+        ].join("\n")
+
         inject_into_class(
           model_path,
           class_name,
-          <<~RUBY
-            def to_param
-              "\#{id} \#{#{attribute}}".parameterize
-            end
-          RUBY
+          readable_method
         )
 
         say_status(

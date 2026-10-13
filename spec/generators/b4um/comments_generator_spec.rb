@@ -206,6 +206,73 @@ RSpec.describe B4um::Generators::CommentsGenerator do
     )
   end
 
+  it "adds comments to an existing resource block without removing existing routes" do
+    destination = File.expand_path(
+      "../../tmp/comments_generator_existing_resource_block",
+      __dir__
+    )
+
+    FileUtils.rm_rf(destination)
+
+    FileUtils.mkdir_p(
+      File.join(destination, "config")
+    )
+
+    routes_path = File.join(
+      destination,
+      "config/routes.rb"
+    )
+
+    File.write(
+      routes_path,
+      <<~RUBY
+        Rails.application.routes.draw do
+          resources :products do
+            patch :sort, on: :collection
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: destination
+    )
+
+    generator.add_comments_routes
+
+    routes = File.read(routes_path)
+
+    expect(routes).to eq(
+      [
+        "Rails.application.routes.draw do",
+        "  resources :products do",
+        "    patch :sort, on: :collection",
+        "    resources :comments, only: %i[create destroy]",
+        "  end",
+        "end",
+        ""
+      ].join("\n")
+    )
+
+    generator.add_comments_routes
+
+    routes = File.read(routes_path)
+
+    expect(
+      routes.scan(
+        "resources :comments, only: %i[create destroy]"
+      ).count
+    ).to eq(1)
+
+    expect(
+      routes.scan(
+        "patch :sort, on: :collection"
+      ).count
+    ).to eq(1)
+  end
+
   it "does not duplicate the comments association" do
     destination = File.expand_path(
       "../../tmp/comments_generator_existing_association",

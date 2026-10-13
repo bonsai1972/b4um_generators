@@ -51,30 +51,80 @@ module B4um
         )
       end
 
+      def update_fixtures
+        return unless File.exist?(fixture_path)
+
+        fixtures = File.read(fixture_path)
+        position = 0
+
+        updated_fixtures = fixtures.gsub(
+          /^([^\s#][^:\n]*:\s*\n)((?:^[ \t]+.*\n?)*)/
+        ) do
+          fixture_header = Regexp.last_match(1)
+          fixture_body = Regexp.last_match(2)
+
+          next "#{fixture_header}#{fixture_body}" if fixture_header.start_with?("_")
+
+          position += 1
+
+          if fixture_body.match?(/^[ \t]+position:\s+/)
+            fixture_body = fixture_body.sub(
+              /^[ \t]+position:\s+.*$/,
+              "  position: #{position}"
+            )
+
+            "#{fixture_header}#{fixture_body}"
+          else
+            "#{fixture_header}  position: #{position}\n#{fixture_body}"
+          end
+        end
+
+        return if updated_fixtures == fixtures
+
+        File.write(fixture_path, updated_fixtures)
+
+        say_status(
+          :fixture,
+          "#{plural_table_name}.yml now includes sortable positions",
+          :green
+        )
+      end
+
       def update_model
         model_content = File.read(model_path)
 
-        return if model_content.include?("before_create :b4um_set_sortable_position")
+        return if model_content.include?(
+          "before_create :b4um_set_sortable_position"
+        )
+
+        existing_model_body = model_content
+                              .lines[1...-1]
+                              .to_a
+                              .any? { |line| line.match?(/\S/) }
+
+        sortable_model_code = <<~RUBY.indent(2)
+          before_create :b4um_set_sortable_position
+          after_destroy :b4um_compact_sortable_positions
+
+          def b4um_set_sortable_position
+            return if position.present?
+
+            self.position = self.class.maximum(:position).to_i + 1
+          end
+
+          def b4um_compact_sortable_positions
+            self.class
+                .where("position > ?", position)
+                .update_all("position = position - 1")
+          end
+        RUBY
+
+        sortable_model_code << "\n" if existing_model_body
 
         inject_into_class(
           model_path,
           class_name,
-          <<~RUBY.indent(2)
-            before_create :b4um_set_sortable_position
-            after_destroy :b4um_compact_sortable_positions
-
-            def b4um_set_sortable_position
-              return if position.present?
-
-              self.position = self.class.maximum(:position).to_i + 1
-            end
-
-            def b4um_compact_sortable_positions
-              self.class
-                  .where("position > ?", position)
-                  .update_all("position = position - 1")
-            end
-          RUBY
+          sortable_model_code
         )
 
         say_status(
@@ -217,6 +267,14 @@ module B4um
         )
       end
 
+      def fixture_path
+        File.join(
+          destination_root,
+          "test/fixtures",
+          "#{plural_table_name}.yml"
+        )
+      end
+
       def model_path
         File.join(
           destination_root,
@@ -322,15 +380,16 @@ module B4um
 
             head :no_content
           end
-
         RUBY
+
+        action = action.rstrip
 
         private_marker = "\n  private\n"
 
         if controller_content.include?(private_marker)
           insert_into_file(
             controller_path,
-            action,
+            "\n#{action}\n",
             before: private_marker
           )
         else
@@ -341,10 +400,10 @@ module B4um
                   "Could not find the end of app/controllers/#{plural_table_name}_controller.rb"
           end
 
-          insert_into_file(
+          gsub_file(
             controller_path,
-            "\n#{action}",
-            before: controller_end
+            controller_end,
+            "\n\n#{action}\nend\n"
           )
         end
       end
@@ -354,7 +413,7 @@ module B4um
         return if controller_content.include?("if request.get?")
 
         sort_action =
-          /^(\s*)def sort\s*$/
+          /^([ \t]*)def sort[ \t]*$/
 
         unless controller_content.match?(sort_action)
           raise Thor::Error,
@@ -365,15 +424,15 @@ module B4um
           controller_path,
           sort_action
         ) do |match|
-          indentation = match[/\A\s*/]
+          indentation = match[/\A[ \t]*/]
 
-          <<~RUBY.chomp
-            #{match}
-            #{indentation}  if request.get?
-            #{indentation}    @#{plural_table_name} = #{class_name}.order(:position, :id)
-            #{indentation}    return
-            #{indentation}  end
-          RUBY
+          [
+            match,
+            "#{indentation}  if request.get?",
+            "#{indentation}    @#{plural_table_name} = #{class_name}.order(:position, :id)",
+            "#{indentation}    return",
+            "#{indentation}  end"
+          ].join("\n")
         end
       end
 
@@ -510,19 +569,28 @@ module B4um
       end
 
       def schema_contains_position?
-        schema_path = File.join(destination_root, "db/schema.rb")
+        schema_path = File.join(
+          destination_root,
+          "db/schema.rb"
+        )
 
         return false unless File.exist?(schema_path)
 
         schema = File.read(schema_path)
 
         table_pattern = /
-          create_table\s+"#{Regexp.escape(plural_table_name)}".*?^  end
+          ^[ \t]*create_table\s+"#{Regexp.escape(plural_table_name)}".*?\n
+          (?<table_body>.*?)
+          ^[ \t]{2}end\s*$
         /mx
 
-        table = schema[table_pattern]
+        match = schema.match(table_pattern)
 
-        table&.match?(/t\.integer\s+"position"/) || false
+        return false unless match
+
+        match[:table_body].match?(
+          /^[ \t]+t\.integer\s+"position"/
+        )
       end
     end
   end

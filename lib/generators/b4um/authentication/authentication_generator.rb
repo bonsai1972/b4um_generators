@@ -198,7 +198,10 @@ module B4um
 
       def add_authentication_helpers
         controller_path = "app/controllers/application_controller.rb"
-        full_controller_path = File.join(destination_root, controller_path)
+        full_controller_path = File.join(
+          destination_root,
+          controller_path
+        )
 
         unless File.exist?(full_controller_path)
           raise Thor::Error,
@@ -211,31 +214,52 @@ module B4um
           "helper_method :#{current_authentication_method}, :logged_in?"
         )
 
-        inject_into_file(
-          controller_path,
-          before: /^end\s*$/
-        ) do
-          <<~RUBY
+        authentication_helpers = [
+          "",
+          "  helper_method :#{current_authentication_method}, :logged_in?",
+          "",
+          "  private",
+          "",
+          "  def #{current_authentication_method}",
+          "    @#{current_authentication_method} ||= " \
+          "#{authentication_class_name}.find_by(" \
+          "id: session[:#{authentication_model_name}_id])",
+          "  end",
+          "",
+          "  def logged_in?",
+          "    #{current_authentication_method}.present?",
+          "  end",
+          "",
+          "  def require_login",
+          "    return if logged_in?",
+          "",
+          '    redirect_to login_path, alert: "Please log in first."',
+          "  end",
+          ""
+        ].join("\n")
 
-            helper_method :#{current_authentication_method}, :logged_in?
+        class_end_position = controller.rindex(/^end\s*$/)
 
-            private
-
-            def #{current_authentication_method}
-              @#{current_authentication_method} ||= #{authentication_class_name}.find_by(id: session[:#{authentication_model_name}_id])
-            end
-
-            def logged_in?
-              #{current_authentication_method}.present?
-            end
-
-            def require_login
-              return if logged_in?
-
-              redirect_to login_path, alert: "Please log in first."
-            end
-          RUBY
+        unless class_end_position
+          raise Thor::Error,
+                "Could not find the end of ApplicationController."
         end
+
+        controller.insert(
+          class_end_position,
+          authentication_helpers
+        )
+
+        File.write(
+          full_controller_path,
+          controller
+        )
+
+        say_status(
+          :insert,
+          controller_path,
+          :green
+        )
       end
 
       def update_in_place_helper

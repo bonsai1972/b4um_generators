@@ -146,6 +146,27 @@ module B4um
 
         controller = File.read(full_controller_path)
 
+        require_admin = [
+          "",
+          "  def require_admin",
+          "    return if logged_in? && #{current_authentication_method}.admin?",
+          "",
+          '    redirect_to root_path, alert: "Access denied."',
+          "  end",
+          ""
+        ].join("\n")
+
+        if behavior == :revoke
+          return unless controller.include?(require_admin)
+
+          File.write(
+            full_controller_path,
+            controller.sub(require_admin, "")
+          )
+
+          return
+        end
+
         return if controller.include?("def require_admin")
 
         class_end_position = controller.rindex(/^end\s*$/)
@@ -154,16 +175,6 @@ module B4um
           raise Thor::Error,
                 "Could not find the end of ApplicationController."
         end
-
-        require_admin = <<~RUBY
-
-          def require_admin
-            return if logged_in? && #{current_authentication_method}.admin?
-
-            redirect_to root_path, alert: "Access denied."
-          end
-
-        RUBY
 
         controller.insert(
           class_end_position,
@@ -227,6 +238,27 @@ module B4um
                 "Routes not found: #{routes_path}"
         end
 
+        if behavior == :revoke
+          routes = File.read(full_routes_path)
+
+          routes.gsub!(
+            /^  #{Regexp.escape(admin_root_route)}\n?/,
+            ""
+          )
+
+          routes.gsub!(
+            /^#{Regexp.escape(indented_admin_users_route)}\n?/,
+            ""
+          )
+
+          File.write(
+            full_routes_path,
+            routes
+          )
+
+          return
+        end
+
         admin_users_route_status =
           upgrade_existing_admin_users_route(
             routes_path,
@@ -261,33 +293,77 @@ module B4um
 
         controller = File.read(full_controller_path)
 
-        return if controller.include?("if @#{current_authentication_method}&.blocked?")
-
         current_user_assignment =
           "@#{current_authentication_method} ||= " \
           "#{authentication_class_name}.find_by(" \
           "id: session[:#{authentication_model_name}_id])"
 
-        unless controller.include?(current_user_assignment)
+        blocked_session_block = [
+          current_user_assignment,
+          "",
+          "if @#{current_authentication_method}&.blocked?",
+          "  session.delete(:#{authentication_model_name}_id)",
+          "  @#{current_authentication_method} = nil",
+          "end",
+          "",
+          "@#{current_authentication_method}"
+        ]
+
+        if behavior == :revoke
+          blocked_pattern = /
+            ^(?<indent>[ \t]*)#{Regexp.escape(current_user_assignment)}\n
+            \n
+            ^\k<indent>if\ @#{Regexp.escape(current_authentication_method)}&\.blocked\?\n
+            ^\k<indent>\ \ session\.delete\(:#{Regexp.escape(authentication_model_name)}_id\)\n
+            ^\k<indent>\ \ @#{Regexp.escape(current_authentication_method)}\ =\ nil\n
+            ^\k<indent>end\n
+            \n
+            ^\k<indent>@#{Regexp.escape(current_authentication_method)}$
+          /x
+
+          match = controller.match(blocked_pattern)
+
+          return unless match
+
+          replacement =
+            "#{match[:indent]}#{current_user_assignment}"
+
+          File.write(
+            full_controller_path,
+            controller.sub(
+              blocked_pattern,
+              replacement
+            )
+          )
+
+          return
+        end
+
+        return if controller.include?(
+          "if @#{current_authentication_method}&.blocked?"
+        )
+
+        assignment_match = controller.match(
+          /^([ \t]*)#{Regexp.escape(current_user_assignment)}$/
+        )
+
+        unless assignment_match
           raise Thor::Error,
                 "Could not find the current authentication method " \
                 "in #{controller_path}"
         end
 
-        replacement = <<~RUBY.chomp
-          #{current_user_assignment}
+        indentation = assignment_match[1]
 
-          if @#{current_authentication_method}&.blocked?
-            session.delete(:#{authentication_model_name}_id)
-            @#{current_authentication_method} = nil
-          end
-
-          @#{current_authentication_method}
-        RUBY
+        replacement = blocked_session_block
+                      .map do |line|
+                        line.empty? ? line : "#{indentation}#{line}"
+                      end
+                      .join("\n")
 
         gsub_file(
           controller_path,
-          current_user_assignment,
+          /^#{Regexp.escape(indentation)}#{Regexp.escape(current_user_assignment)}$/,
           replacement
         )
       end
@@ -307,13 +383,51 @@ module B4um
 
         controller = File.read(full_controller_path)
 
-        return if controller.include?(
-          "if #{authentication_model_name}.blocked?"
-        )
-
         session_assignment =
           "session[:#{authentication_model_name}_id] = " \
           "#{authentication_model_name}.id"
+
+        login_redirect =
+          'redirect_to root_path, notice: "Successfully logged in."'
+
+        if behavior == :revoke
+          blocked_login_pattern = /
+            ^(?<indent>[ \t]*)if\ #{Regexp.escape(authentication_model_name)}\.blocked\?\n
+            ^\k<indent>\ \ flash\.now\[:alert\]\ =\ "Account\ is\ blocked\."\n
+            ^\k<indent>\ \ render\ :new,\ status:\ :unprocessable_content\n
+            ^\k<indent>else\n
+            ^\k<indent>\ \ #{Regexp.escape(session_assignment)}\n
+            \n
+            ^\k<indent>\ \ #{Regexp.escape(login_redirect)}\n
+            ^\k<indent>end$
+          /x
+
+          match = controller.match(blocked_login_pattern)
+
+          return unless match
+
+          indentation = match[:indent]
+
+          replacement = [
+            "#{indentation}#{session_assignment}",
+            "",
+            "#{indentation}#{login_redirect}"
+          ].join("\n")
+
+          File.write(
+            full_controller_path,
+            controller.sub(
+              blocked_login_pattern,
+              replacement
+            )
+          )
+
+          return
+        end
+
+        return if controller.include?(
+          "if #{authentication_model_name}.blocked?"
+        )
 
         session_match = controller.match(
           /^(\s*)#{Regexp.escape(session_assignment)}$/
@@ -341,9 +455,6 @@ module B4um
           /^#{Regexp.escape(indent)}#{Regexp.escape(session_assignment)}$/,
           replacement
         )
-
-        login_redirect =
-          'redirect_to root_path, notice: "Successfully logged in."'
 
         controller = File.read(full_controller_path)
 

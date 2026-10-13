@@ -204,7 +204,7 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
   end
 
-  it "adds authentication helpers to ApplicationController" do
+  it "adds authentication helpers to ApplicationController with correct formatting" do
     generator = described_class.new(
       ["User"],
       {},
@@ -221,35 +221,25 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
     )
 
     expect(controller).to include(
-      "helper_method :current_user, :logged_in?"
-    )
-
-    expect(controller).to include(
-      "def current_user"
-    )
-
-    expect(controller).to include(
-      "@current_user ||= User.find_by(id: session[:user_id])"
-    )
-
-    expect(controller).to include(
-      "def logged_in?"
-    )
-
-    expect(controller).to include(
-      "current_user.present?"
-    )
-
-    expect(controller).to include(
-      "def require_login"
-    )
-
-    expect(controller).to include(
-      "return if logged_in?"
-    )
-
-    expect(controller).to include(
-      'redirect_to login_path, alert: "Please log in first."'
+      [
+        "  helper_method :current_user, :logged_in?",
+        "",
+        "  private",
+        "",
+        "  def current_user",
+        "    @current_user ||= User.find_by(id: session[:user_id])",
+        "  end",
+        "",
+        "  def logged_in?",
+        "    current_user.present?",
+        "  end",
+        "",
+        "  def require_login",
+        "    return if logged_in?",
+        "",
+        '    redirect_to login_path, alert: "Please log in first."',
+        "  end"
+      ].join("\n")
     )
 
     expect(controller).to include(

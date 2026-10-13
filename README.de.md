@@ -24,7 +24,7 @@ b4um Generators wird während der Entwicklung derzeit als lokales Gem verwendet.
 Füge das Gem zur `Gemfile` der Rails-Anwendung hinzu:
 
 ```ruby
-gem "b4um_generators", "~> 0.4.0", path: "/pfad/zu/b4um_generators"
+gem "b4um_generators", "~> 0.4.2", path: "/pfad/zu/b4um_generators"
 ```
 
 Führe anschließend aus:
@@ -1549,7 +1549,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.4.0`
+Aktuelle Version: `0.4.2`
 
 ## Autor
 

@@ -23,7 +23,7 @@ b4um Generators is currently used as a local gem during development.
 Add the gem to the Rails application's `Gemfile`:
 
 ```ruby
-gem "b4um_generators", "~> 0.4.0", path: "/path/to/b4um_generators"
+gem "b4um_generators", "~> 0.4.2", path: "/path/to/b4um_generators"
 ```
 
 Then run:
@@ -1524,7 +1524,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.4.0`
+Current version: `0.4.2`
 
 ## Author
 

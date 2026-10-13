@@ -64,12 +64,25 @@ RSpec.describe B4um::Generators::ReadableGenerator do
       )
     )
 
-    expect(model).to include(
-      "def to_param"
-    )
+    expected_to_param = [
+      "  def to_param",
+      "    \"\#{id} \#{name}\".parameterize",
+      "  end"
+    ].join("\n")
 
     expect(model).to include(
-      "\"\#{id} \#{name}\".parameterize"
+      expected_to_param
+    )
+
+    expect(model).to eq(
+      [
+        "class Product < ApplicationRecord",
+        "  def to_param",
+        "    \"\#{id} \#{name}\".parameterize",
+        "  end",
+        "end",
+        ""
+      ].join("\n")
     )
   end
 

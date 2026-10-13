@@ -26,7 +26,25 @@ RSpec.describe B4um::Generators::SortableGenerator do
     )
 
     FileUtils.mkdir_p(
+      File.join(@destination_root, "test/fixtures")
+    )
+
+    FileUtils.mkdir_p(
       File.join(@destination_root, "config")
+    )
+
+    File.write(
+      File.join(
+        @destination_root,
+        "test/fixtures/products.yml"
+      ),
+      <<~YAML
+        one:
+          name: First Product
+
+        two:
+          name: Second Product
+      YAML
     )
 
     File.write(
@@ -115,6 +133,125 @@ RSpec.describe B4um::Generators::SortableGenerator do
     )
   end
 
+  it "adds unique sortable positions to existing fixtures" do
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    fixture_path = File.join(
+      @destination_root,
+      "test/fixtures/products.yml"
+    )
+
+    content = File.read(fixture_path)
+
+    expect(content).to eq(
+      <<~YAML
+        one:
+          position: 1
+          name: First Product
+
+        two:
+          position: 2
+          name: Second Product
+      YAML
+    )
+  end
+
+  it "does not duplicate sortable fixture positions" do
+    first_generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    first_generator.invoke_all
+
+    second_generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    second_generator.invoke_all
+
+    fixture_path = File.join(
+      @destination_root,
+      "test/fixtures/products.yml"
+    )
+
+    content = File.read(fixture_path)
+
+    expect(content.scan(/^\s+position:/).size).to eq(2)
+
+    expect(content).to eq(
+      <<~YAML
+        one:
+          position: 1
+          name: First Product
+
+        two:
+          position: 2
+          name: Second Product
+      YAML
+    )
+  end
+
+  it "completes partially positioned fixtures and ignores fixture metadata" do
+    fixture_path = File.join(
+      @destination_root,
+      "test/fixtures/products.yml"
+    )
+
+    File.write(
+      fixture_path,
+      <<~YAML
+        _fixture:
+          model_class: Product
+
+        one:
+          position: 7
+          name: First Product
+
+        two:
+          name: Second Product
+      YAML
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    content = File.read(fixture_path)
+
+    expect(content).to eq(
+      <<~YAML
+        _fixture:
+          model_class: Product
+
+        one:
+          position: 1
+          name: First Product
+
+        two:
+          position: 2
+          name: Second Product
+      YAML
+    )
+
+    expect(
+      content.scan(/^\s+position:/).size
+    ).to eq(2)
+  end
+
   it "adds sortable position handling to the model" do
     generator = described_class.new(
       ["Product"],
@@ -157,6 +294,53 @@ RSpec.describe B4um::Generators::SortableGenerator do
 
     expect(content).to include(
       '.update_all("position = position - 1")'
+    )
+  end
+
+  it "separates sortable position handling from existing model content" do
+    model_path = File.join(
+      @destination_root,
+      "app/models/product.rb"
+    )
+
+    File.write(
+      model_path,
+      <<~RUBY
+        class Product < ApplicationRecord
+          def to_param
+            "\#{id}-\#{name}".parameterize
+          end
+
+          validates :name, presence: true
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    content = File.read(model_path)
+
+    expect(content).to include(
+      [
+        '    .update_all("position = position - 1")',
+        "  end",
+        "",
+        "  def to_param"
+      ].join("\n")
+    )
+
+    expect(content).not_to include(
+      [
+        '    .update_all("position = position - 1")',
+        "  end",
+        "  def to_param"
+      ].join("\n")
     )
   end
 
@@ -230,6 +414,94 @@ RSpec.describe B4um::Generators::SortableGenerator do
     )
 
     expect(migrations.size).to eq(1)
+  end
+
+  it "creates a migration when only another table has a position column" do
+    schema_path = File.join(
+      @destination_root,
+      "db/schema.rb"
+    )
+
+    File.write(
+      schema_path,
+      <<~RUBY
+        ActiveRecord::Schema[8.0].define(version: 2026_10_09_000000) do
+          create_table "products", force: :cascade do |t|
+            t.string "name"
+            t.datetime "created_at", null: false
+            t.datetime "updated_at", null: false
+          end
+
+          create_table "categories", force: :cascade do |t|
+            t.string "name"
+            t.integer "position", null: false
+            t.datetime "created_at", null: false
+            t.datetime "updated_at", null: false
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    migrations = Dir.glob(
+      File.join(
+        @destination_root,
+        "db/migrate/*_add_position_to_products.rb"
+      )
+    )
+
+    expect(migrations.size).to eq(1)
+  end
+
+  it "does not create a migration when the same table has a position column" do
+    schema_path = File.join(
+      @destination_root,
+      "db/schema.rb"
+    )
+
+    File.write(
+      schema_path,
+      <<~RUBY
+        ActiveRecord::Schema[8.0].define(version: 2026_10_09_000000) do
+          create_table "products", force: :cascade do |t|
+            t.string "name"
+            t.integer "position", null: false
+            t.datetime "created_at", null: false
+            t.datetime "updated_at", null: false
+          end
+
+          create_table "categories", force: :cascade do |t|
+            t.string "name"
+            t.datetime "created_at", null: false
+            t.datetime "updated_at", null: false
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    migrations = Dir.glob(
+      File.join(
+        @destination_root,
+        "db/migrate/*_add_position_to_products.rb"
+      )
+    )
+
+    expect(migrations).to be_empty
   end
 
   it "raises an error when the model does not exist" do
@@ -325,6 +597,93 @@ RSpec.describe B4um::Generators::SortableGenerator do
 
     expect(controller).to include(
       "head :no_content"
+    )
+  end
+
+  it "formats the sort action correctly in a controller without private" do
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(
+      File.join(
+        @destination_root,
+        "app/controllers/products_controller.rb"
+      )
+    )
+
+    expect(controller).to match(
+      /  end\n\n  def sort\n/
+    )
+
+    expect(controller).to match(
+      /    head :no_content\n  end\nend\n\z/
+    )
+
+    expect(controller).not_to match(
+      /  end\n  def sort\n/
+    )
+
+    expect(controller).not_to match(
+      /\n{3,}/
+    )
+  end
+
+  it "formats the sort action correctly in a controller with private" do
+    controller_path = File.join(
+      @destination_root,
+      "app/controllers/products_controller.rb"
+    )
+
+    File.write(
+      controller_path,
+      <<~RUBY
+        class ProductsController < ApplicationController
+          def index
+            @products = Product.all
+          end
+
+          def destroy
+            head :no_content
+          end
+
+          private
+
+          def set_product
+            @product = Product.find(params[:id])
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["Product"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    controller = File.read(controller_path)
+
+    expect(controller).to match(
+      /  end\n\n  def sort\n/
+    )
+
+    expect(controller).to match(
+      /    head :no_content\n  end\n\n  private\n/
+    )
+
+    expect(controller).not_to match(
+      /  end\n  def sort\n/
+    )
+
+    expect(controller).not_to match(
+      /  end\n\n\n  private\n/
     )
   end
 
