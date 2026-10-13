@@ -2298,4 +2298,384 @@ RSpec.describe B4um::Generators::AuthenticationGenerator do
       "redirect_to users_path, status: :see_other"
     )
   end
+
+  it "updates authentication resource controller tests for session authentication" do
+    users_controller_path = File.join(
+      @destination_root,
+      "app/controllers/users_controller.rb"
+    )
+
+    File.write(
+      users_controller_path,
+      <<~RUBY
+        class UsersController < ApplicationController
+          before_action :set_user, only: %i[ show edit update destroy ]
+
+          def index
+            @users = User.all
+          end
+
+          def show
+          end
+
+          def new
+            @user = User.new
+          end
+
+          def edit
+          end
+
+          def create
+            @user = User.new(user_params)
+          end
+
+          def update
+          end
+
+          def destroy
+          end
+
+          private
+
+          def set_user
+            @user = User.find(params.expect(:id))
+          end
+        end
+      RUBY
+    )
+
+    tests_path = File.join(
+      @destination_root,
+      "test/controllers/users_controller_test.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(tests_path))
+
+    File.write(
+      tests_path,
+      <<~RUBY
+        require "test_helper"
+
+        class UsersControllerTest < ActionDispatch::IntegrationTest
+          setup do
+            @user = users(:one)
+          end
+
+          test "should get index" do
+            get users_url
+            assert_response :success
+          end
+
+          test "should get new" do
+            get new_user_url
+            assert_response :success
+          end
+
+          test "should create user" do
+            assert_difference("User.count") do
+              post users_url, params: { user: { email: @user.email, name: @user.name, password_digest: @user.password_digest } }
+            end
+
+            assert_redirected_to user_url(User.last)
+          end
+
+          test "should show user" do
+            get user_url(@user)
+            assert_response :success
+          end
+
+          test "should get edit" do
+            get edit_user_url(@user)
+            assert_response :success
+          end
+
+          test "should update user" do
+            patch user_url(@user), params: { user: { email: @user.email, name: @user.name, password_digest: @user.password_digest } }
+            assert_redirected_to user_url(@user)
+          end
+
+          test "should destroy user" do
+            assert_difference("User.count", -1) do
+              delete user_url(@user)
+            end
+
+            assert_redirected_to users_url
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    tests = File.read(tests_path)
+
+    index_lines = tests.lines
+
+    index_start = index_lines.index(
+      "  test \"should get index\" do\n"
+    )
+
+    expect(index_start).not_to be_nil
+
+    expect(
+      index_lines[index_start, 7]
+    ).to eq(
+      [
+        "  test \"should get index\" do\n",
+        "    log_in_as(@user)\n",
+        "\n",
+        "    get users_url\n",
+        "\n",
+        "    assert_redirected_to user_url(@user)\n",
+        "  end\n"
+      ]
+    )
+
+    index_test = tests[
+      /test "should get index" do.*?^\s*end$/m
+    ]
+
+    expect(index_test).not_to be_nil
+
+    expect(index_test).to include(
+      "log_in_as(@user)"
+    )
+
+    expect(index_test).to include(
+      "get users_url"
+    )
+
+    expect(index_test).to include(
+      "assert_redirected_to user_url(@user)"
+    )
+
+    expect(index_test).not_to include(
+      "assert_response :success"
+    )
+
+    expect(index_test).not_to include(
+      "session[:user_id]"
+    )
+
+    expect(tests).to include(
+      "def log_in_as(user)"
+    )
+
+    expect(tests).to include(
+      'user.update!(password: "password", password_confirmation: "password")'
+    )
+
+    expect(tests).to include(
+      'post login_url, params: { email: user.email, password: "password" }'
+    )
+
+    expect(tests).to include(
+      'password: "password"'
+    )
+
+    expect(tests).to include(
+      'password_confirmation: "password"'
+    )
+
+    expect(tests).not_to include(
+      "password_digest: @user.password_digest"
+    )
+  end
+
+  it "updates authentication fixtures for password login" do
+    fixtures_path = File.join(
+      @destination_root,
+      "test/fixtures/users.yml"
+    )
+
+    FileUtils.mkdir_p(
+      File.dirname(fixtures_path)
+    )
+
+    File.write(
+      fixtures_path,
+      <<~YAML
+        one:
+          name: MyString
+          email: MyString
+          password_digest: MyString
+
+        two:
+          name: MyString
+          email: MyString
+          password_digest: MyString
+      YAML
+    )
+
+    generator = described_class.new(
+      ["User"],
+      {},
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    fixtures = File.read(fixtures_path)
+
+    expect(fixtures).to include(
+      'password_digest: <%= BCrypt::Password.create("password") %>'
+    )
+
+    expect(fixtures).not_to include(
+      "password_digest: MyString"
+    )
+
+    expect(fixtures).to include(
+      "email: user-one@example.com"
+    )
+
+    expect(fixtures).to include(
+      "email: user-two@example.com"
+    )
+
+    expect(
+      fixtures.scan(
+        'password_digest: <%= BCrypt::Password.create("password") %>'
+      ).length
+    ).to eq(2)
+  end
+
+  it "updates protected controller tests to sign in the authentication user" do
+    articles_controller_path = File.join(
+      @destination_root,
+      "app/controllers/articles_controller.rb"
+    )
+
+    File.write(
+      articles_controller_path,
+      <<~RUBY
+        class ArticlesController < ApplicationController
+          def index
+          end
+
+          def show
+          end
+
+          def new
+          end
+
+          def create
+          end
+
+          def edit
+          end
+
+          def update
+          end
+
+          def destroy
+          end
+        end
+      RUBY
+    )
+
+    tests_path = File.join(
+      @destination_root,
+      "test/controllers/articles_controller_test.rb"
+    )
+
+    FileUtils.mkdir_p(File.dirname(tests_path))
+
+    File.write(
+      tests_path,
+      <<~RUBY
+        require "test_helper"
+
+        class ArticlesControllerTest < ActionDispatch::IntegrationTest
+          setup do
+            @article = articles(:one)
+          end
+
+          test "should get index" do
+            get articles_url
+            assert_response :success
+          end
+
+          test "should get new" do
+            get new_article_url
+            assert_response :success
+          end
+
+          test "should create article" do
+            post articles_url
+          end
+
+          test "should show article" do
+            get article_url(@article)
+            assert_response :success
+          end
+
+          test "should get edit" do
+            get edit_article_url(@article)
+            assert_response :success
+          end
+
+          test "should update article" do
+            patch article_url(@article)
+          end
+
+          test "should destroy article" do
+            delete article_url(@article)
+          end
+        end
+      RUBY
+    )
+
+    generator = described_class.new(
+      ["User"],
+      { protect: "Articles" },
+      destination_root: @destination_root
+    )
+
+    generator.invoke_all
+
+    tests = File.read(tests_path)
+
+    expect(tests).to include(
+      "@authentication_user = users(:one)"
+    )
+
+    expect(tests).to include(
+      "log_in_as(@authentication_user)"
+    )
+
+    expect(tests).to include(
+      "def log_in_as(user)"
+    )
+
+    expect(tests).to include(
+      'user.update!(password: "password", password_confirmation: "password")'
+    )
+
+    expect(tests).to include(
+      'post login_url, params: { email: user.email, password: "password" }'
+    )
+
+    index_test = tests[
+      /test "should get index" do.*?^\s*end$/m
+    ]
+
+    show_test = tests[
+      /test "should show article" do.*?^\s*end$/m
+    ]
+
+    expect(index_test).not_to include(
+      "log_in_as"
+    )
+
+    expect(show_test).not_to include(
+      "log_in_as"
+    )
+  end
 end

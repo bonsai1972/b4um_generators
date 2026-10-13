@@ -503,6 +503,12 @@ module B4um
         end
       end
 
+      def update_controller_tests
+        update_authentication_fixtures
+        update_authentication_resource_controller_tests
+        update_protected_controller_tests
+      end
+
       def protect_show_actions
         protected_controller_names.each do |controller_name|
           protect_show_actions_for(controller_name)
@@ -516,6 +522,300 @@ module B4um
       end
 
       private
+
+      def update_authentication_fixtures
+        fixture_path = File.join(
+          destination_root,
+          "test/fixtures",
+          "#{authentication_model_name.pluralize}.yml"
+        )
+
+        return unless File.exist?(fixture_path)
+
+        fixtures = File.read(fixture_path)
+
+        fixture_name = nil
+
+        updated_fixtures = fixtures.lines.map do |line|
+          if (match = line.match(/^([a-zA-Z0-9_-]+):\s*$/))
+            fixture_name = match[1]
+            line
+          elsif line.match?(/^\s+email:\s*/)
+            fixture_label =
+              fixture_name
+              .to_s
+              .tr("_", "-")
+
+            indentation = line[/^\s*/]
+
+            "#{indentation}email: " \
+              "#{authentication_model_name}-#{fixture_label}@example.com\n"
+          elsif line.match?(/^\s+password_digest:\s*/)
+            indentation = line[/^\s*/]
+
+            "#{indentation}" \
+              'password_digest: <%= BCrypt::Password.create("password") %>' \
+              "\n"
+          else
+            line
+          end
+        end.join
+
+        return if updated_fixtures == fixtures
+
+        File.write(
+          fixture_path,
+          updated_fixtures
+        )
+      end
+
+      def update_authentication_resource_controller_tests
+        test_path = File.join(
+          "test/controllers",
+          "#{authentication_model_name.pluralize}_controller_test.rb"
+        )
+
+        full_test_path = File.join(
+          destination_root,
+          test_path
+        )
+
+        return unless File.exist?(full_test_path)
+
+        test = File.read(full_test_path)
+
+        update_authentication_test_password_params(
+          test_path,
+          test
+        )
+
+        test = File.read(full_test_path)
+
+        update_authentication_index_test(
+          test_path,
+          test
+        )
+
+        test = File.read(full_test_path)
+
+        add_authentication_sessions_to_resource_tests(
+          test_path,
+          test
+        )
+
+        test = File.read(full_test_path)
+
+        update_authentication_destroy_redirect_test(
+          test_path,
+          test
+        )
+      end
+
+      def update_protected_controller_tests
+        protected_controller_names.each do |controller_name|
+          test_path = File.join(
+            "test/controllers",
+            "#{controller_name.underscore}_controller_test.rb"
+          )
+
+          full_test_path = File.join(
+            destination_root,
+            test_path
+          )
+
+          next unless File.exist?(full_test_path)
+
+          add_login_to_protected_controller_test(
+            test_path,
+            controller_name
+          )
+        end
+      end
+
+      def update_authentication_test_password_params(test_path, test)
+        return unless test.include?(
+          "password_digest: @#{authentication_model_name}.password_digest"
+        )
+
+        gsub_file(
+          test_path,
+          "password_digest: @#{authentication_model_name}.password_digest",
+          'password: "password", password_confirmation: "password"'
+        )
+      end
+
+      def update_authentication_index_test(test_path, test)
+        resource_name = authentication_model_name
+        plural_name = resource_name.pluralize
+        test_name = Regexp.escape("should get index")
+
+        pattern = /
+          ^[ \t]*test\s+"#{test_name}"\s+do
+          \s+get\s+#{Regexp.escape(plural_name)}_url
+          \s+assert_response\s+:success
+          \s+end
+        /x
+
+        return unless test.match?(pattern)
+
+        replacement = [
+          "  test \"should get index\" do",
+          "    log_in_as(@#{resource_name})",
+          "",
+          "    get #{plural_name}_url",
+          "",
+          "    assert_redirected_to " \
+          "#{resource_name}_url(@#{resource_name})",
+          "  end"
+        ].join("\n")
+
+        gsub_file(
+          test_path,
+          pattern,
+          replacement
+        )
+      end
+
+      def add_authentication_sessions_to_resource_tests(test_path, test)
+        %w[show edit update destroy].each do |action|
+          test_name =
+            if action == "edit"
+              "should get edit"
+            else
+              "should #{action} #{authentication_model_name}"
+            end
+
+          pattern = /
+            (test\s+"#{Regexp.escape(test_name)}"\s+do\n)
+            (?!\s*log_in_as\(@#{Regexp.escape(authentication_model_name)}\))
+          /x
+
+          next unless test.match?(pattern)
+
+          gsub_file(test_path, pattern) do |match|
+            "#{match}    log_in_as(@#{authentication_model_name})\n"
+          end
+
+          test = File.read(
+            File.join(destination_root, test_path)
+          )
+        end
+
+        add_login_helper_to_controller_test(test_path)
+      end
+
+      def add_login_helper_to_controller_test(test_path)
+        full_test_path = File.join(
+          destination_root,
+          test_path
+        )
+
+        test = File.read(full_test_path)
+
+        return if test.include?("def log_in_as(user)")
+
+        final_end = test.rindex(/^end$/)
+        return unless final_end
+
+        helper =
+          "\n  private\n\n  " \
+          "def log_in_as(user)\n    " \
+          'user.update!(password: "password", password_confirmation: "password")' \
+          "\n    " \
+          'post login_url, params: { email: user.email, password: "password" }' \
+          "\n  " \
+          "end\n"
+
+        updated_test =
+          test.dup.insert(final_end, helper)
+
+        File.write(
+          full_test_path,
+          updated_test
+        )
+      end
+
+      def update_authentication_destroy_redirect_test(test_path, test)
+        plural_name = authentication_model_name.pluralize
+
+        old_redirect =
+          "assert_redirected_to #{plural_name}_url"
+
+        return unless test.include?(old_redirect)
+
+        gsub_file(
+          test_path,
+          old_redirect,
+          "assert_redirected_to root_url"
+        )
+      end
+
+      def add_login_to_protected_controller_test(
+        test_path,
+        controller_name
+      )
+        full_test_path = File.join(
+          destination_root,
+          test_path
+        )
+
+        test = File.read(full_test_path)
+
+        add_authentication_fixture_to_test(
+          test_path,
+          test
+        )
+
+        test = File.read(full_test_path)
+
+        protected_test_actions_for(controller_name).each do |test_name|
+          pattern = /
+            (test\s+"#{Regexp.escape(test_name)}"\s+do\n)
+            (?!\s*log_in_as\(@authentication_user\))
+          /x
+
+          next unless test.match?(pattern)
+
+          gsub_file(test_path, pattern) do |match|
+            "#{match}    log_in_as(@authentication_user)\n"
+          end
+
+          test = File.read(full_test_path)
+        end
+
+        add_login_helper_to_controller_test(test_path)
+      end
+
+      def add_authentication_fixture_to_test(test_path, test)
+        fixture_assignment =
+          "@authentication_user = " \
+          "#{authentication_model_name.pluralize}(:one)"
+
+        return if test.include?(fixture_assignment)
+
+        setup_pattern = /
+          (setup\s+do\n)
+        /x
+
+        return unless test.match?(setup_pattern)
+
+        gsub_file(test_path, setup_pattern) do |match|
+          "#{match}    #{fixture_assignment}\n"
+        end
+      end
+
+      def protected_test_actions_for(controller_name)
+        singular_name =
+          controller_name.underscore.singularize
+
+        [
+          "should get new",
+          "should create #{singular_name}",
+          "should get edit",
+          "should update #{singular_name}",
+          "should destroy #{singular_name}"
+        ]
+      end
 
       def add_register_navigation_link(navigation_path, navigation)
         return if navigation.include?(

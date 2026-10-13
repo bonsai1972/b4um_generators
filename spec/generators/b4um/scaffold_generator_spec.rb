@@ -228,7 +228,7 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
   end
 
-  it "generates password fields for password_digest" do
+  it "generates secure password support for password_digest" do
     generator = described_class.new(
       [
         "Member",
@@ -283,8 +283,13 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       )
     )
 
-    expect(resource).to include("member.email")
-    expect(resource).not_to include("member.password_digest")
+    expect(resource).to include(
+      "member.email"
+    )
+
+    expect(resource).not_to include(
+      "member.password_digest"
+    )
 
     model = File.read(
       File.join(
@@ -301,10 +306,15 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
     )
 
     gemfile = File.read(
-      File.join(@destination_root, "Gemfile")
+      File.join(
+        @destination_root,
+        "Gemfile"
+      )
     )
 
-    expect(model).to include("has_secure_password")
+    expect(model).to include(
+      "has_secure_password"
+    )
 
     expect(controller).to include(
       ":password, :password_confirmation"
@@ -314,7 +324,9 @@ RSpec.describe B4um::Generators::ScaffoldGenerator do
       ":password_digest"
     )
 
-    expect(gemfile).to include('gem "bcrypt"')
+    expect(gemfile).to include(
+      'gem "bcrypt"'
+    )
   end
 
   it "adds presence validations and marks required fields in the form" do
