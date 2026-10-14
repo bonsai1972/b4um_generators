@@ -4,6 +4,33 @@ All notable changes to b4um Generators will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-14
+
+### Added
+
+- Added complete Todo application generator with `b4um:todo`
+- Added task creation, completion, reopening and deletion
+- Added separate lists for open and completed tasks
+- Added automatic task counters and progress tracking
+- Added progress bar with completion percentage
+- Added Turbo Stream updates without full page reloads
+- Added Stimulus controller for task input handling
+- Added automatic input reset after successful task creation
+- Added responsive Todo layout with b4um cards and floating labels
+- Added light and dark mode support for Todo components
+- Added optional `--owner=MODEL` support for personal Todo lists
+- Added integration with b4um authentication and current account helpers
+- Added owner-specific task access protection
+- Added HTTP 401 responses for unauthenticated owner-specific Todo requests
+- Added 35 RSpec examples for the Todo generator
+
+### Changed
+
+- Extended `b4um:help` with Todo generator documentation
+- Extended Help generator RSpec coverage for Todo
+- Updated English and German README documentation
+- Updated the generator overview to include `b4um:todo`
+
 ## [0.4.2] - 2026-10-13
 
 ### Fixed

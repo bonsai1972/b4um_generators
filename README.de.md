@@ -6,8 +6,8 @@ b4um Generators ist eine Sammlung wiederverwendbarer Rails-Generatoren, Template
 für b4um-Rails-Projekte.
 
 Das Gem bietet eine einheitliche Grundlage für Rails-Anwendungen und enthält Generatoren für Scaffolds, Controller,
-Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Kommentare, Authentifizierung, Administration, Gastzugänge,
-Attachments und Rich-Text-Bearbeitung.
+Bento-Layouts, Tabellen, Pagination, Infinite Scroll, Suche, Sortierung, Todo-Listen, Kommentare, Authentifizierung,
+Administration, Gastzugänge, Attachments und Rich-Text-Bearbeitung.
 
 Die generierten Komponenten verwenden ein gemeinsames b4um-Styling und sind darauf ausgelegt, miteinander zu
 funktionieren.
@@ -24,7 +24,7 @@ b4um Generators wird während der Entwicklung derzeit als lokales Gem verwendet.
 Füge das Gem zur `Gemfile` der Rails-Anwendung hinzu:
 
 ```ruby
-gem "b4um_generators", "~> 0.4.2", path: "/pfad/zu/b4um_generators"
+gem "b4um_generators", "~> 0.5.0", path: "/pfad/zu/b4um_generators"
 ```
 
 Führe anschließend aus:
@@ -82,6 +82,7 @@ b4um:pagination
 b4um:infinite_scroll
 b4um:search
 b4um:sortable
+b4um:todo
 b4um:comments
 b4um:in_place
 b4um:authentication
@@ -1146,6 +1147,119 @@ Dadurch entstehen entsprechend `/produktuebersicht`, `/verwaltung` und `/admin`.
 Eine separate Sortierseite ermöglicht außerdem, nur die `sort`-Action durch die Authentifizierung zu schützen, während
 der normale Ressourcen-Index öffentlich bleiben kann.
 
+## Todo
+
+Erzeuge eine vollständige Todo-Anwendung mit Turbo Streams, Stimulus und dem einheitlichen b4um-Styling:
+
+```bash
+bin/rails generate b4um:todo Task
+bin/rails db:migrate
+```
+
+Der Generator erstellt eine sofort verwendbare Aufgabenliste, ohne dass ein zusätzliches Todo-Gem erforderlich ist.
+
+Standardmäßig werden Aufgaben gemeinsam innerhalb der Anwendung verwaltet und sind keinem einzelnen Benutzer zugeordnet.
+
+Die generierte Todo-Anwendung ist erreichbar unter:
+
+```text
+/tasks
+```
+
+### Funktionen
+
+Der Todo-Generator bietet:
+
+- Neue Aufgaben erstellen
+- Aufgaben als erledigt markieren
+- Erledigte Aufgaben wieder öffnen
+- Aufgaben löschen
+- Getrennte Listen für offene und erledigte Aufgaben
+- Automatische Aufgabenzähler
+- Fortschrittsbalken mit prozentualer Anzeige
+- Aktualisierungen mit Turbo Streams ohne vollständiges Neuladen der Seite
+- Stimulus-Controller für die Aufgabeneingabe
+- Automatisches Zurücksetzen des Eingabefeldes nach erfolgreicher Erstellung
+- b4um Floating Labels
+- Responsives b4um-Kartenlayout
+- Unterstützung für Light Mode und Dark Mode
+- Optionale Zuordnung zu einem Benutzerkonto
+- Zugriffsschutz für benutzerspezifische Aufgaben
+
+### Persönliche Todo-Listen
+
+Todo-Listen können optional einem Authentifizierungsmodell zugeordnet werden.
+
+Mit `--owner` werden Aufgaben einzelnen Benutzern zugewiesen:
+
+```bash
+bin/rails generate b4um:todo Task --owner=User
+bin/rails db:migrate
+```
+
+Das angegebene Benutzer- beziehungsweise Eigentümermodell muss bereits existieren.
+
+Wird ein Eigentümermodell angegeben, erhält jedes angemeldete Benutzerkonto seine eigene Todo-Liste.
+
+Die Aufgaben werden über die Verknüpfung des aktuell angemeldeten Kontos geladen. Dadurch können Benutzer nicht auf
+Aufgaben anderer Konten zugreifen.
+
+Nicht authentifizierte Anfragen an benutzerspezifische Todo-Aktionen erhalten den HTTP-Status `401 Unauthorized`.
+
+### Integration mit der Authentifizierung
+
+Der Todo-Generator arbeitet mit dem bestehenden b4um-Authentifizierungssystem zusammen.
+
+Ein vollständiges Beispiel:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+bin/rails db:migrate
+
+bin/rails generate b4um:authentication User
+
+bin/rails generate b4um:todo Task --owner=User
+bin/rails db:migrate
+```
+
+Die Passwort-Authentifizierung benötigt bcrypt. Dieses kann über `b4um:install` installiert werden.
+
+Die Option `--owner` unterstützt auch andere Authentifizierungsmodelle:
+
+```bash
+bin/rails generate b4um:todo Task --owner=Member
+bin/rails generate b4um:todo Task --owner=Customer
+```
+
+Der generierte Controller verwendet automatisch den zum Modell passenden Helper für das aktuell angemeldete Konto:
+
+```ruby
+current_user
+current_member
+current_customer
+```
+
+### Generierte Dateien
+
+Für das standardmäßige `Task`-Modell erstellt der Generator folgende Komponenten:
+
+- Task-Modell und Datenbankmigration
+- Tasks-Controller
+- Ressourcen-Routen
+- Todo-Index-View
+- Task-Partial
+- Fortschritts-Partial
+- Todo-Stylesheet
+- Stimulus-Controller
+
+Nach dem Generieren muss die Datenbankmigration ausgeführt werden:
+
+```bash
+bin/rails db:migrate
+```
+
+Anschließend kann die Todo-Anwendung verwendet werden.
+
 ## Kommentare
 
 Füge einem bestehenden Modell polymorphe Kommentare hinzu:
@@ -1549,7 +1663,7 @@ wird.
 
 ## Version
 
-Aktuelle Version: `0.4.2`
+Aktuelle Version: `0.5.0`
 
 ## Autor
 

@@ -6,8 +6,8 @@ b4um Generators is a collection of reusable Rails generators, templates, compone
 Rails projects.
 
 The gem provides a consistent starting point for Rails applications and includes generators for scaffolds, controllers,
-Bento layouts, tables, pagination, infinite scrolling, search, sorting, comments, authentication, administrator
-management, guest access, attachments and rich-text editing.
+Bento layouts, tables, pagination, infinite scrolling, search, sorting, Todo lists, comments, authentication,
+administrator management, guest access, attachments and rich-text editing.
 
 Generated components share the same b4um styling and are designed to work together.
 
@@ -23,7 +23,7 @@ b4um Generators is currently used as a local gem during development.
 Add the gem to the Rails application's `Gemfile`:
 
 ```ruby
-gem "b4um_generators", "~> 0.4.2", path: "/path/to/b4um_generators"
+gem "b4um_generators", "~> 0.5.0", path: "/path/to/b4um_generators"
 ```
 
 Then run:
@@ -80,6 +80,7 @@ b4um:pagination
 b4um:infinite_scroll
 b4um:search
 b4um:sortable
+b4um:todo
 b4um:comments
 b4um:in_place
 b4um:authentication
@@ -1125,6 +1126,119 @@ These create `/produktuebersicht`, `/verwaltung`, and `/admin` respectively.
 Using a separate sortable page also makes it possible to protect only the `sort` action with authentication while
 keeping the regular resource index public.
 
+## Todo
+
+Generate a complete Todo application with Turbo Streams, Stimulus and b4um styling:
+
+```bash
+bin/rails generate b4um:todo Task
+bin/rails db:migrate
+```
+
+The generator creates a ready-to-use Todo list without requiring an additional Todo gem.
+
+By default, tasks are shared across the application and are not assigned to individual users.
+
+The generated Todo application is available at:
+
+```text
+/tasks
+```
+
+### Features
+
+The Todo generator provides:
+
+- Create new tasks
+- Mark tasks as completed
+- Reopen completed tasks
+- Delete tasks
+- Separate lists for open and completed tasks
+- Automatic task counters
+- Progress bar with completion percentage
+- Turbo Stream updates without full page reloads
+- Stimulus controller for task input handling
+- Automatic input reset after successful creation
+- b4um floating labels
+- Responsive b4um card layout
+- Light and dark mode support
+- Optional owner association
+- Owner-specific task access protection
+
+### Personal Todo Lists
+
+Todo lists can optionally be associated with an authentication model.
+
+Use `--owner` to assign tasks to individual users:
+
+```bash
+bin/rails generate b4um:todo Task --owner=User
+bin/rails db:migrate
+```
+
+The owner model must already exist.
+
+When an owner is configured, each authenticated account has its own Todo list.
+
+Tasks are loaded through the current owner's association, preventing users from accessing tasks belonging to another
+account.
+
+Unauthenticated requests to owner-specific Todo actions receive HTTP `401 Unauthorized`.
+
+### Authentication Integration
+
+The Todo generator integrates with the existing b4um authentication system.
+
+A complete example:
+
+```bash
+bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+bin/rails db:migrate
+
+bin/rails generate b4um:authentication User
+
+bin/rails generate b4um:todo Task --owner=User
+bin/rails db:migrate
+```
+
+Password authentication requires bcrypt, which can be installed through `b4um:install`.
+
+The owner option also supports other authentication models:
+
+```bash
+bin/rails generate b4um:todo Task --owner=Member
+bin/rails generate b4um:todo Task --owner=Customer
+```
+
+The generated controller uses the corresponding current account helper:
+
+```ruby
+current_user
+current_member
+current_customer
+```
+
+### Generated Files
+
+For the default `Task` model, the generator creates the following components:
+
+- Task model and database migration
+- Tasks controller
+- Resource routes
+- Todo index view
+- Task partial
+- Progress partial
+- Todo stylesheet
+- Stimulus controller
+
+After generation, run:
+
+```bash
+bin/rails db:migrate
+```
+
+The Todo application is then ready to use.
+
 ## Comments
 
 Add polymorphic comments to an existing model:
@@ -1524,7 +1638,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.4.2`
+Current version: `0.5.0`
 
 ## Author
 

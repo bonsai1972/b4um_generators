@@ -768,6 +768,118 @@ RSpec.describe B4um::Generators::HelpGenerator do
     generator.show_help
   end
 
+  it "documents the b4um todo generator" do
+    generator = described_class.new
+
+    expect(generator).to receive(:say) do |text|
+      expect(text).to include(
+        "TODO"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:todo MODEL"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:todo Task"
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:todo Task --owner=User"
+      )
+
+      expect(text).to include(
+        "The owner model must already exist."
+      )
+
+      expect(text).to include(
+        "bin/rails generate b4um:authentication User"
+      )
+
+      expect(text).to include(
+        "--owner=Member"
+      )
+
+      expect(text).to include(
+        "current_user"
+      )
+
+      expect(text).to include(
+        "current_member"
+      )
+
+      expect(text).to include(
+        "Users cannot access tasks belonging to another account."
+      )
+
+      expect(text).to include(
+        "HTTP 401 Unauthorized"
+      )
+
+      expect(text).to include(
+        "Create new tasks"
+      )
+
+      expect(text).to include(
+        "Mark tasks as completed"
+      )
+
+      expect(text).to include(
+        "Reopen completed tasks"
+      )
+
+      expect(text).to include(
+        "Delete tasks"
+      )
+
+      expect(text).to include(
+        "Progress bar with completion percentage"
+      )
+
+      expect(text).to include(
+        "Turbo Stream updates without full page reloads"
+      )
+
+      expect(text).to include(
+        "Stimulus controller for the task input"
+      )
+
+      expect(text).to include(
+        "b4um floating labels"
+      )
+
+      expect(text).to include(
+        "Light and dark mode support"
+      )
+
+      expect(text).to include(
+        "Optional owner association with --owner"
+      )
+
+      expect(text).to include(
+        "Task model and database migration"
+      )
+
+      expect(text).to include(
+        "Tasks controller"
+      )
+
+      expect(text).to include(
+        "Todo stylesheet"
+      )
+
+      expect(text).to include(
+        "bin/rails db:migrate"
+      )
+
+      expect(text).to include(
+        "/tasks"
+      )
+    end
+
+    generator.show_help
+  end
+
   it "documents the b4um comments generator" do
     generator = described_class.new
 

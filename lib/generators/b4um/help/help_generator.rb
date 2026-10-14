@@ -1172,6 +1172,95 @@ module B4um
             - Safe repeated generator runs
 
 
+          TODO
+
+            bin/rails generate b4um:todo MODEL
+
+          Generates a complete Todo application for Rails.
+
+          Example:
+
+            bin/rails generate b4um:todo Task
+            bin/rails db:migrate
+
+          By default, the Todo list is shared across the application.
+          Tasks are not assigned to individual users.
+
+          To create personal Todo lists, use --owner:
+
+            bin/rails generate b4um:todo Task --owner=User
+            bin/rails db:migrate
+
+          The owner model must already exist.
+
+          For user-specific Todo lists, b4um authentication can be
+          installed first:
+
+            bin/rails generate b4um:scaffold User name:string email:string password_digest:string
+            bin/rails db:migrate
+            bin/rails generate b4um:authentication User
+            bin/rails generate b4um:todo Task --owner=User
+            bin/rails db:migrate
+
+          The owner option supports other authentication models:
+
+            --owner=User
+            --owner=Member
+            --owner=Customer
+
+          The generated controller uses the corresponding
+          current owner helper, for example:
+
+            current_user
+            current_member
+            current_customer
+
+          With an owner, each account has its own Todo list.
+
+          Tasks are loaded through the current owner's association.
+          Users cannot access tasks belonging to another account.
+
+          Unauthenticated requests to owner-specific Todo actions
+          receive HTTP 401 Unauthorized.
+
+          Todo features:
+
+            - Create new tasks
+            - Mark tasks as completed
+            - Reopen completed tasks
+            - Delete tasks
+            - Separate lists for open and completed tasks
+            - Automatic task counters
+            - Progress bar with completion percentage
+            - Turbo Stream updates without full page reloads
+            - Stimulus controller for the task input
+            - Automatic input reset after successful creation
+            - b4um floating labels
+            - Responsive b4um card layout
+            - Light and dark mode support
+            - Optional owner association with --owner
+            - Owner-specific task access protection
+
+          The generator creates:
+
+            - Task model and database migration
+            - Tasks controller
+            - Resource routes
+            - Index view
+            - Task partial
+            - Progress partial
+            - Todo stylesheet
+            - Stimulus controller
+
+          After generating the Todo application, run:
+
+            bin/rails db:migrate
+
+          With the default Task model, the Todo list is available at:
+
+            /tasks
+
+
           COMMENTS
 
             bin/rails generate b4um:comments MODEL
