@@ -184,7 +184,8 @@ class <%= class_name.pluralize %>Controller < ApplicationController
   def require_todo_owner
     return if <%= current_owner_method %>
 
-    head :unauthorized
+    redirect_to <%= options[:login_path] %>,
+                alert: "Bitte melde dich an, um deine Aufgaben zu verwalten."
   end
 <% end %>
 end

@@ -4,6 +4,26 @@ All notable changes to b4um Generators will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-14
+
+### Added
+
+- Added optional `--login-path` configuration to the Todo generator
+- Added validation for custom login route helpers
+- Added RSpec coverage for default, custom and invalid login routes
+
+### Fixed
+
+- Fixed unauthenticated access to personal Todo lists by redirecting users to the login page instead of returning HTTP
+  401
+- Preserved public Todo list access without authentication requirements
+
+### Changed
+
+- Kept `login_path` as the default route for b4um authentication
+- Updated English and German README documentation
+- Verified the complete generator suite with 507 RSpec examples and 0 failures
+
 ## [0.5.0] - 2026-10-14
 
 ### Added

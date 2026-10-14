@@ -23,7 +23,7 @@ b4um Generators is currently used as a local gem during development.
 Add the gem to the Rails application's `Gemfile`:
 
 ```ruby
-gem "b4um_generators", "~> 0.5.0", path: "/path/to/b4um_generators"
+gem "b4um_generators", "~> 0.5.1", path: "/path/to/b4um_generators"
 ```
 
 Then run:
@@ -1183,7 +1183,19 @@ When an owner is configured, each authenticated account has its own Todo list.
 Tasks are loaded through the current owner's association, preventing users from accessing tasks belonging to another
 account.
 
-Unauthenticated requests to owner-specific Todo actions receive HTTP `401 Unauthorized`.
+Unauthenticated users are automatically redirected to the login page.
+
+By default, the generator uses the `login_path` route helper provided by the b4um authentication system.
+
+You can optionally specify a different login route:
+
+```bash
+bin/rails generate b4um:todo Task --owner=User --login-path=new_user_session_path
+```
+
+The `--login-path` option is optional. If omitted, `login_path` is used.
+
+Public Todo lists generated without `--owner` do not require authentication and do not redirect users to a login page.
 
 ### Authentication Integration
 
@@ -1638,7 +1650,7 @@ The gem can be tested locally by referencing the repository with `path:` from a 
 
 ## Version
 
-Current version: `0.5.0`
+Current version: `0.5.1`
 
 ## Author
 

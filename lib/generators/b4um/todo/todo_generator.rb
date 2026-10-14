@@ -15,6 +15,11 @@ module B4um
                    default: nil,
                    desc: "Associates tasks with the specified owner model."
 
+      class_option :login_path,
+                   type: :string,
+                   default: "login_path",
+                   desc: "Route helper for unauthenticated users (default: login_path)."
+
       class << self
         def desc(_description = nil)
           "Creates a complete To-Do list with Turbo and Stimulus."
@@ -30,6 +35,17 @@ module B4um
 
         raise Thor::Error,
               "Invalid owner model: #{owner_name}"
+      end
+
+      def validate_login_path
+        return unless owner?
+
+        login_route = options[:login_path].to_s
+
+        return if login_route.match?(/\A[a-z_][a-zA-Z0-9_]*_path\z/)
+
+        raise Thor::Error,
+              "Invalid login path: #{login_route}. Expected a Rails route helper ending in _path."
       end
 
       def create_todo_migration

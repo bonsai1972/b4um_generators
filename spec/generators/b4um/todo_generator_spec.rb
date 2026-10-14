@@ -221,6 +221,65 @@ RSpec.describe B4um::Generators::TodoGenerator do
     end
   end
 
+  context "login path configuration" do
+    it "uses login_path by default" do
+      run_generator(owner: "User")
+
+      content = File.read(
+        File.join(
+          @destination_root,
+          "app/controllers/tasks_controller.rb"
+        )
+      )
+
+      expect(content).to include(
+        "redirect_to login_path,"
+      )
+    end
+
+    it "supports a custom login path" do
+      generator = described_class.new(
+        ["Task"],
+        {
+          owner: "User",
+          login_path: "new_user_session_path"
+        },
+        destination_root: @destination_root
+      )
+
+      generator.invoke_all
+
+      content = File.read(
+        File.join(
+          @destination_root,
+          "app/controllers/tasks_controller.rb"
+        )
+      )
+
+      expect(content).to include(
+        "redirect_to new_user_session_path,"
+      )
+    end
+
+    it "rejects an invalid login path" do
+      generator = described_class.new(
+        ["Task"],
+        {
+          owner: "User",
+          login_path: "invalid-route"
+        },
+        destination_root: @destination_root
+      )
+
+      expect do
+        generator.invoke_all
+      end.to raise_error(
+        Thor::Error,
+        /Invalid login path/
+      )
+    end
+  end
+
   context "controller generation" do
     def controller_content
       path = File.join(
@@ -254,6 +313,50 @@ RSpec.describe B4um::Generators::TodoGenerator do
 
       expect(content).to include("current_user.tasks")
       expect(content).to include("require_todo_owner")
+    end
+
+    it "redirects unauthenticated users to login for owner-specific tasks" do
+      run_generator(owner: "User")
+
+      content = controller_content
+
+      expect(content).to include(
+        "before_action :require_todo_owner"
+      )
+
+      expect(content).to include(
+        "return if current_user"
+      )
+
+      expect(content).to include(
+        "redirect_to login_path"
+      )
+
+      expect(content).to include(
+        "Bitte melde dich an, um deine Aufgaben zu verwalten."
+      )
+
+      expect(content).not_to include(
+        "head :unauthorized"
+      )
+    end
+
+    it "does not require login for public tasks" do
+      run_generator
+
+      content = controller_content
+
+      expect(content).not_to include(
+        "before_action :require_todo_owner"
+      )
+
+      expect(content).not_to include(
+        "def require_todo_owner"
+      )
+
+      expect(content).not_to include(
+        "redirect_to login_path"
+      )
     end
 
     it "uses current_member for Member-owned tasks" do
