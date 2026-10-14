@@ -1,0 +1,22 @@
+<section id="todo_progress" class="b4um-todo__progress">
+  <div class="b4um-todo__progress-info">
+    <h2>Fortschritt</h2>
+
+    <span>
+      <%%= @completed_tasks %> von <%%= @total_tasks %> erledigt
+    </span>
+  </div>
+
+  <%% progress = @total_tasks.positive? ? (@completed_tasks * 100.0 / @total_tasks).round : 0 %>
+
+  <div class="b4um-todo__progress-bar">
+    <div
+      class="b4um-todo__progress-fill"
+      style="width: <%%= progress %>%"
+    ></div>
+  </div>
+
+  <p class="b4um-todo__progress-percentage">
+    <%%= progress %>% abgeschlossen
+  </p>
+</section>

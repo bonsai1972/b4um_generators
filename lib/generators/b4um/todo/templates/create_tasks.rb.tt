@@ -1,0 +1,13 @@
+class Create<%= class_name.pluralize %> < ActiveRecord::Migration[<%= migration_version %>]
+  def change
+    create_table :<%= plural_table_name %> do |t|
+      t.string :name, null: false
+      t.boolean :complete, default: false, null: false
+<% if owner? %>
+      t.references :<%= owner_reference_name %>, null: false, foreign_key: true
+<% end %>
+
+      t.timestamps
+    end
+  end
+end

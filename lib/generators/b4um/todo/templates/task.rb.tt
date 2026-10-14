@@ -1,0 +1,7 @@
+class <%= class_name %> < ApplicationRecord
+<% if owner? %>
+  belongs_to :<%= owner_reference_name %>
+<% end %>
+
+  validates :name, presence: true
+end

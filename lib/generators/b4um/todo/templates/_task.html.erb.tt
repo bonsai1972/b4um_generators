@@ -1,0 +1,42 @@
+<div id="<%%= dom_id(task) %>"
+     class="b4um-todo__item <%%= 'b4um-todo__item--complete' if task.complete? %>">
+
+  <div class="b4um-todo__item-content">
+
+    <%%= button_to <%= singular_table_name %>_path(task),
+          method: :patch,
+          class: "b4um-todo__checkbox",
+          form: { data: { turbo: true } },
+          aria: {
+            label: task.complete? ? "Als offen markieren" : "Als erledigt markieren",
+            pressed: task.complete?
+          } do %>
+
+      <span class="b4um-todo__checkbox-icon">
+        <%%= "✓" if task.complete? %>
+      </span>
+
+    <%% end %>
+
+    <span class="b4um-todo__item-name">
+      <%%= task.name %>
+    </span>
+
+  </div>
+
+  <%%= button_to <%= singular_table_name %>_path(task),
+        method: :delete,
+        class: "b4um-todo__delete",
+        form: {
+          data: {
+            turbo: true,
+            turbo_confirm: "Möchtest du diese Aufgabe wirklich löschen?"
+          }
+        },
+        aria: { label: "Aufgabe löschen" } do %>
+
+    <span aria-hidden="true">×</span>
+
+  <%% end %>
+
+</div>

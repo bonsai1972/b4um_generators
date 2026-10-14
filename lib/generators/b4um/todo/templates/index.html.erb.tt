@@ -1,0 +1,101 @@
+<header class="b4um-todo__header">
+  <h1>Meine Aufgaben</h1>
+  <p>Behalte deine Aufgaben im Blick.</p>
+</header>
+<div class="b4um-grid">
+  <div class="b4um-card b4um-card--full">
+    <div class="b4um-todo">
+      <%%= render "progress" %>
+
+      <section class="b4um-todo__form">
+        <h2>Neue Aufgabe</h2>
+
+        <%%= form_with model: @task,
+              data: {
+                controller: "b4um-todo",
+                action: "turbo:submit-end->b4um-todo#resetAfterSuccess"
+              } do |form| %>
+
+
+          <div class="b4um-todo__form-fields">
+
+            <div class="form-field">
+              <%%= form.text_field :name,
+                    class: "form-input",
+                    placeholder: " ",
+                    required: true,
+                    autofocus: true,
+                    data: {
+                      b4um_todo_target: "input",
+                      action: "input->b4um-todo#updateSubmitState"
+                    } %>
+
+              <%%= form.label :name,
+                    "Was möchtest du erledigen?",
+                    class: "form-label" %>
+            </div>
+
+            <%%= form.submit "Hinzufügen",
+                  class: "b4um-todo__button",
+                  data: {
+                    b4um_todo_target: "submit"
+                  } %>
+
+          </div>
+
+          <%% if @task.errors.any? %>
+            <div class="b4um-todo__errors">
+              <%%= @task.errors.full_messages.to_sentence %>
+            </div>
+          <%% end %>
+        <%% end %>
+      </section>
+
+      <section class="b4um-todo__section">
+        <h2>
+          Offene Aufgaben
+          <span id="incomplete_tasks_count">
+            (<%%= @incomplete_tasks.size %>)
+          </span>
+        </h2>
+
+        <div id="incomplete_tasks" class="b4um-todo__list">
+          <%%= render partial: "task",
+                collection: @incomplete_tasks,
+                as: :task %>
+        </div>
+
+        <div id="incomplete_tasks_empty">
+          <%% unless @incomplete_tasks.any? %>
+            <p class="b4um-todo__empty">
+              Keine offenen Aufgaben. Sehr gut!
+            </p>
+          <%% end %>
+        </div>
+      </section>
+
+      <section class="b4um-todo__section">
+        <h2>
+          Erledigte Aufgaben
+          <span id="complete_tasks_count">
+            (<%%= @complete_tasks.size %>)
+          </span>
+        </h2>
+
+        <div id="complete_tasks" class="b4um-todo__list">
+          <%%= render partial: "task",
+                collection: @complete_tasks,
+                as: :task %>
+        </div>
+
+        <div id="complete_tasks_empty">
+          <%% unless @complete_tasks.any? %>
+            <p class="b4um-todo__empty">
+              Noch keine erledigten Aufgaben.
+            </p>
+          <%% end %>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -66,6 +66,21 @@
   --b4um-hero-teaser-background: rgba(255, 255, 255, 0.55);
   --b4um-hero-teaser-text: rgba(20, 20, 20, 0.9);
   --b4um-hero-teaser-border: rgba(255, 255, 255, 0.3);
+
+  /* todo */
+  --todo-primary: var(--b4um-primary);
+
+  --todo-primary-hover: var(--b4um-primary-hover);
+
+  --todo-background: #ffffff;
+  --todo-surface: #f7f9fb;
+  --todo-border: #e5e9ee;
+
+  --todo-text: #20252b;
+  --todo-muted: #737d89;
+
+  --todo-success: #22a06b;
+  --todo-danger: #d94b4b;
 }
 
 /* -------------------------------------------------------
@@ -135,6 +150,14 @@
   --b4um-hero-teaser-background: rgba(20, 20, 20, 0.55);
   --b4um-hero-teaser-text: rgba(255, 255, 255, 0.85);
   --b4um-hero-teaser-border: rgba(255, 255, 255, 0.18);
+
+  /* todo */
+  --todo-background: #28292a;
+  --todo-surface: #222426;
+  --todo-border: #414448;
+
+  --todo-text: #e3e3e3;
+  --todo-muted: #a2a8ae;
 
   color-scheme: dark;
 }
